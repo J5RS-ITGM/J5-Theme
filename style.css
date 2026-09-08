@@ -103,3 +103,168 @@ width: 38%; white-space: nowrap;
 .j5-specs-table-extra td { padding: 9px 10px; font-size: 13px; }
 .j5-specs-table-extra th { font-size: 11px; }
 }
+
+/* ==========================================================================
+   J5-CUSTOMIZER-PORT-1 — 2026-09-07
+   Ported from Appearance > Customize > Additional CSS (astra-child).
+   Customizer CSS is stored PER-THEME and did not follow the theme switch;
+   these rules were silently dropped when j5-theme activated. Now repo-owned.
+   Cleaned in port: fixed 4 selectors missing their leading dot, dropped the
+   stray [product_brand] line, dropped rules scoped to retired Elementor page
+   IDs (.elementor-7225/-83919/-91887/-83690), dropped no-op font-variant.
+   ========================================================================== */
+
+/* Category tiles: hide product counts */
+.woocommerce-loop-category__title .count { display: none !important; }
+
+/* Category tile titles */
+.woocommerce ul.products li.product .woocommerce-loop-category__title,
+.woocommerce-page ul.products li.product .woocommerce-loop-category__title {
+    bottom: -1em;
+    font-size: 1em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+/* Product cards */
+.woocommerce ul.products li.product,
+.woocommerce-page ul.products li.product {
+    text-align: left;
+    margin-bottom: 6em;
+}
+
+.woocommerce ul.products li.product .woocommerce-loop-product__title,
+.woocommerce-page ul.products li.product .woocommerce-loop-product__title {
+    margin-bottom: .5em;
+    padding: 0;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.woocommerce ul.products li.product .price,
+.woocommerce-page ul.products li.product .price {
+    line-height: 1.3;
+    font-weight: 700;
+    margin-bottom: .5em;
+    font-size: 1.25em;
+}
+
+/* Brand-red pricing across loop + single product */
+.woocommerce ul.products li.product .price,
+.woocommerce div.product p.price,
+.woocommerce div.product span.price,
+.widget_layered_nav_filters ul li.chosen a,
+.woocommerce-page ul.products li.product .ast-woo-product-category,
+.wc-layered-nav-rating a {
+    color: #9b1a1a;
+    font-size: 1.2rem;
+}
+
+/* Hide star ratings */
+.woocommerce .star-rating { visibility: hidden; }
+
+/* Hide payment method logos in payment lists */
+#add_payment_method #payment ul.payment_methods li img,
+.woocommerce-cart #payment ul.payment_methods li img,
+.woocommerce-checkout #payment ul.payment_methods li img {
+    vertical-align: middle;
+    margin: -2px 0 0 .5em;
+    padding: 0;
+    position: relative;
+    box-shadow: none;
+    visibility: hidden;
+}
+
+/* Checkout order-review product name */
+.woocommerce-page.woocommerce-checkout form #order_review td.product-name,
+.woocommerce.woocommerce-checkout form #order_review td.product-name {
+    font-weight: 500;
+    display: revert;
+}
+/* === J5-CUSTOMIZER-PORT-1-END === */
+
+/* ==========================================================================
+   J5-CART-CENTER-1 — 2026-09-07
+   Cart page centering, theme-owned. Previously emerged from plugin/cache
+   state (source never conclusively attributed); now explicit and
+   deterministic regardless of active plugins.
+   ========================================================================== */
+body.woocommerce-cart main.j5-site-content,
+main.j5-site-content {
+    max-width: 1400px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+/* === J5-CART-CENTER-1-END === */
+
+/* ==========================================================================
+   J5-NOTICES-1 — 2026-09-07
+   Site-wide WooCommerce notices (message / info / error): container width,
+   dark theme, consistent everywhere (cart "removed. Undo?", coupon notices,
+   account messages, checkout errors). The verification plugin's gate notice
+   carries its own more specific rules and intentionally wins on checkout.
+   ========================================================================== */
+.woocommerce-message,
+.woocommerce-info,
+ul.woocommerce-error {
+    max-width: min(1400px, calc(100% - 32px)) !important;
+    margin: 14px auto !important;
+    box-sizing: border-box;
+    background: #16181d !important;
+    color: #f5f1e8 !important;
+    border: 1px solid #2a2d35 !important;
+    border-left-width: 4px !important;
+    border-radius: 8px !important;
+    padding: 13px 18px !important;
+    font-size: 14px;
+    line-height: 1.45;
+    list-style: none;
+}
+.woocommerce-message { border-left-color: #2e7d32 !important; }
+.woocommerce-info    { border-left-color: #d4a044 !important; }
+ul.woocommerce-error { border-left-color: #c62828 !important; }
+ul.woocommerce-error li { padding: 2px 0 !important; background: none !important; }
+.woocommerce-message::before,
+.woocommerce-info::before,
+ul.woocommerce-error::before,
+ul.woocommerce-error li::before { content: none !important; display: none !important; }
+.woocommerce-message a,
+.woocommerce-info a,
+ul.woocommerce-error a { color: #d4a044 !important; text-decoration: underline; }
+/* === J5-NOTICES-1-END === */
+
+/* ==========================================================================
+   J5-CART-REMOVE-1 — 2026-09-07
+   Visible "Remove" button in cart line items, replacing the corner ×.
+   Covers both cart renderings: .j5-remove-btn (woocommerce/cart/cart.php)
+   and .j5cart-rm (single-j5-cart.php).
+   ========================================================================== */
+a.j5-remove-btn,
+a.j5cart-rm {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px !important;
+    border: 1px solid rgba(198, 40, 40, 0.55) !important;
+    border-radius: 6px;
+    background: rgba(198, 40, 40, 0.08);
+    color: #ff6b6b !important;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    line-height: 1;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+}
+a.j5-remove-btn:hover,
+a.j5cart-rm:hover {
+    background: rgba(198, 40, 40, 0.2);
+    border-color: #c62828 !important;
+    color: #ff8a8a !important;
+}
+a.j5-remove-btn span { font-size: 15px; line-height: 1; }
+/* === J5-CART-REMOVE-1-END === */
