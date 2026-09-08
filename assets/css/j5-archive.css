@@ -96,8 +96,10 @@
 /* Title */
 .j5-archive-title {
 	font-family: var(--font-display, 'Bebas Neue', sans-serif);
-	font-size: clamp(54px, 8vw, 96px);
-	line-height: 0.9;
+	/* J5 2026-09-07: was clamp(54px, 8vw, 96px) — oversized for long
+	   parenthetical category names; tightened for balance with side cards */
+	font-size: clamp(36px, 4.8vw, 62px);
+	line-height: 0.95;
 	letter-spacing: 0.02em;
 	color: var(--j5-bone, #f5f1e8);
 	margin: 0 0 18px;
