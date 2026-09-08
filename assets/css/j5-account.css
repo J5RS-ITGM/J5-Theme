@@ -1,0 +1,1166 @@
+/**
+ * J5 Rescue Supply — My Account styles (v2.0.0 — custom-template edition)
+ * ============================================================================
+ *
+ *  Replaces v1's CSS-fights-Elementor approach. Elementor is now disabled
+ *  for /my-account/ and the page renders through custom WC templates that
+ *  this stylesheet targets directly.
+ *
+ *  Structure:
+ *    - .j5-agency-banner             : top banner (logged-out)
+ *    - .j5-account-hero              : login/register hero (logged-out)
+ *    - .j5-login-grid                : flex container for login + register cards
+ *    - .j5-login-card / .j5-register-card : the two cards
+ *    - .j5-account-hero-bar          : welcome bar (logged-in)
+ *    - .j5-account-layout            : flex container for sidebar + content
+ *    - .j5-account-nav               : sidebar nav
+ *    - .j5-account-content           : content panel
+ *    - .j5-dashboard-tiles           : 4-tile grid on dashboard
+ *    - .j5-agency-cta-card           : agency portal CTA
+ *
+ *  Sentinel: J5-ACCOUNT-V1 (v9 — addresses page final layout)
+ * ============================================================================
+ */
+
+/* ============================================================================
+   Page chrome reset (kill Astra's defaults around the my-account content area)
+   ============================================================================ */
+body.woocommerce-account .ast-container,
+body.woocommerce-account #content,
+body.woocommerce-account #primary,
+body.woocommerce-account .site-content,
+body.woocommerce-account .ast-article-single {
+    background: #0B0B0B;
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+body.woocommerce-account .entry-header,
+body.woocommerce-account .ast-archive-description,
+body.woocommerce-account .page-title {
+    display: none;
+}
+body.woocommerce-account .entry-content { margin-top: 0; }
+
+/* ============================================================================
+   Agency banner (top of login page only, when not logged in)
+   ============================================================================ */
+.j5-agency-banner {
+    background: linear-gradient(90deg, #141414 0%, #1C1C1C 100%);
+    border-bottom: 1px solid #2A2A2A;
+    padding: 18px 0;
+}
+.j5-agency-banner-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+}
+.j5-agency-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+.j5-agency-banner-pill {
+    background: #C41E24 !important;
+    color: #fff !important;
+    font-family: 'Barlow Condensed', 'Barlow', system-ui, sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    padding: 4px 10px !important;
+    border-radius: 2px !important;
+    flex-shrink: 0 !important;
+}
+.j5-agency-banner-msg {
+    color: #D0D0D0 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    text-decoration: none !important;
+}
+.j5-agency-banner-msg strong {
+    color: #F4F4F4 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    background: none !important;
+}
+.j5-agency-banner-cta {
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    color: #C8A84E !important;
+    text-decoration: none !important;
+    border: 1px solid #C8A84E !important;
+    background: transparent !important;
+    padding: 9px 20px !important;
+    white-space: nowrap !important;
+    transition: all 0.2s !important;
+}
+.j5-agency-banner-cta:hover { background: #C8A84E !important; color: #0B0B0B !important; }
+
+/* ============================================================================
+   Hero (logged-out)
+   ============================================================================ */
+.j5-account-hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 56px 32px 32px;
+}
+.j5-account-eyebrow {
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: #C8A84E;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+.j5-account-title {
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif !important;
+    font-size: 72px !important;
+    line-height: 0.9 !important;
+    letter-spacing: 2px !important;
+    color: #F4F4F4 !important;
+    margin: 0 !important;
+    text-transform: uppercase !important;
+    font-weight: 400 !important;
+}
+.j5-account-title-accent { color: #C41E24 !important; }
+.j5-account-subtitle {
+    font-size: 16px;
+    color: #B0B0B0;
+    margin-top: 16px;
+    max-width: 640px;
+    line-height: 1.55;
+}
+
+/* ============================================================================
+   Login + Register two-column grid (logged-out)
+   ============================================================================ */
+.j5-login-wrapper {
+    max-width: 1200px;
+    margin: 24px auto 0;
+    padding: 0 32px 80px;
+}
+.j5-login-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    width: 100%;
+}
+.j5-login-card,
+.j5-register-card {
+    flex: 1 1 0;
+    width: 50%;
+    background: #141414;
+    border: 1px solid #2A2A2A;
+    padding: 40px;
+    position: relative;
+    box-sizing: border-box;
+}
+.j5-login-card--full {
+    flex: 1 1 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.j5-login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #C41E24;
+}
+.j5-register-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #C8A84E;
+}
+.j5-card-eyebrow {
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: 3px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 8px !important;
+}
+.j5-login-card .j5-card-eyebrow { color: #C41E24 !important; }
+.j5-register-card .j5-card-eyebrow { color: #C8A84E !important; }
+.j5-account-eyebrow {
+    color: #C8A84E !important;
+}
+.j5-card-title {
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif !important;
+    font-size: 32px !important;
+    line-height: 1 !important;
+    letter-spacing: 2px !important;
+    color: #F4F4F4 !important;
+    margin: 0 0 24px !important;
+    text-transform: uppercase !important;
+    font-weight: 400 !important;
+}
+
+/* === Hide Google Site Kit "Sign in with Google" button injection ============ */
+body.woocommerce-account .googlesitekit-sign-in-with-google__frontend-output-button,
+body.woocommerce-account .googlesitekit-sign-in-with-google {
+    display: none !important;
+}
+
+/* ============================================================================
+   Form rows + fields (used in login, register, and edit-account)
+   ============================================================================ */
+body.woocommerce-account .j5-form-row,
+body.woocommerce-account .woocommerce-form-row,
+body.woocommerce-account .form-row {
+    margin: 0 0 18px;
+    padding: 0;
+    width: 100%;
+    float: none;
+}
+body.woocommerce-account .j5-form-row label,
+body.woocommerce-account .woocommerce-form-row label,
+body.woocommerce-account .form-row label,
+body.woocommerce-account .woocommerce form .form-row label {
+    display: block;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #B0B0B0;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+body.woocommerce-account .j5-form-row input.input-text,
+body.woocommerce-account .woocommerce-form-row input.input-text,
+body.woocommerce-account .form-row input.input-text,
+body.woocommerce-account .woocommerce form .form-row input.input-text,
+body.woocommerce-account .woocommerce form .form-row input[type="email"],
+body.woocommerce-account .woocommerce form .form-row input[type="text"],
+body.woocommerce-account .woocommerce form .form-row input[type="password"],
+body.woocommerce-account .woocommerce form .form-row input[type="tel"],
+body.woocommerce-account .woocommerce form .form-row select,
+body.woocommerce-account .woocommerce form .form-row textarea {
+    width: 100%;
+    background: #0B0B0B;
+    background-color: #0B0B0B;
+    border: 1px solid #3A3A3A;
+    color: #F4F4F4;
+    padding: 12px 14px;
+    font-family: 'Barlow', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    outline: none;
+    border-radius: 0;
+    box-shadow: none;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+    height: auto;
+}
+body.woocommerce-account .woocommerce form .form-row input:focus,
+body.woocommerce-account .woocommerce form .form-row select:focus,
+body.woocommerce-account .woocommerce form .form-row textarea:focus {
+    border-color: #C8A84E;
+    background: #0B0B0B;
+    background-color: #0B0B0B;
+}
+body.woocommerce-account .woocommerce form .form-row input::placeholder {
+    color: #707070;
+}
+
+/* Hide hidden inputs (WC nonce fields, _wp_http_referer, etc.) so they
+   don't pick up form-row visual styling and render as red blobs. */
+body.woocommerce-account input[type="hidden"] {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+}
+
+/* ============================================================================
+   Show/Hide password button (WP injects this via JS into login forms)
+   The wrapper is <span class="password-input"> with a <button class="wp-hide-pw">
+   sibling. WP adds .show-password-input wrapper class on focus.
+   ============================================================================ */
+body.woocommerce-account .password-input {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+body.woocommerce-account .password-input input {
+    padding-right: 90px !important;
+}
+body.woocommerce-account button.wp-hide-pw,
+body.woocommerce-account .show-password-input,
+body.woocommerce-account .password-input button {
+    position: absolute !important;
+    top: 50% !important;
+    right: 8px !important;
+    transform: translateY(-50%) !important;
+    background: transparent !important;
+    border: 1px solid #3A3A3A !important;
+    color: #C8A84E !important;
+    padding: 6px 12px !important;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    width: auto !important;
+    height: auto !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+}
+body.woocommerce-account button.wp-hide-pw:hover,
+body.woocommerce-account .password-input button:hover {
+    background: #C8A84E !important;
+    color: #0B0B0B !important;
+    border-color: #C8A84E !important;
+}
+
+/* Hide the WP dashicons icon inside the button — we replace it with text */
+body.woocommerce-account button.wp-hide-pw .dashicons,
+body.woocommerce-account button.wp-hide-pw .text {
+    display: none !important;
+}
+
+/* Inject "Show" / "Hide" text via ::after */
+body.woocommerce-account button.wp-hide-pw::after {
+    content: 'Show';
+    display: inline-block;
+}
+body.woocommerce-account button.wp-hide-pw[aria-label*="Hide"]::after,
+body.woocommerce-account .show-password-input button.wp-hide-pw::after {
+    content: 'Hide';
+}
+body.woocommerce-account .required {
+    color: #C41E24;
+    text-decoration: none;
+    font-weight: 600;
+}
+body.woocommerce-account small.woocommerce-Input-helper,
+body.woocommerce-account .j5-form-row small {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #909090;
+    line-height: 1.5;
+}
+
+/* Privacy policy text in register form — keep consistent size with helper text */
+body.woocommerce-account .privacy-policy-link,
+body.woocommerce-account .woocommerce-privacy-policy-text,
+body.woocommerce-account .woocommerce-form-register .woocommerce-privacy-policy-text {
+    font-size: 13px;
+    color: #909090;
+    margin: 16px 0;
+    line-height: 1.5;
+}
+body.woocommerce-account .woocommerce-privacy-policy-text a {
+    color: #C8A84E;
+    text-decoration: none;
+    font-weight: 600;
+}
+body.woocommerce-account .woocommerce-privacy-policy-text a:hover {
+    color: #F4F4F4;
+    text-decoration: underline;
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+body.woocommerce-account .woocommerce button.button,
+body.woocommerce-account .woocommerce a.button,
+body.woocommerce-account .woocommerce input.button,
+body.woocommerce-account .j5-btn-primary {
+    background: #C41E24;
+    background-color: #C41E24;
+    border: 1px solid #C41E24;
+    border-color: #C41E24;
+    color: #fff;
+    padding: 13px 28px;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: none;
+    text-shadow: none;
+    line-height: 1.2;
+    display: inline-block;
+}
+body.woocommerce-account .j5-login-card .j5-btn-primary,
+body.woocommerce-account .woocommerce-form-login__submit {
+    width: 100%;
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+}
+body.woocommerce-account .woocommerce button.button:hover,
+body.woocommerce-account .woocommerce a.button:hover,
+body.woocommerce-account .woocommerce input.button:hover,
+body.woocommerce-account .j5-btn-primary:hover {
+    background: #8A1015;
+    background-color: #8A1015;
+    border-color: #8A1015;
+    color: #fff;
+}
+
+/* secondary (gold-outline) for register submit and other secondary CTAs */
+body.woocommerce-account .j5-btn-secondary,
+body.woocommerce-account .woocommerce-form-register__submit {
+    background: transparent;
+    background-color: transparent;
+    border: 1px solid #C8A84E;
+    border-color: #C8A84E;
+    color: #C8A84E;
+    padding: 13px 28px;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: none;
+    line-height: 1.2;
+    width: 100%;
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+}
+body.woocommerce-account .j5-btn-secondary:hover,
+body.woocommerce-account .woocommerce-form-register__submit:hover {
+    background: #C8A84E;
+    background-color: #C8A84E;
+    color: #0B0B0B;
+    border-color: #C8A84E;
+}
+
+/* ============================================================================
+   Checkboxes (remember me / terms)
+   ============================================================================ */
+body.woocommerce-account .j5-checkbox-row,
+body.woocommerce-account .woocommerce-form__label-for-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #B0B0B0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    font-family: 'Barlow', sans-serif;
+    cursor: pointer;
+    margin: 16px 0 8px;
+}
+body.woocommerce-account .woocommerce-form__input-checkbox,
+body.woocommerce-account .j5-checkbox-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #3A3A3A;
+    background: #0B0B0B;
+    margin: 0;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+body.woocommerce-account .woocommerce-form__input-checkbox:checked,
+body.woocommerce-account .j5-checkbox-row input[type="checkbox"]:checked {
+    background: #C41E24;
+    border-color: #C41E24;
+}
+body.woocommerce-account .woocommerce-form__input-checkbox:checked::after,
+body.woocommerce-account .j5-checkbox-row input[type="checkbox"]:checked::after {
+    content: '\2713';
+    color: #fff;
+    font-size: 12px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+}
+
+/* ============================================================================
+   Lost password link + helper note
+   ============================================================================ */
+body.woocommerce-account .j5-lost-password,
+body.woocommerce-account .lost_password,
+body.woocommerce-account .lost_password a {
+    color: #C8A84E;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 12px;
+    display: inline-block;
+}
+body.woocommerce-account .j5-lost-password:hover,
+body.woocommerce-account .lost_password a:hover {
+    color: #F4F4F4;
+    text-decoration: underline;
+}
+
+.j5-helper-note {
+    background: #0B0B0B;
+    border: 1px solid #2A2A2A;
+    border-left: 3px solid #C8A84E;
+    padding: 16px 18px;
+    font-size: 13px;
+    color: #B0B0B0;
+    margin-top: 24px;
+    line-height: 1.55;
+}
+.j5-helper-note strong {
+    color: #F4F4F4;
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+.j5-helper-note a { color: #C8A84E; text-decoration: none; font-weight: 600; }
+.j5-helper-note a:hover { color: #F4F4F4; text-decoration: underline; }
+
+/* ============================================================================
+   Hero bar (logged-in) + dashboard layout
+   ============================================================================ */
+.j5-account-hero-bar {
+    background: linear-gradient(180deg, #141414 0%, #0B0B0B 100%);
+    border-bottom: 1px solid #2A2A2A;
+    padding: 56px 0 40px;
+}
+.j5-account-hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+.j5-account-hero-bar .j5-account-title {
+    font-size: 56px;
+}
+.j5-account-hero-bar .j5-account-title em {
+    font-style: normal;
+    color: #C41E24;
+}
+
+.j5-quick-actions { display: flex; gap: 12px; }
+.j5-btn {
+    padding: 12px 22px;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    line-height: 1.2;
+}
+.j5-btn.j5-btn-primary {
+    background: #C41E24;
+    border-color: #C41E24;
+    color: #fff;
+    width: auto;
+    padding: 12px 22px;
+}
+.j5-btn.j5-btn-primary:hover { background: #8A1015; border-color: #8A1015; color: #fff; }
+
+/* ============================================================================
+   Sidebar + content layout
+   ============================================================================ */
+.j5-account-layout {
+    max-width: 1200px;
+    margin: 32px auto 0;
+    padding: 0 32px 80px;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+.j5-account-nav.woocommerce-MyAccount-navigation {
+    width: 280px;
+    flex-shrink: 0;
+    background: #141414;
+    border: 1px solid #2A2A2A;
+    float: none;
+    padding: 0;
+    margin: 0;
+}
+.j5-account-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+.j5-account-nav li { margin: 0; padding: 0; }
+.j5-account-nav li a {
+    display: block;
+    padding: 12px 24px;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: #D0D0D0;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+}
+.j5-account-nav li a:hover {
+    background: #1C1C1C;
+    color: #F4F4F4;
+}
+.j5-account-nav li.is-active a {
+    border-left-color: #C41E24;
+    color: #F4F4F4;
+    background: #1C1C1C;
+}
+.j5-account-nav .nav-divider {
+    border-top: 1px solid #2A2A2A;
+    margin: 8px 0;
+    padding: 0;
+    list-style: none;
+    height: 0;
+}
+.j5-account-nav li.is-logout a {
+    color: #707070;
+}
+.j5-account-nav li.is-logout a:hover {
+    color: #C41E24;
+}
+
+.j5-account-content.woocommerce-MyAccount-content {
+    flex: 1;
+    min-width: 0;
+    background: #141414;
+    border: 1px solid #2A2A2A;
+    padding: 32px;
+    color: #D0D0D0;
+    position: relative;
+    width: auto;
+    float: none;
+    margin: 0;
+}
+.j5-account-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80px;
+    height: 3px;
+    background: #C41E24;
+}
+.j5-account-content h2 {
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1.5px;
+    color: #F4F4F4;
+    text-transform: uppercase;
+    margin: 0 0 16px;
+    line-height: 1;
+    font-weight: 400;
+}
+.j5-account-content h3 {
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    color: #F4F4F4;
+    text-transform: uppercase;
+    margin: 24px 0 12px;
+    line-height: 1;
+    font-weight: 400;
+}
+.j5-account-content p {
+    color: #D0D0D0;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+.j5-account-content a {
+    color: #C8A84E;
+    text-decoration: none;
+    font-weight: 600;
+}
+.j5-account-content a:hover {
+    color: #F4F4F4;
+    text-decoration: underline;
+}
+.j5-account-content strong {
+    color: #F4F4F4;
+}
+.j5-account-content mark {
+    background: transparent;
+    color: #C8A84E;
+    font-weight: 600;
+}
+
+/* ============================================================================
+   Dashboard tile grid
+   ============================================================================ */
+.j5-dashboard-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+}
+.j5-dashboard-tile {
+    background: #0B0B0B;
+    border: 1px solid #2A2A2A;
+    padding: 20px;
+    text-decoration: none;
+    transition: all 0.15s;
+    display: block;
+}
+.j5-dashboard-tile:hover {
+    border-color: #C8A84E;
+    text-decoration: none;
+}
+.j5-dashboard-tile .tile-eyebrow {
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #C8A84E;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.j5-dashboard-tile .tile-title {
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+    font-size: 20px;
+    color: #F4F4F4;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 4px;
+    font-weight: 400;
+}
+.j5-dashboard-tile .tile-desc {
+    color: #909090;
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* ============================================================================
+   Tables (orders, downloads, payment methods)
+   ============================================================================ */
+.j5-account-content table.shop_table,
+.j5-account-content table.woocommerce-orders-table,
+.j5-account-content table {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #2A2A2A;
+    border-collapse: collapse;
+    border-radius: 0;
+    margin: 16px 0;
+}
+.j5-account-content table th {
+    background: #1C1C1C;
+    color: #C8A84E;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #2A2A2A;
+}
+.j5-account-content table td {
+    padding: 14px;
+    border-bottom: 1px solid #2A2A2A;
+    color: #D0D0D0;
+    font-size: 14px;
+}
+.j5-account-content table tbody tr:last-child td {
+    border-bottom: none;
+}
+.j5-account-content table tbody tr:hover {
+    background: #1C1C1C;
+}
+.j5-account-content table .button {
+    padding: 6px 12px;
+    font-size: 11px;
+    margin-right: 4px;
+    background: transparent;
+    border: 1px solid #C8A84E;
+    color: #C8A84E;
+    letter-spacing: 1.5px;
+}
+.j5-account-content table .button:hover {
+    background: #C8A84E;
+    color: #0B0B0B;
+}
+
+/* ============================================================================
+   WC notices
+   ============================================================================ */
+body.woocommerce-account .woocommerce-message,
+body.woocommerce-account .woocommerce-info,
+body.woocommerce-account .woocommerce-error,
+body.woocommerce-account .woocommerce-notice {
+    background: #1C1C1C;
+    border: 1px solid #2A2A2A;
+    border-left: 3px solid #C8A84E;
+    color: #D0D0D0;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    border-radius: 0;
+    font-size: 14px;
+}
+body.woocommerce-account .woocommerce-error {
+    border-left-color: #C41E24;
+}
+body.woocommerce-account .woocommerce-message::before,
+body.woocommerce-account .woocommerce-info::before,
+body.woocommerce-account .woocommerce-error::before {
+    color: #C8A84E;
+}
+body.woocommerce-account .woocommerce-message a,
+body.woocommerce-account .woocommerce-info a {
+    color: #C8A84E;
+}
+
+/* ============================================================================
+   Agency CTA card
+   ============================================================================ */
+.j5-agency-cta-card {
+    background: linear-gradient(135deg, #1C1C1C 0%, #0B0B0B 100%);
+    border: 1px solid #C8A84E;
+    padding: 28px 32px;
+    margin-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+.j5-agency-cta-text {
+    font-size: 14px;
+    color: #D0D0D0;
+    line-height: 1.5;
+}
+.j5-agency-cta-text strong {
+    display: block;
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: #C8A84E;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    font-weight: 400;
+}
+.j5-agency-cta-btn {
+    background: transparent;
+    border: 1px solid #C8A84E;
+    color: #C8A84E;
+    padding: 11px 22px;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+.j5-agency-cta-btn:hover {
+    background: #C8A84E;
+    color: #0B0B0B;
+}
+
+/* ============================================================================
+   Edit Account / Address forms (logged-in)
+   ============================================================================ */
+.j5-account-content .woocommerce-EditAccountForm fieldset {
+    border: 1px solid #2A2A2A;
+    background: #0B0B0B;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 0;
+}
+.j5-account-content .woocommerce-EditAccountForm fieldset legend {
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #C8A84E;
+    text-transform: uppercase;
+    padding: 0 8px;
+}
+
+/* ============================================================================
+   ADDRESSES page (logged-in: /my-account/edit-address/)
+   ----------------------------------------------------------------------------
+   WC's structure:
+     <div class="woocommerce-Addresses col2-set addresses">    ← grid container
+       <div class="u-column1 col-1 woocommerce-Address">      ← billing card
+         <header class="woocommerce-Address-title title">
+           <h3>Billing address</h3>
+           <a class="edit">Add billing address</a>
+         </header>
+         <address>You have not set up this type of address yet.</address>
+       </div>
+       <div class="u-column2 col-2 woocommerce-Address">      ← shipping card
+         ...
+       </div>
+     </div>
+   ============================================================================ */
+
+/* Grid container — forces two columns side-by-side, beats Astra's float layout */
+.j5-account-content .woocommerce-Addresses,
+.j5-account-content .u-columns.col2-set.addresses,
+.j5-account-content .col2-set.addresses,
+.j5-account-content div.addresses {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    float: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Each address card — billing + shipping */
+.j5-account-content .woocommerce-Address,
+.j5-account-content .u-column1.woocommerce-Address,
+.j5-account-content .u-column2.woocommerce-Address,
+.j5-account-content .col-1.woocommerce-Address,
+.j5-account-content .col-2.woocommerce-Address {
+    background: #0B0B0B !important;
+    border: 1px solid #2A2A2A !important;
+    padding: 20px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    float: none !important;
+    box-sizing: border-box !important;
+    display: block !important;
+}
+
+/* Card header (the title + Add/Edit button row) */
+.j5-account-content .woocommerce-Address .woocommerce-Address-title,
+.j5-account-content .woocommerce-Address header.woocommerce-Address-title,
+.j5-account-content .woocommerce-Address header.title,
+.j5-account-content .woocommerce-Address > header {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 0 10px 0 !important;
+    border-bottom: 1px solid #2A2A2A !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* H3 inside card header */
+.j5-account-content .woocommerce-Address .woocommerce-Address-title h3,
+.j5-account-content .woocommerce-Address header.woocommerce-Address-title h3,
+.j5-account-content .woocommerce-Address header.title h3,
+.j5-account-content .woocommerce-Address > header h3,
+.j5-account-content .woocommerce-Address h3 {
+    font-family: 'Bebas Neue', 'Arial Black', sans-serif !important;
+    font-size: 18px !important;
+    margin: 0 !important;
+    color: #F4F4F4 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    line-height: 1 !important;
+    flex: 1 !important;
+    font-weight: 400 !important;
+}
+
+/* Edit / Add button (gold-outline pill) */
+.j5-account-content .woocommerce-Address .edit,
+.j5-account-content .woocommerce-Address header .edit,
+.j5-account-content .woocommerce-Address a.edit {
+    display: inline-block !important;
+    font-size: 11px !important;
+    padding: 6px 14px !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 1px solid #C8A84E !important;
+    color: #C8A84E !important;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    text-decoration: none !important;
+    line-height: 1 !important;
+    border-radius: 0 !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    flex-shrink: 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    margin: 0 !important;
+    position: static !important;
+}
+.j5-account-content .woocommerce-Address .edit:hover,
+.j5-account-content .woocommerce-Address header .edit:hover,
+.j5-account-content .woocommerce-Address a.edit:hover {
+    background: #C8A84E !important;
+    color: #0B0B0B !important;
+    border-color: #C8A84E !important;
+}
+
+/* The <address> element inside the card — should sit naturally inside,
+   no border, no separate box */
+.j5-account-content .woocommerce-Address address {
+    color: #D0D0D0 !important;
+    font-style: normal !important;
+    line-height: 1.6 !important;
+    font-size: 14px !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+/* ============================================================================
+   Mobile breakpoints
+   ============================================================================ */
+@media (max-width: 900px) {
+    .j5-login-grid {
+        flex-direction: column !important;
+        gap: 24px !important;
+    }
+    .j5-login-card,
+    .j5-register-card {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        max-width: 100% !important;
+    }
+    .j5-account-layout {
+        flex-direction: column !important;
+        gap: 24px !important;
+        padding: 0 20px 60px !important;
+    }
+    .j5-account-nav.woocommerce-MyAccount-navigation {
+        width: 100% !important;
+    }
+    .j5-account-content .woocommerce-Addresses,
+    .j5-account-content .u-columns.col2-set.addresses,
+    .j5-account-content .col2-set.addresses,
+    .j5-account-content div.addresses {
+        grid-template-columns: 1fr !important;
+    }
+    .j5-dashboard-tiles {
+        grid-template-columns: 1fr !important;
+    }
+    .j5-account-title { font-size: 48px !important; }
+    .j5-account-hero-bar .j5-account-title { font-size: 40px !important; }
+    .j5-account-hero { padding: 40px 20px 24px !important; }
+    .j5-account-hero-bar { padding: 40px 0 32px !important; }
+    .j5-account-hero-inner { padding: 0 20px !important; flex-direction: column !important; align-items: flex-start !important; }
+    .j5-agency-banner-inner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+        padding: 0 20px !important;
+    }
+    .j5-agency-banner-text {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    .j5-agency-banner-cta {
+        text-align: center !important;
+        align-self: stretch !important;
+    }
+    .j5-agency-cta-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+    }
+    .j5-agency-cta-card .j5-agency-cta-btn {
+        text-align: center !important;
+    }
+    .j5-login-wrapper {
+        padding: 0 20px 60px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .j5-login-card,
+    .j5-register-card {
+        padding: 24px 20px !important;
+    }
+    .j5-account-layout {
+        padding: 0 16px 60px !important;
+    }
+    .j5-account-hero { padding: 32px 16px 16px !important; }
+    .j5-agency-banner-inner { padding: 0 16px !important; }
+    .j5-account-hero-inner { padding: 0 16px !important; }
+    .j5-account-title { font-size: 36px !important; }
+    .j5-account-hero-bar .j5-account-title { font-size: 32px !important; }
+    .j5-account-content {
+        padding: 24px 16px !important;
+    }
+    .j5-account-hero-bar {
+        padding: 32px 0 24px !important;
+    }
+    .j5-account-nav li a {
+        padding: 14px 20px !important;
+    }
+    /* On very narrow screens, stack the address title and Edit button */
+    .j5-account-content .woocommerce-Address .woocommerce-Address-title,
+    .j5-account-content header.title {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    .j5-account-content .woocommerce-Address .edit {
+        align-self: stretch !important;
+        text-align: center !important;
+    }
+}

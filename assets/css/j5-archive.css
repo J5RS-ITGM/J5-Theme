@@ -1,0 +1,597 @@
+/* ============================================================================
+   J5 Archive Render — per-category archive enhancements
+   Loaded on every WC archive page (alongside existing j5-shop styles).
+   All selectors prefixed `j5-archive-` to avoid collisions with j5-landing-,
+   j5-shop-, etc.
+   ============================================================================ */
+
+/* Tokens are inherited from the theme; we don't redefine them here. If a token
+   doesn't resolve (e.g., page outside of body.j5-shop-template), values fall
+   back gracefully. */
+
+/* =========================================================================
+   1. HERO BAND
+   ========================================================================= */
+
+.j5-archive-hero {
+	padding: 56px 0 36px;
+	border-bottom: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+	position: relative;
+	overflow: hidden;
+	background: var(--j5-dark, #0a0b0d);
+	color: var(--j5-bone, #f5f1e8);
+}
+
+.j5-archive-hero::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: repeating-linear-gradient(45deg, transparent 0 14px, rgba(245, 241, 232, 0.012) 14px 15px);
+	pointer-events: none;
+}
+
+.j5-archive-hero-inner {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 0 32px;
+	position: relative;
+	z-index: 2;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 48px;
+	align-items: end;
+}
+
+.j5-archive-hero-main { min-width: 0; }
+
+/* Breadcrumb */
+.j5-archive-breadcrumb {
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+	margin-bottom: 24px;
+}
+.j5-archive-breadcrumb a {
+	color: var(--j5-bone-dim, #a8a298);
+	text-decoration: none;
+	transition: color 0.15s;
+}
+.j5-archive-breadcrumb a:hover { color: var(--j5-gold, #d4a044); }
+.j5-archive-breadcrumb .sep {
+	margin: 0 10px;
+	color: var(--j5-bone-dark, #6e6a60);
+}
+.j5-archive-breadcrumb .current {
+	color: var(--j5-bone, #f5f1e8);
+	font-weight: 600;
+}
+
+/* Eyebrow pill */
+.j5-archive-eyebrow {
+	display: inline-block;
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 10px;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	font-weight: 600;
+	padding: 4px 10px;
+	margin-bottom: 16px;
+	border: 1px solid var(--j5-border-g, rgba(212, 160, 68, 0.35));
+	background: rgba(212, 160, 68, 0.08);
+	color: var(--j5-gold, #d4a044);
+}
+.j5-archive-eyebrow.red {
+	color: var(--j5-red, #c8102e);
+	border-color: var(--j5-border-r, rgba(200, 16, 46, 0.40));
+	background: rgba(200, 16, 46, 0.08);
+}
+.j5-archive-eyebrow.blue {
+	color: var(--j5-blue, #4a90c2);
+	border-color: var(--j5-border-b, rgba(74, 144, 194, 0.35));
+	background: rgba(74, 144, 194, 0.08);
+}
+
+/* Title */
+.j5-archive-title {
+	font-family: var(--font-display, 'Bebas Neue', sans-serif);
+	font-size: clamp(54px, 8vw, 96px);
+	line-height: 0.9;
+	letter-spacing: 0.02em;
+	color: var(--j5-bone, #f5f1e8);
+	margin: 0 0 18px;
+	font-weight: normal;
+}
+.j5-archive-title-accent { color: var(--j5-gold, #d4a044); }
+.j5-archive-title-accent.red { color: var(--j5-red, #c8102e); }
+
+/* Body */
+.j5-archive-desc {
+	font-family: var(--font-body, 'Barlow', sans-serif);
+	font-size: 15px;
+	line-height: 1.7;
+	color: var(--j5-bone, #f5f1e8);
+	opacity: 0.85;
+	max-width: 620px;
+	margin: 0 0 18px;
+}
+.j5-archive-desc strong {
+	color: var(--j5-gold, #d4a044);
+	font-weight: 600;
+}
+
+/* Meta strip */
+.j5-archive-meta-strip {
+	display: flex;
+	gap: 28px;
+	flex-wrap: wrap;
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 11px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+	padding-top: 18px;
+	border-top: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+}
+.j5-archive-meta-strip strong {
+	color: var(--j5-gold, #d4a044);
+	font-weight: 600;
+}
+
+/* Side: stat callout */
+.j5-archive-side {
+	text-align: right;
+	min-width: 180px;
+}
+
+.j5-archive-side-label {
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 10px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+	margin-bottom: 8px;
+}
+
+.j5-archive-side-num {
+	font-family: var(--font-display, 'Bebas Neue', sans-serif);
+	font-size: 56px;
+	line-height: 1;
+	color: var(--j5-gold, #d4a044);
+	letter-spacing: 0.02em;
+}
+
+.j5-archive-side-sub {
+	font-family: var(--font-cond, 'Barlow Condensed', sans-serif);
+	font-size: 12px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+	margin-top: 4px;
+}
+
+/* Side: MARCH letter marker */
+.j5-archive-march-marker {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 16px;
+	padding: 16px 20px;
+	border: 1px solid var(--j5-border-r, rgba(200, 16, 46, 0.40));
+	background: rgba(200, 16, 46, 0.06);
+}
+
+.j5-archive-march-letter {
+	font-family: var(--font-display, 'Bebas Neue', sans-serif);
+	font-size: 64px;
+	line-height: 1;
+	color: var(--j5-red, #c8102e);
+	position: relative;
+}
+.j5-archive-march-letter::after {
+	content: "";
+	position: absolute;
+	bottom: -2px;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: var(--j5-red, #c8102e);
+}
+
+/* Color-by-letter for MARCH stages */
+.j5-archive-march-letter[data-letter="M"] { color: var(--j5-red, #c8102e); }
+.j5-archive-march-letter[data-letter="M"]::after { background: var(--j5-red, #c8102e); }
+.j5-archive-march-letter[data-letter="A"] { color: var(--j5-blue, #4a90c2); }
+.j5-archive-march-letter[data-letter="A"]::after { background: var(--j5-blue, #4a90c2); }
+.j5-archive-march-letter[data-letter="R"] { color: var(--j5-success, #5aa572); }
+.j5-archive-march-letter[data-letter="R"]::after { background: var(--j5-success, #5aa572); }
+.j5-archive-march-letter[data-letter="C"] { color: #c97b2b; }
+.j5-archive-march-letter[data-letter="C"]::after { background: #c97b2b; }
+.j5-archive-march-letter[data-letter="H"] { color: var(--j5-purple, #8b6fb8); }
+.j5-archive-march-letter[data-letter="H"]::after { background: var(--j5-purple, #8b6fb8); }
+
+.j5-archive-march-text {
+	text-align: left;
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 11px;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+}
+.j5-archive-march-text strong {
+	display: block;
+	color: var(--j5-red, #c8102e);
+	font-size: 14px;
+	margin-bottom: 4px;
+	font-weight: 700;
+}
+
+/* =========================================================================
+   2. BRAND STRIP
+   ========================================================================= */
+
+.j5-archive-brand-strip {
+	background: var(--j5-dark-2, #13151a);
+	padding: 20px 0;
+	border-bottom: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+}
+
+.j5-archive-brand-strip-inner {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 0 32px;
+	display: flex;
+	align-items: center;
+	gap: 40px;
+}
+
+.j5-archive-brand-strip-label {
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 10px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+	white-space: nowrap;
+}
+
+.j5-archive-brand-strip-items {
+	display: flex;
+	gap: 32px;
+	flex: 1;
+	flex-wrap: wrap;
+}
+
+.j5-archive-brand-item {
+	font-family: var(--font-display, 'Bebas Neue', sans-serif);
+	font-size: 22px;
+	letter-spacing: 0.06em;
+	color: var(--j5-bone-dim, #a8a298);
+	transition: color 0.15s;
+	cursor: default;
+}
+
+/* =========================================================================
+   3. SUBCATEGORY CHIP STRIP
+   ========================================================================= */
+
+.j5-archive-subcat-strip {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 24px;
+	padding: 14px 16px;
+	background: var(--j5-dark-2, #13151a);
+	border: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+}
+
+.j5-archive-subcat-strip-label {
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 10px;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+	margin-right: 4px;
+	align-self: center;
+}
+
+.j5-archive-subcat-chip {
+	font-family: var(--font-cond, 'Barlow Condensed', sans-serif);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	padding: 6px 12px;
+	border: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+	color: var(--j5-bone, #f5f1e8);
+	text-decoration: none;
+	transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.j5-archive-subcat-chip:hover {
+	background: var(--j5-dark-3, #1c1f25);
+	border-color: var(--j5-border-g, rgba(212, 160, 68, 0.35));
+	color: var(--j5-gold, #d4a044);
+}
+
+.j5-archive-subcat-chip.active {
+	background: var(--j5-gold, #d4a044);
+	color: var(--j5-dark, #0a0b0d);
+	border-color: var(--j5-gold, #d4a044);
+}
+
+/* =========================================================================
+   4. BRAND-GROUPED LAYOUT
+   ========================================================================= */
+
+.j5-archive-brand-group {
+	margin-bottom: 36px;
+}
+
+.j5-archive-brand-group-header {
+	display: flex;
+	align-items: baseline;
+	gap: 16px;
+	padding-bottom: 12px;
+	margin-bottom: 18px;
+	border-bottom: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+}
+
+.j5-archive-brand-group-name {
+	font-family: var(--font-display, 'Bebas Neue', sans-serif);
+	font-size: 32px;
+	letter-spacing: 0.04em;
+	color: var(--j5-bone, #f5f1e8);
+}
+
+.j5-archive-brand-group-count {
+	font-family: var(--font-mono, 'JetBrains Mono', monospace);
+	font-size: 11px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--j5-bone-dim, #a8a298);
+}
+
+.j5-archive-brand-group-link {
+	margin-left: auto;
+	font-family: var(--font-cond, 'Barlow Condensed', sans-serif);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--j5-gold, #d4a044);
+	text-decoration: none;
+	transition: color 0.15s;
+}
+
+.j5-archive-brand-group-link:hover {
+	color: var(--j5-bone, #f5f1e8);
+}
+
+/* =========================================================================
+   5. RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 900px) {
+	.j5-archive-hero-inner {
+		grid-template-columns: 1fr;
+		gap: 32px;
+	}
+	.j5-archive-side {
+		text-align: left;
+	}
+	.j5-archive-march-marker {
+		display: inline-flex;
+	}
+}
+
+@media (max-width: 640px) {
+	.j5-archive-hero { padding: 40px 0 28px; }
+	.j5-archive-hero-inner { padding: 0 20px; }
+	.j5-archive-brand-strip-inner {
+		padding: 0 20px;
+		gap: 20px;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.j5-archive-meta-strip { gap: 16px; }
+	.j5-archive-side-num { font-size: 44px; }
+	.j5-archive-march-letter { font-size: 48px; }
+	.j5-archive-brand-group-header {
+		flex-wrap: wrap;
+	}
+	.j5-archive-brand-group-link {
+		margin-left: 0;
+		flex-basis: 100%;
+	}
+}
+
+
+/* ============================================================================
+   ARCHIVE SEARCH BAR — toolbar component
+   ============================================================================ */
+
+.j5-archive-search {
+    display: inline-flex;
+    align-items: stretch;
+    background: var(--j5-dark, #0a0b0d);
+    border: 1px solid var(--j5-border-2, rgba(245, 241, 232, 0.20));
+    height: 32px;
+    transition: border-color 0.15s;
+}
+.j5-archive-search:focus-within {
+    border-color: var(--j5-gold, #d4a044);
+}
+.j5-archive-search__input {
+    background: transparent;
+    border: 0;
+    color: var(--j5-bone, #f5f1e8);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 0 10px;
+    width: 200px;
+    outline: none;
+}
+.j5-archive-search__input::placeholder {
+    color: var(--j5-bone-dark, #6e6a60);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.j5-archive-search__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-left: 1px solid var(--j5-border, rgba(245, 241, 232, 0.10));
+    cursor: pointer;
+    user-select: none;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--j5-bone-dim, #a8a298);
+    transition: color 0.15s, background 0.15s;
+}
+.j5-archive-search__toggle:hover {
+    color: var(--j5-bone, #f5f1e8);
+    background: rgba(245, 241, 232, 0.04);
+}
+.j5-archive-search__toggle input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--j5-border-2, rgba(245, 241, 232, 0.20));
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+}
+.j5-archive-search__toggle input:checked {
+    background: var(--j5-gold, #d4a044);
+    border-color: var(--j5-gold, #d4a044);
+}
+.j5-archive-search__toggle input:checked + .j5-archive-search__toggle-label {
+    color: var(--j5-gold, #d4a044);
+}
+.j5-archive-search__btn {
+    background: var(--j5-gold, #d4a044);
+    border: 0;
+    color: var(--j5-dark, #0a0b0d);
+    padding: 0 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+.j5-archive-search__btn:hover {
+    background: var(--j5-bone, #f5f1e8);
+}
+.j5-archive-search__btn svg {
+    display: block;
+}
+
+/* Make the toolbar wrap nicely now that it has more items */
+@media (max-width: 900px) {
+    .j5-archive-search { width: 100%; }
+    .j5-archive-search__input { flex: 1; width: auto; }
+}
+
+/* "From" price label styling (works at all sizes) */
+.j5-from-price .j5-from-label {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.6em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-right: 2px;
+    vertical-align: 0.15em;
+}
+
+/* ============================================================
+   J5-CAT-CONTENT-1 — editable category regions (2026-07-20)
+   Above-grid intro (native term description) + below-grid
+   buyer's guide (j5_cat_guide term meta). Matches archive tokens.
+   ============================================================ */
+
+/* Above-grid intro */
+.j5-cat-intro {
+    border-bottom: 1px solid var(--j5-border, #23272f);
+    background: var(--j5-bg, #0a0b0d);
+    padding: 26px 0;
+}
+.j5-cat-intro-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.j5-cat-intro p {
+    color: var(--j5-ink-dim, #a4a49a);
+    font-size: 16px;
+    line-height: 1.65;
+    max-width: 820px;
+    margin: 0 0 10px;
+}
+.j5-cat-intro p:last-child { margin-bottom: 0; }
+.j5-cat-intro strong { color: var(--j5-bone, #f5f1e8); }
+.j5-cat-intro a {
+    color: var(--j5-gold, #d4a044);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(212,160,68,.4);
+}
+.j5-cat-intro a:hover { color: var(--j5-gold-hi, #f0bc5a); }
+
+/* Below-grid buyer's guide */
+.j5-cat-guide {
+    border-top: 1px solid var(--j5-border, #23272f);
+    background: var(--j5-bg-elev, #111317);
+    padding: 44px 0;
+}
+.j5-cat-guide-inner { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+.j5-cat-guide-eyebrow {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 11px;
+    color: var(--j5-gold, #d4a044);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+.j5-cat-guide-body { color: var(--j5-ink-dim, #a4a49a); font-size: 16px; line-height: 1.65; }
+.j5-cat-guide-body h2 {
+    font-family: var(--font-display, 'Bebas Neue', sans-serif);
+    font-size: 38px;
+    letter-spacing: .01em;
+    color: var(--j5-bone, #f5f1e8);
+    margin: 0 0 6px;
+}
+.j5-cat-guide-body h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    font-size: 20px;
+    color: var(--j5-gold, #d4a044);
+    margin: 26px 0 10px;
+}
+.j5-cat-guide-body p { margin: 0 0 14px; }
+.j5-cat-guide-body strong { color: var(--j5-bone, #f5f1e8); }
+.j5-cat-guide-body ul { list-style: none; margin: 0 0 16px; padding: 0; }
+.j5-cat-guide-body li {
+    position: relative;
+    padding: 7px 0 7px 22px;
+    font-size: 15px;
+    border-bottom: 1px solid var(--j5-border, #23272f);
+}
+.j5-cat-guide-body li:before {
+    content: '\25B8';
+    position: absolute;
+    left: 0;
+    color: var(--j5-gold, #d4a044);
+}
+.j5-cat-guide-body a {
+    color: var(--j5-gold, #d4a044);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(212,160,68,.4);
+}
+.j5-cat-guide-body a:hover { color: var(--j5-gold-hi, #f0bc5a); }
+
+@media (max-width: 820px) {
+    .j5-cat-guide-body h2 { font-size: 30px; }
+    .j5-cat-guide { padding: 32px 0; }
+}

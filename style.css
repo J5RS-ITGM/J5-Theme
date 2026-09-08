@@ -1,0 +1,105 @@
+/**
+Theme Name: J5 Rescue Supply
+Theme URI: https://j5rescue.com
+Author: J5 Rescue Supply LLC
+Description: Standalone custom theme for j5rescue.com. Dark tactical storefront: hand-coded WooCommerce templates, J5 variation engine, J5 Apps (fulfillment, acknowledgments, announcements, shipping restrictions). Migrated from astra-child 2026-09; no parent theme.
+Version: 2.0.0
+Requires at least: 6.5
+Tested up to: 6.9
+Requires PHP: 8.1
+License: Private
+Text Domain: astra-child
+*/
+/* ==========================================================
+   J5 Structured Product Description
+   ========================================================== */
+.j5-product-description { color: #d8d8d8; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+.j5-desc-structured .j5-desc-block { margin-bottom: 26px; }
+.j5-desc-structured .j5-desc-block:last-child { margin-bottom: 0; }
+.j5-desc-lbl {
+font-family: 'Barlow Condensed', 'Chakra Petch', 'Oswald', sans-serif;
+font-size: 12px; color: #C8A84E; letter-spacing: 0.2em;
+text-transform: uppercase; font-weight: 600;
+margin: 0 0 12px; padding-top: 22px; border-top: 1px solid #222; border-radius: 0;
+}
+.j5-desc-structured .j5-desc-block:first-child .j5-desc-lbl { padding-top: 0; border-top: none; }
+.j5-desc-p { font-size: 15px; line-height: 1.7; color: #d8d8d8; }
+.j5-desc-p p { margin: 0 0 14px; }
+.j5-desc-p p:last-child { margin-bottom: 0; }
+.j5-desc-feat { list-style: none; padding: 0; margin: 0; }
+.j5-desc-feat li {
+padding: 10px 0 10px 26px; border-bottom: 1px solid #1a1a1a;
+font-size: 14px; color: #d8d8d8; position: relative; line-height: 1.5;
+}
+.j5-desc-feat li:last-child { border-bottom: none; }
+.j5-desc-feat li::before {
+content: ''; position: absolute; left: 0; top: 18px;
+width: 12px; height: 2px; background: #C41E24;
+}
+.j5-desc-case {
+font-size: 14px; line-height: 1.7; color: #bbb;
+padding: 16px 18px; background: #161616;
+border-left: 3px solid #333; border-radius: 0;
+}
+.j5-desc-case p { margin: 0 0 12px; }
+.j5-desc-case p:last-child { margin-bottom: 0; }
+.j5-desc-comp { display: flex; flex-wrap: wrap; gap: 8px; }
+.j5-desc-badge {
+background: #161616; border: 1px solid #C8A84E; color: #C8A84E;
+padding: 7px 12px; font-size: 11px; letter-spacing: 0.12em;
+text-transform: uppercase;
+font-family: 'Barlow Condensed', 'Chakra Petch', 'Oswald', sans-serif;
+font-weight: 600; line-height: 1.2; border-radius: 0;
+}
+.j5-desc-legacy { font-size: 15px; line-height: 1.7; }
+.j5-desc-legacy p { margin: 0 0 16px; }
+.j5-desc-legacy p:last-child { margin-bottom: 0; }
+.j5-desc-legacy ul { padding-left: 20px; margin: 0 0 16px; }
+.j5-desc-legacy li { margin-bottom: 6px; }
+.j5-desc-legacy h2, .j5-desc-legacy h3, .j5-desc-legacy h4 {
+font-family: 'Barlow Condensed', 'Chakra Petch', 'Oswald', sans-serif;
+color: #fff; text-transform: uppercase; letter-spacing: 0.03em; margin: 24px 0 10px;
+}
+@media (max-width: 640px) {
+.j5-desc-lbl { font-size: 11px; margin-bottom: 10px; padding-top: 18px; }
+.j5-desc-structured .j5-desc-block { margin-bottom: 22px; }
+.j5-desc-p, .j5-desc-case { font-size: 14px; }
+.j5-desc-feat li { font-size: 13px; padding: 9px 0 9px 24px; }
+}
+
+/* ==========================================================
+   J5 Structured Specifications Tab Content
+   Activated when product has _j5_spec_content with j5_techspecs/
+   j5_materials/j5_fitment/j5_in_the_box/j5_care/j5_spec_notes.
+   Reuses .j5-desc-* visual treatments from the description tab.
+   ========================================================== */
+.j5-product-specs { color: #d8d8d8; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+.j5-specs-structured { margin-top: 28px; }
+.j5-specs-structured .j5-desc-block { margin-bottom: 26px; }
+.j5-specs-structured .j5-desc-block:last-child { margin-bottom: 0; }
+/* Note: do NOT override first-child border like .j5-desc-structured does — we WANT
+   the top-border on the first spec block since it sits below the WC attribute table. */
+
+/* Tech-specs sub-table (key:value rows from [j5_techspecs]) */
+.j5-specs-table-extra { width: 100%; border-collapse: collapse; }
+.j5-specs-table-extra th,
+.j5-specs-table-extra td {
+text-align: left; padding: 10px 14px; vertical-align: top;
+border-bottom: 1px solid #1a1a1a; font-size: 14px;
+}
+.j5-specs-table-extra th {
+color: #C8A84E; font-weight: 600;
+font-family: 'Barlow Condensed', 'Chakra Petch', 'Oswald', sans-serif;
+text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px;
+width: 38%; white-space: nowrap;
+}
+.j5-specs-table-extra td { color: #d8d8d8; }
+.j5-specs-table-extra tr:last-child th,
+.j5-specs-table-extra tr:last-child td { border-bottom: none; }
+
+@media (max-width: 640px) {
+.j5-specs-structured { margin-top: 22px; }
+.j5-specs-table-extra th,
+.j5-specs-table-extra td { padding: 9px 10px; font-size: 13px; }
+.j5-specs-table-extra th { font-size: 11px; }
+}

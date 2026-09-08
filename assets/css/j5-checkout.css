@@ -1,0 +1,2576 @@
+/* ==========================================================================
+   J5 Rescue Supply — Checkout Stylesheet
+   assets/css/j5-checkout.css
+
+   Brand:
+     Red ......... #c8102e
+     Gold ........ #d4a044
+     Near-black .. #0a0b0d
+     Charcoal .... #151618
+     Dark-mid .... #1c1d21
+     Mid-gray .... #2a2b30
+     Slate ....... #8b8d94
+     Bone ........ #f5f1e8
+     White ....... #ffffff
+   ========================================================================== */
+
+
+/* ── RESET / PAGE WRAPPER ─────────────────────────────────────────────────── */
+
+body.woocommerce-checkout {
+    background-color: #0a0b0d !important;
+    color: #f5f1e8 !important;
+    font-family: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.woocommerce-checkout #page,
+body.woocommerce-checkout #content,
+body.woocommerce-checkout .site-content,
+body.woocommerce-checkout .ast-container,
+body.woocommerce-checkout .content-area,
+body.woocommerce-checkout .entry-content {
+    background-color: #0a0b0d !important;
+    color: #f5f1e8 !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+}
+
+/* Override Astra's container width */
+body.woocommerce-checkout .ast-container {
+    max-width: 1280px !important;
+    margin: 0 auto !important;
+    padding: 0 24px !important;
+}
+
+
+/* ── HIDE ASTRA HEADER/FOOTER — use our own ───────────────────────────────── */
+
+body.woocommerce-checkout header#masthead,
+body.woocommerce-checkout .ast-above-header-wrap,
+body.woocommerce-checkout .ast-below-header-wrap,
+body.woocommerce-checkout .site-header-primary-section-left,
+body.woocommerce-checkout .site-header-primary-section-right {
+    /* Not hiding these — checkout still uses the site header/footer.
+       If you want a distraction-free checkout, uncomment:
+    display: none !important;
+    */
+}
+
+
+/* ── WOOCOMMERCE NOTICES ──────────────────────────────────────────────────── */
+
+body.woocommerce-checkout .woocommerce-error,
+body.woocommerce-checkout .woocommerce-message,
+body.woocommerce-checkout .woocommerce-info {
+    background: #1c1d21 !important;
+    border: 1px solid #2a2b30 !important;
+    color: #f5f1e8 !important;
+    border-radius: 6px !important;
+    padding: 14px 20px !important;
+    margin-bottom: 20px !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 14px !important;
+}
+
+body.woocommerce-checkout .woocommerce-error {
+    border-color: #c8102e !important;
+    border-left: 4px solid #c8102e !important;
+}
+
+body.woocommerce-checkout .woocommerce-message {
+    border-left: 4px solid #d4a044 !important;
+}
+
+body.woocommerce-checkout .woocommerce-info {
+    border-left: 4px solid #8b8d94 !important;
+}
+
+body.woocommerce-checkout .woocommerce-error::before,
+body.woocommerce-checkout .woocommerce-message::before,
+body.woocommerce-checkout .woocommerce-info::before {
+    color: #d4a044 !important;
+}
+
+body.woocommerce-checkout .woocommerce-error a,
+body.woocommerce-checkout .woocommerce-message a,
+body.woocommerce-checkout .woocommerce-info a {
+    color: #d4a044 !important;
+}
+
+@media (max-width: 960px) {
+    .j5-checkout__wrapper {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        margin: 24px auto 40px;
+    }
+}
+
+
+/* ── SECTION HEADERS ─────────────────────────────────────────────────────── */
+
+.j5-checkout__section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2a2b30;
+}
+
+.j5-checkout__section-header--shipping,
+.j5-checkout__section-header--notes {
+    margin-top: 36px;
+}
+
+.j5-checkout__section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: #d4a044;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.j5-checkout__section-title {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 22px !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    font-weight: 400 !important;
+}
+
+
+/* ── FORM FIELDS ─────────────────────────────────────────────────────────── */
+
+.j5-checkout__billing,
+.j5-checkout__shipping {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+}
+
+.j5-field-half {
+    width: calc(50% - 8px) !important;
+    flex: 0 0 calc(50% - 8px) !important;
+}
+
+@media (max-width: 600px) {
+    .j5-field-half {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+}
+
+body.woocommerce-checkout label .required {
+    color: #c8102e !important;
+}
+
+body.woocommerce-checkout label .optional {
+    font-size: 11px !important;
+    color: #555 !important;
+    text-transform: lowercase !important;
+    font-weight: 400 !important;
+}
+
+/* Input / Select / Textarea */
+body.woocommerce-checkout .woocommerce-checkout input[type="text"],
+body.woocommerce-checkout .woocommerce-checkout input[type="email"],
+body.woocommerce-checkout .woocommerce-checkout input[type="tel"],
+body.woocommerce-checkout .woocommerce-checkout input[type="number"],
+body.woocommerce-checkout .woocommerce-checkout input[type="password"],
+body.woocommerce-checkout .woocommerce-checkout select,
+body.woocommerce-checkout .woocommerce-checkout textarea,
+body.woocommerce-checkout .select2-container--default .select2-selection--single {
+    background-color: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 6px !important;
+    color: #f5f1e8 !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    padding: 12px 14px !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+body.woocommerce-checkout .woocommerce-checkout textarea {
+    min-height: 100px !important;
+    resize: vertical !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout input:focus,
+body.woocommerce-checkout .woocommerce-checkout select:focus,
+body.woocommerce-checkout .woocommerce-checkout textarea:focus,
+body.woocommerce-checkout .select2-container--default.select2-container--focus .select2-selection--single,
+body.woocommerce-checkout .select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #d4a044 !important;
+    box-shadow: 0 0 0 3px rgba(212, 160, 68, 0.12) !important;
+    outline: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout input::placeholder,
+body.woocommerce-checkout .woocommerce-checkout textarea::placeholder {
+    color: #555 !important;
+    opacity: 1 !important;
+}
+
+/* Select2 dropdown overrides */
+body.woocommerce-checkout .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #f5f1e8 !important;
+    padding: 0 !important;
+    line-height: inherit !important;
+}
+
+body.woocommerce-checkout .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100% !important;
+    right: 10px !important;
+}
+
+body.woocommerce-checkout .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #8b8d94 transparent transparent transparent !important;
+}
+
+/* Select2 dropdown panel */
+.select2-dropdown {
+    background-color: #1c1d21 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 6px !important;
+}
+
+.select2-results__option {
+    color: #f5f1e8 !important;
+    padding: 10px 14px !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 14px !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #2a2b30 !important;
+    color: #d4a044 !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: rgba(212, 160, 68, 0.12) !important;
+    color: #d4a044 !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+    background-color: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    color: #f5f1e8 !important;
+    font-family: 'Barlow', sans-serif !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+}
+
+/* Validation states */
+body.woocommerce-checkout .woocommerce-checkout .woocommerce-invalid input,
+body.woocommerce-checkout .woocommerce-checkout .woocommerce-invalid select {
+    border-color: #c8102e !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout .woocommerce-validated input,
+body.woocommerce-checkout .woocommerce-checkout .woocommerce-validated select {
+    border-color: #2e7d32 !important;
+}
+
+
+/* ── "SHIP TO DIFFERENT ADDRESS" CHECKBOX ─────────────────────────────────── */
+
+body.woocommerce-checkout .woocommerce-shipping-fields h3#ship-to-different-address {
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #f5f1e8 !important;
+    margin: 24px 0 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .woocommerce-shipping-fields #ship-to-different-address-checkbox {
+    width: 18px !important;
+    height: 18px !important;
+    accent-color: #d4a044 !important;
+    vertical-align: middle !important;
+    margin-right: 8px !important;
+    cursor: pointer;
+}
+
+
+/* ── SIDEBAR (ORDER SUMMARY + PAYMENT) ───────────────────────────────────── */
+
+.j5-checkout__sidebar {
+    position: relative;
+}
+
+
+/* ── ORDER REVIEW TABLE ──────────────────────────────────────────────────── */
+
+.j5-review-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: none !important;
+    margin: 0 !important;
+}
+
+.j5-coupon-form__input {
+    flex: 1;
+    background: #0a0b0d !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 5px !important;
+    color: #f5f1e8 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.j5-coupon-form__input:focus {
+    border-color: #d4a044 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(212, 160, 68, 0.1) !important;
+}
+
+.j5-coupon-form__input::placeholder {
+    color: #555 !important;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.j5-coupon-form__btn {
+    background: transparent !important;
+    border: 1px solid #d4a044 !important;
+    border-radius: 5px !important;
+    color: #d4a044 !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.j5-coupon-form__btn:hover {
+    background: rgba(212, 160, 68, 0.1) !important;
+}
+
+.j5-btn-place-order {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    background: #c8102e !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 20px !important;
+    letter-spacing: 0.12em !important;
+    padding: 16px 24px !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease;
+    text-transform: uppercase;
+    line-height: 1 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.j5-btn-place-order:hover {
+    background: #a50d24 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(200, 16, 46, 0.35) !important;
+}
+
+.j5-btn-place-order:active {
+    transform: translateY(0);
+    box-shadow: none !important;
+}
+
+.j5-btn-place-order__text {
+    color: #ffffff !important;
+}
+
+.j5-btn-place-order__icon {
+    font-size: 16px;
+    color: #ffffff !important;
+    transition: transform 0.2s ease;
+}
+
+.j5-btn-place-order:hover .j5-btn-place-order__icon {
+    transform: translateX(3px);
+}
+
+/* Loading state (WooCommerce adds 'processing' class) */
+.j5-checkout.processing .j5-btn-place-order {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.j5-checkout.processing .j5-btn-place-order__text::after {
+    content: '...';
+}
+
+
+/* ── RETURNING CUSTOMER LOGIN ────────────────────────────────────────────── */
+
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
+    background: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-left: 4px solid #d4a044 !important;
+}
+
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a {
+    color: #d4a044 !important;
+    font-weight: 500 !important;
+}
+
+body.woocommerce-checkout form.woocommerce-form-login {
+    background: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 8px !important;
+    padding: 24px !important;
+    margin-bottom: 24px !important;
+}
+
+body.woocommerce-checkout form.woocommerce-form-login p {
+    color: #8b8d94 !important;
+}
+
+body.woocommerce-checkout form.woocommerce-form-login .button {
+    background: #d4a044 !important;
+    color: #0a0b0d !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+}
+
+body.woocommerce-checkout form.woocommerce-form-login .button:hover {
+    background: #c49a3a !important;
+}
+
+body.woocommerce-checkout form.woocommerce-form-login a {
+    color: #d4a044 !important;
+}
+
+
+/* ── ASTRA BLEED OVERRIDES ───────────────────────────────────────────────── */
+
+body.woocommerce-checkout .woocommerce-checkout h3 {
+    color: #f5f1e8 !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout .form-row {
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout #order_review,
+body.woocommerce-checkout .woocommerce-checkout #order_review_heading {
+    width: 100% !important;
+    float: none !important;
+}
+
+/* Kill Astra's default two-column checkout layout */
+body.woocommerce-checkout .woocommerce-checkout #customer_details {
+    width: 100% !important;
+    float: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout #customer_details .col-1,
+body.woocommerce-checkout .woocommerce-checkout #customer_details .col-2 {
+    width: 100% !important;
+    float: none !important;
+    padding: 0 !important;
+}
+
+/* Remove Astra page title if present */
+body.woocommerce-checkout .entry-header,
+body.woocommerce-checkout .page-header,
+body.woocommerce-checkout .ast-archive-description {
+    display: none !important;
+}
+
+/* Astra breadcrumbs */
+body.woocommerce-checkout .ast-breadcrumbs-wrapper {
+    display: none !important;
+}
+
+
+/* ── BLOCKUI OVERLAY (processing) ────────────────────────────────────────── */
+
+body.woocommerce-checkout .blockUI.blockOverlay {
+    background: rgba(10, 11, 13, 0.6) !important;
+}
+
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 960px) {
+    .j5-checkout__sidebar-sticky {
+        position: static;
+        padding: 24px;
+    }
+
+    .j5-trust-badges {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .j5-checkout__sidebar-sticky {
+        padding: 20px 16px;
+        border-radius: 8px;
+    }
+
+    .j5-btn-place-order {
+        font-size: 18px !important;
+        padding: 14px 20px !important;
+    }
+
+    .j5-review-item__thumb {
+        display: none !important;
+    }
+
+    .j5-trust-badges {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 960px) {
+    body.woocommerce-checkout .entry-content > .woocommerce > form.j5-checkout > .j5-checkout__wrapper {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Force ALL inputs/textareas/selects dark — nuke Astra's white overrides */
+body.woocommerce-checkout input[type="text"],
+body.woocommerce-checkout input[type="email"],
+body.woocommerce-checkout input[type="tel"],
+body.woocommerce-checkout input[type="number"],
+body.woocommerce-checkout input[type="password"],
+body.woocommerce-checkout input[type="search"],
+body.woocommerce-checkout input[type="url"],
+body.woocommerce-checkout select,
+body.woocommerce-checkout textarea,
+body.woocommerce-checkout .input-text,
+body.woocommerce-checkout #order_comments {
+    background-color: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 6px !important;
+    color: #f5f1e8 !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 15px !important;
+    padding: 12px 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+body.woocommerce-checkout textarea,
+body.woocommerce-checkout #order_comments {
+    min-height: 100px !important;
+    resize: vertical !important;
+}
+
+/* Force field rows to full width */
+body.woocommerce-checkout .form-row {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .j5-field-half {
+    width: calc(50% - 8px) !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+}
+
+/* Fix "Additional Information" / Order Notes section positioning */
+body.woocommerce-checkout .woocommerce-additional-fields {
+    width: 100% !important;
+    clear: both !important;
+}
+
+/* Kill any Astra float layout */
+body.woocommerce-checkout .woocommerce-checkout .col2-set,
+body.woocommerce-checkout .woocommerce-checkout .col2-set .col-1,
+body.woocommerce-checkout .woocommerce-checkout .col2-set .col-2 {
+    width: 100% !important;
+    float: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+@media (max-width: 960px) {
+    .j5-checkout__wrapper,
+    form.j5-checkout .j5-checkout__wrapper,
+    .woocommerce form.j5-checkout .j5-checkout__wrapper,
+    body.woocommerce-checkout .j5-checkout__wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+}
+
+/* Ensure children don't break the grid */
+.j5-checkout__customer {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+}
+
+.j5-checkout__sidebar {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+}
+
+@media (max-width: 960px) {
+    .j5-checkout__sidebar {
+        grid-column: 1 !important;
+    }
+}
+
+/* Fix Astra's woocommerce wrapper constraining width */
+body.woocommerce-checkout .woocommerce {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+body.woocommerce-checkout form.checkout.j5-checkout {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Hide WooCommerce's default "Billing details" h3 — we have our own 01 header */
+body.woocommerce-checkout #customer_details h3:not(.j5-checkout__section-title) {
+    display: none !important;
+}
+
+/* Fix "Additional Information" positioning — must stay in left column flow */
+body.woocommerce-checkout .j5-checkout__section-header--notes {
+    clear: both !important;
+    float: none !important;
+    position: relative !important;
+}
+
+body.woocommerce-checkout .woocommerce-additional-fields {
+    clear: both !important;
+    float: none !important;
+    width: 100% !important;
+}
+
+/* PayPal express button above the form — tame it */
+body.woocommerce-checkout .woocommerce .wc-ppc-button-wrapper,
+body.woocommerce-checkout .woocommerce #ppc-button,
+body.woocommerce-checkout .ppc-button-wrapper {
+    max-width: 400px !important;
+    margin-bottom: 24px !important;
+}
+
+
+/* ==========================================================================
+   GRID FIX v3 — force ALL parent containers wide enough for grid
+   ========================================================================== */
+
+/* Nuke every Astra width constraint on checkout */
+body.woocommerce-checkout .ast-container,
+body.woocommerce-checkout #primary,
+body.woocommerce-checkout .content-area,
+body.woocommerce-checkout main,
+body.woocommerce-checkout article,
+body.woocommerce-checkout .entry-content,
+body.woocommerce-checkout .entry-content > .woocommerce,
+body.woocommerce-checkout .site-content > .ast-container,
+body.woocommerce-checkout .site-main {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* The form itself must also be full width */
+body.woocommerce-checkout form.checkout.woocommerce-checkout {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+@media (max-width: 960px) {
+    body.woocommerce-checkout .j5-checkout__wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+    body.woocommerce-checkout .j5-checkout__sidebar {
+        grid-column: 1 !important;
+    }
+}
+
+/* "Additional Information" must stay INSIDE customer column, not float out */
+body.woocommerce-checkout .j5-checkout__customer .j5-checkout__section-header--notes {
+    width: 100% !important;
+    float: none !important;
+    clear: both !important;
+    display: flex !important;
+}
+
+/* Also hide the orphaned notes header if it escaped outside customer_details */
+body.woocommerce-checkout .j5-checkout__customer ~ .j5-checkout__section-header--notes {
+    display: none !important;
+}
+
+/* ==========================================================================
+   SHIPPING METHODS — single authoritative block (j5-checkout-cleanup)
+   DOM confirmed 2026-04-19:
+     <tr class="woocommerce-shipping-totals shipping">
+       <th>Shipment</th>
+       <td>
+         <ul id="shipping_method" class="woocommerce-shipping-methods">
+           <li>
+             <input type="radio" name="shipping_method[0]" ...>
+             <label for="...">Flate Rate/Drop Ship: <span class="woocommerce-Price-amount">...</span></label>
+           </li>
+         </ul>
+       </td>
+     </tr>
+   Scoped under .j5-checkout__sidebar to beat prior overrides on specificity.
+   ========================================================================== */
+
+.j5-checkout__sidebar tr.woocommerce-shipping-totals {
+    display: block !important;
+    padding: 14px 0 6px !important;
+    border-top: 1px solid rgba(42, 43, 48, 0.5) !important;
+    background: none !important;
+}
+
+.j5-checkout__sidebar tr.woocommerce-shipping-totals > td {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: none !important;
+    text-align: left !important;
+}
+
+
+/* ==========================================================================
+   HORIZONTAL GAP — pair of half-width fields
+   ========================================================================== */
+body.woocommerce-checkout .j5-checkout__customer .j5-checkout__billing,
+body.woocommerce-checkout .j5-checkout__customer .j5-checkout__shipping {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 32px 16px !important;
+    column-gap: 16px !important;
+    row-gap: 32px !important;
+}
+
+
+/* ==========================================================================
+   PRODUCT SECTION — stacked per-item layout
+   Authoritative, batch-patch 3
+   Works with the custom review-order.php template (tr.j5-review-item has a
+   single td.j5-review-item__cell colspan=3 containing the full stacked layout)
+   ========================================================================== */
+
+/* Hide thead (no PRODUCT/TOTAL columns needed in new layout) */
+body.woocommerce-checkout .j5-review-table thead {
+    display: none !important;
+}
+
+/* Table itself — keep native display table for tfoot total rows */
+body.woocommerce-checkout .j5-review-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: none !important;
+    margin: 0 !important;
+}
+
+/* Reset body row display to table-row so tbody flows normally */
+body.woocommerce-checkout .j5-review-table tbody tr.j5-review-item {
+    display: table-row !important;
+    background: none !important;
+}
+
+/* The single wrapper cell for each item */
+body.woocommerce-checkout .j5-review-table tbody td.j5-review-item__cell {
+    display: block !important;
+    padding: 16px 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(42, 43, 48, 0.5) !important;
+    background: none !important;
+    vertical-align: top !important;
+    width: 100% !important;
+}
+
+body.woocommerce-checkout .j5-review-table tbody tr.j5-review-item:last-of-type td.j5-review-item__cell {
+    border-bottom: 2px solid #2a2b30 !important;
+    padding-bottom: 18px !important;
+    margin-bottom: 4px !important;
+}
+
+/* Horizontal thumb + details row */
+body.woocommerce-checkout .j5-review-item__row {
+    display: flex !important;
+    gap: 14px !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+}
+
+/* Thumbnail — 70x70, flex-fixed */
+body.woocommerce-checkout .j5-review-item__thumb {
+    width: 70px !important;
+    height: 70px !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+    border: none !important;
+}
+
+body.woocommerce-checkout .j5-review-item__thumb img {
+    width: 70px !important;
+    height: 70px !important;
+    object-fit: cover !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 4px !important;
+    display: block !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Details column */
+body.woocommerce-checkout .j5-review-item__details {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: left !important;
+}
+
+/* Product name */
+body.woocommerce-checkout .j5-review-item__name {
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .j5-review-item__name a {
+    color: #f5f1e8 !important;
+    text-decoration: none !important;
+}
+
+body.woocommerce-checkout .j5-review-item__name a:hover {
+    color: #d4a044 !important;
+}
+
+/* Variation dl — gold-accent panel */
+body.woocommerce-checkout .j5-review-item .variation {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    column-gap: 10px !important;
+    row-gap: 4px !important;
+    padding: 10px 12px !important;
+    background: rgba(212, 160, 68, 0.04) !important;
+    border-left: 2px solid rgba(212, 160, 68, 0.35) !important;
+    border-radius: 0 4px 4px 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+}
+
+body.woocommerce-checkout .j5-review-item .variation dt {
+    font-size: 11px !important;
+    color: #8b8d94 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+}
+
+body.woocommerce-checkout .j5-review-item .variation dd {
+    font-size: 11.5px !important;
+    color: #f5f1e8 !important;
+    text-align: right !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    font-family: 'Barlow', sans-serif !important;
+}
+
+body.woocommerce-checkout .j5-review-item .variation dd p {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline !important;
+    color: inherit !important;
+    line-height: inherit !important;
+}
+
+/* Qty + price footer row */
+body.woocommerce-checkout .j5-review-item__footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .j5-review-item__qty {
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    color: #8b8d94 !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .j5-review-item__price {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-size: 13px !important;
+    color: #f5f1e8 !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .j5-review-item__price .amount,
+body.woocommerce-checkout .j5-review-item__price bdi {
+    font-family: inherit !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+}
+
+
+/* ==========================================================================
+   PAYMENT TILES — clickable-card pattern, gold selected state
+   Authoritative, batch-patch 3
+   text-indent:0 kills WC's -22px default (same bug as shipping methods)
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods,
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods,
+body.woocommerce-checkout .j5-checkout__sidebar ul.payment_methods {
+    list-style: none !important;
+    margin: 0 0 20px !important;
+    padding: 0 !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods li.wc_payment_method,
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods li.wc_payment_method,
+body.woocommerce-checkout .j5-checkout__sidebar ul.payment_methods li.wc_payment_method {
+    list-style: none !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+    background: #0a0b0d !important;
+    border: 1.5px solid #2a2b30 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease !important;
+    position: relative !important;
+    text-indent: 0 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods li.wc_payment_method:hover,
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods li.wc_payment_method:hover {
+    border-color: #5c5d62 !important;
+    background: #0d0e11 !important;
+}
+
+/* Visually hide radio — keep accessible + functional */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method > input[type="radio"] {
+    position: absolute !important;
+    left: -9999px !important;
+    top: auto !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    clip: rect(0 0 0 0) !important;
+    pointer-events: none !important;
+}
+
+/* Label = full tile click surface */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method > label {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    padding: 16px 18px !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    border: none !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    text-indent: 0 !important;
+    line-height: 1.2 !important;
+    transition: color 0.18s ease !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method > label img {
+    max-height: 22px !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+    display: inline-block !important;
+    filter: none !important;
+}
+
+/* SELECTED state — :has() for modern browsers */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method:has(> input[type="radio"]:checked) {
+    border-color: #d4a044 !important;
+    background: rgba(212, 160, 68, 0.06) !important;
+    box-shadow: 0 0 0 3px rgba(212, 160, 68, 0.12) !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method:has(> input[type="radio"]:checked) > label {
+    color: #d4a044 !important;
+}
+
+/* Fallback for older browsers — WC adds .wc_payment_method--selected on change */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method.wc_payment_method--selected {
+    border-color: #d4a044 !important;
+    background: rgba(212, 160, 68, 0.06) !important;
+    box-shadow: 0 0 0 3px rgba(212, 160, 68, 0.12) !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method.wc_payment_method--selected > label {
+    color: #d4a044 !important;
+}
+
+/* Keyboard focus ring */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method:focus-within {
+    outline: 2px solid rgba(212, 160, 68, 0.6) !important;
+    outline-offset: 2px !important;
+}
+
+/* Expanded payment_box (Credit Card fields) — seamless with tile */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box {
+    background: #151618 !important;
+    color: #8b8d94 !important;
+    padding: 20px 18px 18px !important;
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+    border: none !important;
+    border-top: 1px solid rgba(212, 160, 68, 0.2) !important;
+    margin: 0 !important;
+    position: relative !important;
+    text-indent: 0 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box::before {
+    display: none !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box p {
+    margin: 0 0 10px !important;
+    color: #8b8d94 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box p:last-child {
+    margin-bottom: 0 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box input[type="text"],
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box input[type="tel"],
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box input[type="number"],
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box select {
+    background: #0a0b0d !important;
+    border: 1px solid #2a2b30 !important;
+    color: #f5f1e8 !important;
+    border-radius: 6px !important;
+    padding: 11px 13px !important;
+    font-size: 14px !important;
+    font-family: 'Barlow', sans-serif !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box input:focus,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box select:focus {
+    border-color: #d4a044 !important;
+    box-shadow: 0 0 0 2px rgba(212, 160, 68, 0.15) !important;
+    outline: none !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box label {
+    display: block !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    color: #8b8d94 !important;
+    margin: 0 0 6px !important;
+    padding: 0 !important;
+    text-indent: 0 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box .StripeElement,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box .wc-stripe-elements-field {
+    background: #0a0b0d !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 6px !important;
+    padding: 13px !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box .StripeElement--focus {
+    border-color: #d4a044 !important;
+    box-shadow: 0 0 0 2px rgba(212, 160, 68, 0.15) !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__no-methods {
+    color: #8b8d94 !important;
+    font-size: 14px !important;
+    padding: 16px !important;
+    text-align: center !important;
+    background: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 8px !important;
+}
+
+
+/* ==========================================================================
+   DISCLAIMER — privacy policy + terms checkbox, cleaner inline layout
+   Authoritative, batch-patch 3
+   ========================================================================== */
+
+body.woocommerce-checkout .woocommerce-privacy-policy-text {
+    font-size: 11.5px !important;
+    color: #8b8d94 !important;
+    line-height: 1.65 !important;
+    letter-spacing: 0.01em !important;
+    margin: 0 0 14px !important;
+    padding: 16px 0 0 !important;
+    border-top: 1px solid #2a2b30 !important;
+}
+
+body.woocommerce-checkout .woocommerce-privacy-policy-text a {
+    color: #d4a044 !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(212, 160, 68, 0.4) !important;
+    text-underline-offset: 2px !important;
+    font-weight: 500 !important;
+    font-size: inherit !important;
+}
+
+body.woocommerce-checkout .woocommerce-privacy-policy-text a:hover {
+    text-decoration-color: #d4a044 !important;
+}
+
+/* Terms checkbox wrapper */
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper {
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper .woocommerce-terms-and-conditions-checkbox-text {
+    display: block !important;
+    margin: 0 !important;
+}
+
+/* The label wrapping the checkbox + agree text */
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper .woocommerce-form__label-for-checkbox,
+body.woocommerce-checkout .form-row.validate-required label.checkbox {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+    font-size: 12.5px !important;
+    color: #f5f1e8 !important;
+    line-height: 1.5 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-weight: 400 !important;
+    text-indent: 0 !important;
+}
+
+/* Custom checkbox appearance — hide native, draw via ::before */
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper input[type="checkbox"],
+body.woocommerce-checkout .form-row.validate-required input[type="checkbox"]#terms {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    width: 16px !important;
+    height: 16px !important;
+    border: 1.5px solid #d4a044 !important;
+    background: rgba(212, 160, 68, 0.08) !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    margin: 1px 0 0 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    transition: background-color 0.15s ease !important;
+    vertical-align: top !important;
+}
+
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper input[type="checkbox"]:hover,
+body.woocommerce-checkout .form-row.validate-required input[type="checkbox"]#terms:hover {
+    background: rgba(212, 160, 68, 0.16) !important;
+}
+
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper input[type="checkbox"]:checked,
+body.woocommerce-checkout .form-row.validate-required input[type="checkbox"]#terms:checked {
+    background: rgba(212, 160, 68, 0.16) !important;
+}
+
+/* Checkmark drawn via pseudo-element when checked */
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper input[type="checkbox"]:checked::after,
+body.woocommerce-checkout .form-row.validate-required input[type="checkbox"]#terms:checked::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 3px !important;
+    top: 0px !important;
+    width: 6px !important;
+    height: 10px !important;
+    border: solid #d4a044 !important;
+    border-width: 0 2px 2px 0 !important;
+    transform: rotate(45deg) !important;
+}
+
+/* Terms-and-conditions link */
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper a,
+body.woocommerce-checkout .woocommerce-terms-and-conditions-checkbox-text a {
+    color: #d4a044 !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(212, 160, 68, 0.4) !important;
+    text-underline-offset: 2px !important;
+    font-size: inherit !important;
+    font-weight: 500 !important;
+}
+
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper a:hover,
+body.woocommerce-checkout .woocommerce-terms-and-conditions-checkbox-text a:hover {
+    text-decoration-color: #d4a044 !important;
+}
+
+/* Red asterisk */
+body.woocommerce-checkout .woocommerce-terms-and-conditions-wrapper .required,
+body.woocommerce-checkout .woocommerce-form__label-for-checkbox .required {
+    color: #c8102e !important;
+    font-size: inherit !important;
+    margin-left: 2px !important;
+    text-decoration: none !important;
+}
+
+
+/* ==========================================================================
+   TRUST BADGES — refined, stacked icon+label, dividers between
+   Authoritative, batch-patch 3
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-trust-badges {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 4px 0 0 0 !important;
+    padding: 16px 0 0 0 !important;
+    border-top: 1px solid #2a2b30 !important;
+    list-style: none !important;
+}
+
+body.woocommerce-checkout .j5-trust-badge {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    flex: 1 1 0 !important;
+    padding: 4px 2px !important;
+    position: relative !important;
+    min-width: 0 !important;
+}
+
+/* Vertical divider between badges */
+body.woocommerce-checkout .j5-trust-badge:not(:last-child)::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: -3px !important;
+    transform: translateY(-50%) !important;
+    width: 1px !important;
+    height: 34px !important;
+    background: #2a2b30 !important;
+}
+
+body.woocommerce-checkout .j5-trust-badge svg {
+    width: 20px !important;
+    height: 20px !important;
+    color: #d4a044 !important;
+    stroke: #d4a044 !important;
+    stroke-width: 1.6 !important;
+    fill: none !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+body.woocommerce-checkout .j5-trust-badge span {
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+}
+
+@media (max-width: 1024px) {
+    .j5-checkout__wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+}
+
+.j5-checkout__sidebar-sticky {
+    position: sticky !important;
+    top: 24px !important;
+    background: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 10px !important;
+    padding: 22px 22px 24px !important;
+}
+
+@media (max-width: 1024px) {
+    .j5-checkout__sidebar-sticky {
+        position: static !important;
+        padding: 22px 22px 24px !important;
+    }
+}
+
+
+/* ==========================================================================
+   SHIPMENT HEADING — bumped to 20px
+   Authoritative, batch-patch 4
+   ========================================================================== */
+
+.j5-checkout__sidebar tr.woocommerce-shipping-totals > th {
+    display: block !important;
+    width: 100% !important;
+    padding: 0 0 12px !important;
+    margin: 0 !important;
+    border: none !important;
+    background: none !important;
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    text-align: left !important;
+    line-height: 1.2 !important;
+}
+
+
+/* ==========================================================================
+   WCPA VARIATION PANEL — Product Addons plugin output
+   Authoritative, batch-patch 4
+
+   WCPA outputs:
+     <ul class="wcpa_cart_meta">
+       <li class="wcpa_cart_meta_item">
+         <p class="wcpa_cart_meta_item-label">Plate Cut:</p>
+         <div class="wcpa_cart_meta_item-value"><p>SAPI Cut</p></div>
+       </li>
+     </ul>
+
+   Rendered as the gold-accent panel from the approved mockup.
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-review-item ul.wcpa_cart_meta {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 10px 12px !important;
+    margin: 0 !important;
+    background: rgba(212, 160, 68, 0.04) !important;
+    border-left: 2px solid rgba(212, 160, 68, 0.35) !important;
+    border-radius: 0 4px 4px 0 !important;
+    list-style: none !important;
+}
+
+body.woocommerce-checkout .j5-review-item ul.wcpa_cart_meta li.wcpa_cart_meta_item {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    column-gap: 12px !important;
+    align-items: baseline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    background: none !important;
+    border: none !important;
+    line-height: 1.4 !important;
+}
+
+body.woocommerce-checkout .j5-review-item ul.wcpa_cart_meta li.wcpa_cart_meta_item p.wcpa_cart_meta_item-label {
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    color: #8b8d94 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    white-space: nowrap !important;
+}
+
+body.woocommerce-checkout .j5-review-item ul.wcpa_cart_meta li.wcpa_cart_meta_item .wcpa_cart_meta_item-value {
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    color: #f5f1e8 !important;
+    text-align: right !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+    min-width: 0 !important;
+}
+
+body.woocommerce-checkout .j5-review-item ul.wcpa_cart_meta li.wcpa_cart_meta_item .wcpa_cart_meta_item-value p {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline !important;
+    color: inherit !important;
+    line-height: inherit !important;
+    font-size: inherit !important;
+    font-family: inherit !important;
+}
+
+/* === J5-BATCH-5-START === */
+/* ==========================================================================
+   SHIPMENT TILES — full-width clickable tiles matching payment pattern
+   Authoritative, batch-patch 5
+
+   DOM:
+     <tr class="woocommerce-shipping-totals shipping">
+       <th>Shipment</th>
+       <td>
+         <ul id="shipping_method" class="woocommerce-shipping-methods">
+           <li>
+             <input type="radio" ...>
+             <label>Free Shipping (Best Way)</label>
+           </li>
+         </ul>
+       </td>
+     </tr>
+
+   Structural transform: force tr/td/ul/li/label all to block and
+   restyle each <li> as a clickable tile.
+   ========================================================================== */
+
+/* <ul> — stack tiles vertically, kill list chrome */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: left !important;
+}
+
+/* Each <li> becomes a tile */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li {
+    list-style: none !important;
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #0a0b0d !important;
+    border: 1.5px solid #2a2b30 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    text-indent: 0 !important;
+    transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease !important;
+    min-height: 0 !important;
+    padding-left: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li:hover,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li:hover {
+    border-color: #5c5d62 !important;
+    background: #0d0e11 !important;
+}
+
+/* Radio — visually hide but keep accessible + functional */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li input[type="radio"],
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li input[type="radio"] {
+    position: absolute !important;
+    left: -9999px !important;
+    top: auto !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    clip: rect(0 0 0 0) !important;
+    pointer-events: none !important;
+}
+
+/* Label = full tile click surface */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li label,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li label {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 14px 16px !important;
+    margin: 0 !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    border: none !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    text-indent: 0 !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    float: none !important;
+    box-sizing: border-box !important;
+    transition: color 0.18s ease !important;
+}
+
+/* Price inside label — push right, gold mono */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li label .woocommerce-Price-amount,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li label .woocommerce-Price-amount,
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li label bdi,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li label bdi {
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #d4a044 !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+/* SELECTED state — :has() for modern browsers */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li:has(input[type="radio"]:checked),
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li:has(input[type="radio"]:checked) {
+    border-color: #d4a044 !important;
+    background: rgba(212, 160, 68, 0.06) !important;
+    box-shadow: 0 0 0 3px rgba(212, 160, 68, 0.12) !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li:has(input[type="radio"]:checked) label,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li:has(input[type="radio"]:checked) label {
+    color: #d4a044 !important;
+}
+
+/* Keyboard focus ring */
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li:focus-within,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li:focus-within {
+    outline: 2px solid rgba(212, 160, 68, 0.6) !important;
+    outline-offset: 2px !important;
+}
+
+
+/* ==========================================================================
+   "SELECT A METHOD" HELPER TEXT — under shipment + payment headers
+   Authoritative, batch-patch 5
+   ========================================================================== */
+
+/* Shipment helper — rendered before the <ul> in the shipping-totals td */
+body.woocommerce-checkout .j5-checkout__sidebar tr.woocommerce-shipping-totals > td::before {
+    content: "Select a method" !important;
+    display: block !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 12px !important;
+    font-style: italic !important;
+    color: #8b8d94 !important;
+    letter-spacing: 0.01em !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 !important;
+    line-height: 1.3 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar tr.woocommerce-shipping-totals:has(input[type="radio"]:checked) > td::before {
+    display: none !important;
+}
+
+/* Payment helper — before the payment methods ul */
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods::before,
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods::before,
+body.woocommerce-checkout .j5-checkout__sidebar ul.payment_methods::before {
+    content: "Select a method" !important;
+    display: block !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 12px !important;
+    font-style: italic !important;
+    color: #8b8d94 !important;
+    letter-spacing: 0.01em !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    line-height: 1.3 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods:has(input[type="radio"]:checked)::before,
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods:has(input[type="radio"]:checked)::before,
+body.woocommerce-checkout .j5-checkout__sidebar ul.payment_methods:has(input[type="radio"]:checked)::before {
+    display: none !important;
+}
+
+
+/* ==========================================================================
+   NO HORIZONTAL SCROLL ON MOBILE
+   Authoritative, batch-patch 5
+
+   Defensive rules so nothing on the checkout page can push content
+   wider than the viewport.
+   ========================================================================== */
+
+/* Global guard on checkout pages */
+html:has(body.woocommerce-checkout),
+body.woocommerce-checkout {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
+/* Every checkout descendant: box-sizing border-box so padding doesn't exceed width */
+body.woocommerce-checkout .j5-checkout *,
+body.woocommerce-checkout .j5-checkout *::before,
+body.woocommerce-checkout .j5-checkout *::after {
+    box-sizing: border-box !important;
+}
+
+/* Tables — shrink to fit */
+body.woocommerce-checkout table.j5-review-table,
+body.woocommerce-checkout .woocommerce-checkout-review-order-table {
+    max-width: 100% !important;
+    width: 100% !important;
+    table-layout: auto !important;
+}
+
+/* Inputs / selects / textareas — never exceed container */
+body.woocommerce-checkout input[type="text"],
+body.woocommerce-checkout input[type="email"],
+body.woocommerce-checkout input[type="tel"],
+body.woocommerce-checkout input[type="number"],
+body.woocommerce-checkout input[type="password"],
+body.woocommerce-checkout select,
+body.woocommerce-checkout textarea {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Select2 dropdown — can bloat past container */
+body.woocommerce-checkout .select2-container,
+body.woocommerce-checkout .select2-container--default {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Images inside review items — thumbnail clamp */
+body.woocommerce-checkout .j5-review-item img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Payment + shipment tiles — never exceed container */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method,
+body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li,
+body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Credit Card payment_box inputs — iframe / Stripe element clamp */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method .payment_box * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Long product names, variation values — wrap rather than overflow */
+body.woocommerce-checkout .j5-review-item__name,
+body.woocommerce-checkout .j5-review-item ul.wcpa_cart_meta .wcpa_cart_meta_item-value,
+body.woocommerce-checkout .j5-review-item .variation dd {
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+}
+
+/* Mobile-specific: tighten sidebar padding further so content fits */
+@media (max-width: 600px) {
+    body.woocommerce-checkout .j5-checkout__sidebar-sticky {
+        padding: 18px 16px 20px !important;
+        border-radius: 8px !important;
+    }
+    body.woocommerce-checkout .j5-checkout__wrapper {
+        padding: 0 12px !important;
+        gap: 24px !important;
+    }
+    body.woocommerce-checkout .j5-review-item__row {
+        gap: 10px !important;
+    }
+    body.woocommerce-checkout .j5-review-item__thumb,
+    body.woocommerce-checkout .j5-review-item__thumb img {
+        width: 56px !important;
+        height: 56px !important;
+    }
+    body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method > label,
+    body.woocommerce-checkout .j5-checkout__sidebar ul.woocommerce-shipping-methods li label,
+    body.woocommerce-checkout .j5-checkout__sidebar ul#shipping_method li label {
+        padding: 13px 14px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* === J5-BATCH-6-START === */
+/* ==========================================================================
+   FORM ROW SPACING — 40px between rows, 12px label-to-input
+   Authoritative, batch-patch 6
+   Supersedes batch-4 values (32px / 10px)
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-checkout__customer .form-row,
+body.woocommerce-checkout .j5-checkout__customer .j5-field-half {
+    margin: 0 0 40px 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__customer .form-row > label,
+body.woocommerce-checkout .j5-checkout__customer .j5-field-half > label {
+    display: block !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .j5-checkout__customer .form-row .woocommerce-input-wrapper {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
+/* ==========================================================================
+   CREATE AN ACCOUNT — relocate + restyle as inline panel at top of billing
+   Authoritative, batch-patch 6
+
+   Strategy:
+     - WC renders .woocommerce-account-fields after billing address fields,
+       outside our control visually. We use CSS order/position to pull
+       it up to the top of the billing section.
+     - Re-style as a dark tactical panel with custom gold checkbox,
+       matching the terms-and-conditions checkbox pattern.
+
+   DOM (WC default):
+     <div class="woocommerce-account-fields">
+       <p class="form-row form-row-wide create-account">
+         <label class="checkbox">
+           <input id="createaccount" type="checkbox" ...>
+           Create an account?
+         </label>
+       </p>
+       ... (optional password field, etc.) ...
+     </div>
+   ========================================================================== */
+
+/* Billing container must be flex/grid for order to work */
+body.woocommerce-checkout .j5-checkout__customer .j5-checkout__billing {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0 16px !important;
+    align-items: flex-start !important;
+}
+
+/* Account-fields block — pull to top via flex order (-1 = first) */
+body.woocommerce-checkout .j5-checkout__customer .woocommerce-account-fields {
+    order: -1 !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 24px 0 !important;
+    padding: 14px 16px !important;
+    background: rgba(212, 160, 68, 0.04) !important;
+    border: 1px solid rgba(212, 160, 68, 0.25) !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+}
+
+/* Inner .create-account form-row */
+body.woocommerce-checkout .woocommerce-account-fields .form-row.create-account,
+body.woocommerce-checkout .woocommerce-account-fields p.create-account {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* The label wrapping the checkbox */
+body.woocommerce-checkout .woocommerce-account-fields .form-row label.checkbox,
+body.woocommerce-checkout .woocommerce-account-fields p.create-account label {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+    color: #f5f1e8 !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    text-transform: none !important;
+    text-indent: 0 !important;
+    width: 100% !important;
+}
+
+/* Custom checkbox — same style as the terms-and-conditions one */
+body.woocommerce-checkout .woocommerce-account-fields input[type="checkbox"]#createaccount,
+body.woocommerce-checkout .woocommerce-account-fields input#createaccount {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    width: 16px !important;
+    height: 16px !important;
+    border: 1.5px solid #d4a044 !important;
+    background: rgba(212, 160, 68, 0.08) !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: relative !important;
+    transition: background-color 0.15s ease !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .woocommerce-account-fields input[type="checkbox"]#createaccount:hover {
+    background: rgba(212, 160, 68, 0.16) !important;
+}
+
+body.woocommerce-checkout .woocommerce-account-fields input[type="checkbox"]#createaccount:checked {
+    background: rgba(212, 160, 68, 0.16) !important;
+}
+
+body.woocommerce-checkout .woocommerce-account-fields input[type="checkbox"]#createaccount:checked::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 3px !important;
+    top: 0 !important;
+    width: 6px !important;
+    height: 10px !important;
+    border: solid #d4a044 !important;
+    border-width: 0 2px 2px 0 !important;
+    transform: rotate(45deg) !important;
+}
+
+/* Any account password fields that appear after checkbox is checked */
+body.woocommerce-checkout .woocommerce-account-fields .create-account {
+    margin-top: 0 !important;
+}
+
+body.woocommerce-checkout .woocommerce-account-fields p.form-row:not(.create-account) {
+    margin: 16px 0 0 0 !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+}
+
+body.woocommerce-checkout .woocommerce-account-fields p.form-row:not(.create-account) label {
+    display: block !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 12px !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    color: #8b8d94 !important;
+    margin: 0 0 8px 0 !important;
+    padding: 0 !important;
+}
+
+body.woocommerce-checkout .woocommerce-account-fields p.form-row:not(.create-account) input[type="password"],
+body.woocommerce-checkout .woocommerce-account-fields p.form-row:not(.create-account) input[type="text"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* === J5-BATCH-7-START === */
+/* ==========================================================================
+   CONTAINER WIDTH — narrower desktop (1280 -> 1200)
+   Authoritative, batch-patch 7
+   ========================================================================== */
+
+.j5-checkout__wrapper {
+    display: grid !important;
+    grid-template-columns: 1fr 520px !important;
+    gap: 48px !important;
+    align-items: start !important;
+    max-width: 1200px !important;
+    margin: 40px auto 60px !important;
+    padding: 0 20px !important;
+}
+
+@media (max-width: 1024px) {
+    .j5-checkout__wrapper {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+}
+
+
+/* ==========================================================================
+   COUPON BAR — relocated to top of billing form
+   Authoritative, batch-patch 7
+
+   PHP places the coupon form INSIDE .j5-checkout__customer at the top
+   via woocommerce_before_checkout_form / a custom action. Styled here
+   as full-width input + gold APPLY button.
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-coupon-bar {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    margin: 0 0 28px 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .j5-coupon-bar__input {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    background: #151618 !important;
+    border: 1px solid #2a2b30 !important;
+    border-radius: 5px !important;
+    color: #f5f1e8 !important;
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-size: 13px !important;
+    padding: 11px 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+body.woocommerce-checkout .j5-coupon-bar__input:focus {
+    border-color: #d4a044 !important;
+    box-shadow: 0 0 0 2px rgba(212, 160, 68, 0.15) !important;
+}
+
+body.woocommerce-checkout .j5-coupon-bar__input::placeholder {
+    color: #555 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+body.woocommerce-checkout .j5-coupon-bar__btn {
+    flex: 0 0 auto !important;
+    background: transparent !important;
+    border: 1px solid #d4a044 !important;
+    border-radius: 5px !important;
+    color: #d4a044 !important;
+    font-family: 'Barlow Condensed', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 10px 24px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .j5-coupon-bar__btn:hover {
+    background: rgba(212, 160, 68, 0.12) !important;
+}
+
+body.woocommerce-checkout .j5-coupon-bar__btn:active {
+    background: rgba(212, 160, 68, 0.2) !important;
+}
+
+/* Hide the old sidebar coupon row (if any remains) */
+body.woocommerce-checkout .j5-checkout__sidebar .j5-coupon-row,
+body.woocommerce-checkout .j5-checkout__sidebar tr.j5-coupon-row {
+    display: none !important;
+}
+
+
+/* ==========================================================================
+   TOTALS STACKING — Subtotal / Ship / Fee / Tax / Total as flex rows
+   Authoritative, batch-patch 7
+   ========================================================================== */
+
+/* tfoot as a vertical stack */
+body.woocommerce-checkout .j5-review-table tfoot {
+    display: table-row-group !important;
+}
+
+body.woocommerce-checkout .j5-review-table tfoot tr {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+}
+
+body.woocommerce-checkout .j5-review-table tfoot tr th,
+body.woocommerce-checkout .j5-review-table tfoot tr td {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+    border: none !important;
+    width: auto !important;
+    text-align: left !important;
+    vertical-align: baseline !important;
+}
+
+/* Each subtotal-class row becomes a flex row */
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-subtotal,
+body.woocommerce-checkout .j5-review-table tfoot tr.fee,
+body.woocommerce-checkout .j5-review-table tfoot tr.tax-total,
+body.woocommerce-checkout .j5-review-table tfoot tr.tax-rate,
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-discount,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-subtotal,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-fee,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-tax,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-coupon {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: baseline !important;
+    gap: 12px !important;
+    padding: 8px 0 !important;
+    width: 100% !important;
+    border: none !important;
+}
+
+/* First summary row gets a top border to separate from items */
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-subtotal,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-subtotal {
+    padding-top: 14px !important;
+    margin-top: 4px !important;
+}
+
+/* Labels on the left — slate, Barlow */
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-subtotal th,
+body.woocommerce-checkout .j5-review-table tfoot tr.fee th,
+body.woocommerce-checkout .j5-review-table tfoot tr.tax-total th,
+body.woocommerce-checkout .j5-review-table tfoot tr.tax-rate th,
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-discount th,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-subtotal th,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-fee th,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-tax th,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-coupon th {
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: #8b8d94 !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
+    flex: 0 1 auto !important;
+}
+
+/* Amounts on the right — bone, mono */
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-subtotal td,
+body.woocommerce-checkout .j5-review-table tfoot tr.fee td,
+body.woocommerce-checkout .j5-review-table tfoot tr.tax-total td,
+body.woocommerce-checkout .j5-review-table tfoot tr.tax-rate td,
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-discount td,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-subtotal td,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-fee td,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-tax td,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-coupon td {
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-size: 13px !important;
+    color: #f5f1e8 !important;
+    text-align: right !important;
+    font-variant-numeric: tabular-nums !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto !important;
+}
+
+/* Coupon row gets gold to highlight the discount */
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-discount th,
+body.woocommerce-checkout .j5-review-table tfoot tr.cart-discount td,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-coupon th,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-coupon td {
+    color: #d4a044 !important;
+}
+
+/* TOTAL row — gold divider, bigger type, emphasized */
+body.woocommerce-checkout .j5-review-table tfoot tr.order-total,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-total {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: baseline !important;
+    gap: 12px !important;
+    padding: 18px 0 8px !important;
+    margin-top: 10px !important;
+    border-top: 2px solid #d4a044 !important;
+    width: 100% !important;
+}
+
+body.woocommerce-checkout .j5-review-table tfoot tr.order-total th,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-total th {
+    font-family: 'Bebas Neue', sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: #f5f1e8 !important;
+    flex: 0 1 auto !important;
+}
+
+body.woocommerce-checkout .j5-review-table tfoot tr.order-total td,
+body.woocommerce-checkout .j5-review-table tfoot tr.j5-review-total td {
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #f5f1e8 !important;
+    text-align: right !important;
+    font-variant-numeric: tabular-nums !important;
+    flex: 0 0 auto !important;
+}
+
+/* Strip nested .amount/bdi styling inside tfoot amounts */
+body.woocommerce-checkout .j5-review-table tfoot td .amount,
+body.woocommerce-checkout .j5-review-table tfoot td bdi {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    color: inherit !important;
+}
+
+
+/* ==========================================================================
+   PAYPAL '3% FEE' SUBTITLE — below the PayPal tile label
+   Authoritative, batch-patch 7
+
+   Target the PayPal tile specifically. WooCommerce PayPal Payments
+   typically registers the gateway with ID "ppcp-gateway" or "paypal"
+   — this selector covers both, plus legacy .payment_method_paypal.
+   The subtitle is injected via ::after on the label.
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method.payment_method_ppcp-gateway > label::after,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method.payment_method_paypal > label::after,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method[class*="paypal"] > label::after,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method[class*="ppcp"] > label::after {
+    content: "3% Fee applies" !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 4px 0 0 0 !important;
+    padding: 0 !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 11px !important;
+    font-style: italic !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
+    color: #8b8d94 !important;
+    line-height: 1.3 !important;
+    flex-basis: 100% !important;
+    order: 10 !important;
+}
+
+/* Ensure the PayPal label is flex-wrap so the ::after drops to a new line */
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method.payment_method_ppcp-gateway > label,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method.payment_method_paypal > label,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method[class*="paypal"] > label,
+body.woocommerce-checkout .j5-checkout__sidebar li.wc_payment_method[class*="ppcp"] > label {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    row-gap: 0 !important;
+}
+
+
+/* ==========================================================================
+   PAYPAL PAY LATER MESSAGE — hide at top, reveal below payment tile
+   Authoritative, batch-patch 7
+
+   The PayPal SDK injects .ppcp-messages / div[data-pp-message] into
+   several spots. We:
+     - Hide any instance OUTSIDE the payment tile list
+     - Bump contrast for any instance INSIDE the payment tile list
+     - If there isn't one inside already, this is a no-op (the one at
+       top stays hidden, nothing new appears — safer than injecting)
+
+   This is CSS-only; the PayPal plugin's actual placement is ideal
+   to change in plugin settings if available, but this catches the
+   common cases.
+   ========================================================================== */
+
+/* Hide PayPal "Pay in 4" messages at the top of the sidebar and
+   anywhere outside the payment section */
+body.woocommerce-checkout .j5-checkout__sidebar > div.ppcp-messages,
+body.woocommerce-checkout .j5-checkout__sidebar > div[data-pp-message],
+body.woocommerce-checkout .j5-checkout__sidebar > .wc-block-checkout-paypal-messages,
+body.woocommerce-checkout .j5-checkout__sidebar-sticky > div.ppcp-messages:first-of-type,
+body.woocommerce-checkout .j5-checkout__sidebar-sticky > div[data-pp-message]:first-of-type {
+    display: none !important;
+}
+
+/* Also hide when placed outside the order review table (common PayPal location) */
+body.woocommerce-checkout form.checkout > div.ppcp-messages,
+body.woocommerce-checkout form.checkout > div[data-pp-message],
+body.woocommerce-checkout .j5-checkout__sidebar .j5-review-table + div.ppcp-messages,
+body.woocommerce-checkout .j5-checkout__sidebar .j5-review-table + div[data-pp-message] {
+    display: none !important;
+}
+
+/* If PayPal injects a message inside the payment method list, style it for contrast */
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods div.ppcp-messages,
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods div[data-pp-message],
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods div.ppcp-messages,
+body.woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods div[data-pp-message] {
+    display: block !important;
+    margin: 10px 0 0 0 !important;
+    padding: 0 !important;
+    order: 99 !important;
+    color: #f5f1e8 !important;
+}
+
+/* Boost contrast on any PayPal "Pay in 4" text that IS visible */
+body.woocommerce-checkout div.ppcp-messages *,
+body.woocommerce-checkout div[data-pp-message] *,
+body.woocommerce-checkout div.ppcp-messages span,
+body.woocommerce-checkout div[data-pp-message] span {
+    color: #f5f1e8 !important;
+    opacity: 1 !important;
+}
+
+body.woocommerce-checkout div.ppcp-messages a,
+body.woocommerce-checkout div[data-pp-message] a {
+    color: #d4a044 !important;
+    text-decoration: underline !important;
+    text-decoration-color: rgba(212, 160, 68, 0.4) !important;
+}
+
+
+/* ==========================================================================
+   "SELECT A METHOD" HELPER — max-specificity re-assert
+   Authoritative, batch-patch 7
+
+   Previous batches' rules may have been stripped or overridden.
+   This version uses the longest, most-specific selector chain so
+   it wins any specificity fight, and uses ::before on the td/ul
+   directly.
+   ========================================================================== */
+
+/* Shipment helper */
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar tr.woocommerce-shipping-totals > td::before {
+    content: "Select a method" !important;
+    display: block !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 12px !important;
+    font-style: italic !important;
+    font-weight: 400 !important;
+    color: #8b8d94 !important;
+    letter-spacing: 0.01em !important;
+    margin: 0 0 10px 0 !important;
+    padding: 0 !important;
+    line-height: 1.3 !important;
+    text-transform: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar tr.woocommerce-shipping-totals:has(input[type="radio"]:checked) > td::before {
+    display: none !important;
+}
+
+/* Payment helper */
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods::before,
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods::before,
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar ul.payment_methods::before {
+    content: "Select a method" !important;
+    display: block !important;
+    font-family: 'Barlow', sans-serif !important;
+    font-size: 12px !important;
+    font-style: italic !important;
+    font-weight: 400 !important;
+    color: #8b8d94 !important;
+    letter-spacing: 0.01em !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    line-height: 1.3 !important;
+    text-transform: none !important;
+}
+
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar .j5-payment__methods:has(input[type="radio"]:checked)::before,
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar ul.wc_payment_methods:has(input[type="radio"]:checked)::before,
+body.woocommerce-checkout .woocommerce-checkout .j5-checkout__sidebar ul.payment_methods:has(input[type="radio"]:checked)::before {
+    display: none !important;
+}
+/* === J5-BATCH-7-END === */
+
+/* === J5-BATCH-8-START === */
+/* ---- Returning customer notice (login-toggle) — clean reset ---- */
+.woocommerce-checkout .woocommerce-form-login-toggle {
+    margin: 0 0 30px 0;
+    padding: 0;
+}
+
+.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
+    background: rgba(212, 160, 68, 0.06);
+    border: 1px solid rgba(212, 160, 68, 0.28);
+    border-left: 3px solid #d4a044;
+    padding: 14px 18px;
+    margin: 0;
+    color: #f5f1e8;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    border-radius: 2px;
+    list-style: none;
+    display: block;
+    box-shadow: none;
+    text-indent: 0;
+}
+
+/* Kill the broken WC info icon that renders as a missing glyph */
+.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info::before {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+}
+
+.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a,
+.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a.showlogin {
+    color: #d4a044;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 4px;
+}
+
+.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a:hover,
+.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info a.showlogin:hover {
+    color: #c8102e;
+    text-decoration: underline;
+}
+
+/* ---- Coupon bar — relocated into billing column, under "Create an account?" ---- */
+/* This block is appended AFTER batch 7's coupon rules, so cascade wins. */
+/* Every layout-critical property is redeclared explicitly to zap any */
+/* top-of-page absolute/fixed/full-bleed positioning batch 7 may have set. */
+.woocommerce-checkout .j5-coupon-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin: 0 0 30px 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    align-items: stretch;
+}
+
+.woocommerce-checkout .j5-coupon-bar__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #141518;
+    border: 1px solid rgba(245, 241, 232, 0.15);
+    color: #f5f1e8;
+    padding: 12px 16px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 2px;
+    height: auto;
+    box-shadow: none;
+    text-indent: 0;
+    margin: 0;
+}
+
+.woocommerce-checkout .j5-coupon-bar__input::placeholder {
+    color: rgba(245, 241, 232, 0.45);
+    font-style: normal;
+    font-family: 'Barlow', sans-serif;
+}
+
+.woocommerce-checkout .j5-coupon-bar__input:focus {
+    outline: none;
+    border-color: #d4a044;
+    box-shadow: 0 0 0 2px rgba(212, 160, 68, 0.15);
+}
+
+.woocommerce-checkout .j5-coupon-bar__apply {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid #d4a044;
+    color: #d4a044;
+    padding: 12px 24px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    text-transform: uppercase;
+    line-height: 1.4;
+    min-width: 100px;
+    height: auto;
+    margin: 0;
+}
+
+.woocommerce-checkout .j5-coupon-bar__apply:hover,
+.woocommerce-checkout .j5-coupon-bar__apply:focus {
+    background: #d4a044;
+    color: #0a0b0d;
+    outline: none;
+}
+
+/* Narrow viewport — stack input and button */
+@media (max-width: 480px) {
+    .woocommerce-checkout .j5-coupon-bar {
+        flex-wrap: wrap;
+    }
+    .woocommerce-checkout .j5-coupon-bar__input,
+    .woocommerce-checkout .j5-coupon-bar__apply {
+        flex: 1 1 100%;
+    }
+}
+/* === J5-BATCH-8-END === */
+
+/* ==========================================================================
+   J5-EMAIL-PHONE-PAIR — 2026-07-22
+   Pair billing email + phone on one row.
+
+   Field ORDER was never the problem: inc/j5-checkout-setup.php already sets
+   billing_email pri=30 and billing_phone pri=40, verified live. Phone only
+   LOOKED misplaced because the flex row-packing broke the pair, leaving email
+   alone and dropping phone down to sit beside ZIP.
+
+   Cause: these fields carry BOTH 'form-row-wide' and 'j5-field-half'. Generic
+   rules earlier in this sheet force .form-row / .form-row-wide to
+   width:100% !important, and .j5-field-half back to 50% !important — same
+   specificity, so the outcome depends on source order and is fragile.
+
+   Fix: target the two fields by ID (highest specificity here, no !important
+   arms race) and give them explicit flex sizing so they always share a row.
+   ========================================================================== */
+
+body.woocommerce-checkout .j5-checkout__customer #billing_email_field,
+body.woocommerce-checkout .j5-checkout__customer #billing_phone_field {
+    width: calc(50% - 8px) !important;
+    max-width: calc(50% - 8px) !important;
+    flex: 0 0 calc(50% - 8px) !important;
+    display: block !important;
+    clear: none !important;
+    float: none !important;
+}
+
+/* The pair must not be split by a wrap. Email opens the row, phone closes it. */
+body.woocommerce-checkout .j5-checkout__customer #billing_email_field {
+    order: 0;
+}
+body.woocommerce-checkout .j5-checkout__customer #billing_phone_field {
+    order: 0;
+}
+
+/* Phone reads "(optional)" until the required flag is restored server-side;
+   keep the optional hint from wrapping the label onto a second line and
+   desynchronising the two field heights. */
+body.woocommerce-checkout .j5-checkout__customer #billing_phone_field > label {
+    white-space: nowrap !important;
+}
+
+/* Stack on narrow viewports, matching the other half-width pairs. */
+@media (max-width: 640px) {
+    body.woocommerce-checkout .j5-checkout__customer #billing_email_field,
+    body.woocommerce-checkout .j5-checkout__customer #billing_phone_field {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+}
+/* === J5-EMAIL-PHONE-PAIR-END === */

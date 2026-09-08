@@ -1,0 +1,1987 @@
+/* ============================================================================
+   J5 Home Template Styles
+   - All classes prefixed with .j5- to avoid conflicts with Astra / Elementor
+   - CSS variables prefixed with --j5- for the same reason
+   - Scoped to body.j5-home-template for a safe base reset
+   ============================================================================ */
+
+/* ============================================
+   TOKENS — matched to ops.j5rescue.com
+   ============================================ */
+:root {
+    --j5-bg:         #0a0b0d;
+    --j5-bg-elev:    #111317;
+    --j5-bg-card:    #15181d;
+    --j5-bg-card-hi: #1b1f26;
+    --j5-border:     #23272f;
+    --j5-border-hi:  #333842;
+    --j5-ink:        #eceae2;
+    --j5-ink-dim:    #a4a49a;
+    --j5-ink-mute:   #6e6e66;
+    --j5-red:        #c8102e;
+    --j5-red-hi:     #e6142e;
+    --j5-red-deep:   #8a0a1d;
+    --j5-gold:       #d4a044;
+    --j5-gold-hi:    #f0bc5a;
+    --j5-bone:       #f5f1e8;
+    --j5-grid-line:  rgba(255,255,255,0.035);
+}
+
+/* ============================================
+   BASE RESET — scoped to our template only
+   ============================================ */
+body.j5-home-template {
+    font-family: 'Barlow', system-ui, sans-serif;
+    font-weight: 400;
+    color: var(--j5-ink);
+    background: var(--j5-bg);
+    line-height: 1.55;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+body.j5-home-template *,
+body.j5-home-template *::before,
+body.j5-home-template *::after { box-sizing: border-box; }
+body.j5-home-template a { color: inherit; text-decoration: none; }
+body.j5-home-template img,
+body.j5-home-template svg { display: block; max-width: 100%; }
+body.j5-home-template ul { list-style: none; padding: 0; margin: 0; }
+body.j5-home-template h1,
+body.j5-home-template h2,
+body.j5-home-template h3,
+body.j5-home-template h4,
+body.j5-home-template h5 { margin: 0; padding: 0; font-weight: 400; }
+body.j5-home-template button { font-family: inherit; }
+
+/* Subtle grid + noise texture */
+body.j5-home-template::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image:
+        linear-gradient(var(--j5-grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--j5-grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Layout container */
+.j5-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 2;
+}
+
+/* ============================================
+   UTILITY BAR
+   ============================================ */
+.j5-util-bar {
+    background: #000;
+    border-bottom: 1px solid var(--j5-border);
+    font-size: 12px;
+    position: relative;
+    z-index: 50;
+}
+.j5-util-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 36px;
+}
+.j5-util-left, .j5-util-right { display: flex; align-items: center; gap: 22px; }
+.j5-util-bar a {
+    color: var(--j5-ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    transition: color 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+}
+.j5-util-bar a:hover { color: var(--j5-gold); }
+
+.j5-le-badge {
+    background: var(--j5-red);
+    color: #fff !important;
+    padding: 4px 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    border-left: 2px solid var(--j5-gold);
+}
+.j5-le-badge:hover { background: var(--j5-red-hi); color: #fff !important; }
+
+.j5-pulse-dot {
+    width: 6px; height: 6px; background: var(--j5-gold); border-radius: 50%;
+    display: inline-block; margin-right: 6px;
+    animation: j5-pulse 2s infinite;
+}
+@keyframes j5-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(212,160,68,0.6); }
+    50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(212,160,68,0); }
+}
+
+/* ============================================
+   HEADER / NAV
+   ============================================ */
+.j5-site-header {
+    background: var(--j5-bg-elev);
+    border-bottom: 1px solid var(--j5-border);
+    position: sticky; top: 0;
+    z-index: 40;
+    backdrop-filter: blur(12px);
+}
+.j5-header-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 40px;
+    height: 84px;
+}
+
+/* Brand */
+.j5-brand {
+    display: flex; align-items: center; gap: 14px;
+}
+.j5-brand .custom-logo-link { display: inline-block; }
+.j5-brand .custom-logo { max-height: 64px; width: auto; display: block; }
+.j5-brand-mark {
+    width: 46px; height: 46px;
+    background: var(--j5-red);
+    display: grid; place-items: center;
+    position: relative;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+    flex-shrink: 0;
+}
+.j5-brand-mark::before {
+    content: ""; position: absolute;
+    width: 20px; height: 4px; background: #fff;
+}
+.j5-brand-mark::after {
+    content: ""; position: absolute;
+    width: 4px; height: 20px; background: #fff;
+}
+.j5-brand-text .j5-brand-name {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 24px; letter-spacing: 0.06em;
+    color: var(--j5-bone);
+    line-height: 1;
+}
+.j5-brand-text .j5-brand-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: 0.28em;
+    color: var(--j5-gold);
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+/* Primary nav — WordPress menu walker output */
+.j5-main-nav .j5-menu {
+    display: flex; justify-content: center;
+    gap: 2px;
+}
+.j5-main-nav .j5-menu > li {
+    position: relative;
+}
+.j5-main-nav .j5-menu > li > a {
+    display: block;
+    padding: 30px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--j5-ink);
+    position: relative;
+    transition: color 0.2s;
+}
+.j5-main-nav .j5-menu > li > a::after {
+    content: "";
+    position: absolute;
+    left: 14px; right: 14px; bottom: 22px; height: 2px;
+    background: var(--j5-red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+}
+.j5-main-nav .j5-menu > li:hover > a { color: var(--j5-bone); }
+.j5-main-nav .j5-menu > li:hover > a::after { transform: scaleX(1); }
+.j5-main-nav .j5-menu > li.menu-item-has-children > a::before {
+    content: "▾"; margin-right: 4px; font-size: 10px; color: var(--j5-ink-mute);
+}
+
+/* Submenu (mega-style) */
+.j5-main-nav .j5-menu .sub-menu {
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    min-width: 280px;
+    background: var(--j5-bg-card);
+    border: 1px solid var(--j5-border-hi);
+    border-top: 2px solid var(--j5-red);
+    padding: 18px 22px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.2s;
+}
+.j5-main-nav .j5-menu > li:hover > .sub-menu {
+    opacity: 1; pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+.j5-main-nav .j5-menu .sub-menu li { list-style: none; }
+.j5-main-nav .j5-menu .sub-menu a {
+    display: block;
+    padding: 8px 0;
+    font-size: 14px;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--j5-ink-dim);
+    border-bottom: 1px dashed var(--j5-border);
+    transition: color 0.2s, padding 0.2s;
+}
+.j5-main-nav .j5-menu .sub-menu li:last-child a { border-bottom: none; }
+.j5-main-nav .j5-menu .sub-menu a:hover { color: var(--j5-gold); padding-left: 6px; }
+
+/* Header action buttons */
+.j5-header-actions {
+    display: flex; align-items: center; gap: 20px;
+}
+.j5-btn-icon, .j5-cart-trigger {
+    background: transparent;
+    border: 1px solid var(--j5-border-hi);
+    color: var(--j5-ink-dim);
+    padding: 10px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.j5-cart-trigger {
+    border-color: var(--j5-red);
+    color: var(--j5-bone) !important;
+    background: var(--j5-red);
+}
+.j5-cart-trigger:hover { background: var(--j5-red-hi); color: #fff !important; }
+.j5-btn-icon:hover { border-color: var(--j5-gold); color: var(--j5-gold); }
+.j5-cart-trigger .cart-count {
+    background: var(--j5-gold);
+    color: #000;
+    font-size: 10px;
+    padding: 1px 6px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============================================
+   HERO
+   ============================================ */
+.j5-hero {
+    position: relative;
+    min-height: 620px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--j5-border);
+    background:
+        radial-gradient(ellipse at 75% 40%, rgba(200,16,46,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 80%, rgba(212,160,68,0.10) 0%, transparent 50%),
+        linear-gradient(180deg, #0a0b0d 0%, #0d0f13 100%);
+}
+.j5-hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        135deg,
+        transparent 0 80px,
+        rgba(212,160,68,0.02) 80px 82px
+    );
+    pointer-events: none;
+}
+.j5-hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    padding: 80px 0 100px;
+    position: relative;
+    z-index: 2;
+}
+.j5-hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--j5-gold);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    padding-left: 16px;
+    border-left: 2px solid var(--j5-gold);
+}
+.j5-hero-title {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: clamp(64px, 8vw, 128px);
+    line-height: 0.88;
+    letter-spacing: 0.01em;
+    color: var(--j5-bone);
+    margin-bottom: 24px;
+}
+.j5-hero-title .accent { color: var(--j5-red); }
+.j5-hero-title .rotator {
+    display: inline-block;
+    color: var(--j5-gold);
+    position: relative;
+}
+.j5-hero-title .rotator::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -6px;
+    height: 6px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--j5-gold) 0 8px,
+        transparent 8px 12px
+    );
+}
+.j5-hero-desc {
+    font-size: 17px;
+    color: var(--j5-ink-dim);
+    max-width: 520px;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
+.j5-hero-ctas {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 48px;
+}
+
+/* Buttons */
+.j5-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 16px 28px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    position: relative;
+    text-decoration: none;
+}
+.j5-btn-primary {
+    background: var(--j5-red);
+    color: #fff !important;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+.j5-btn-primary:hover { background: var(--j5-red-hi); transform: translateY(-2px); color: #fff !important; }
+.j5-btn-ghost {
+    background: transparent;
+    color: var(--j5-bone) !important;
+    border: 1px solid var(--j5-border-hi);
+}
+.j5-btn-ghost:hover { border-color: var(--j5-gold); color: var(--j5-gold) !important; }
+.j5-btn-gold {
+    background: var(--j5-gold);
+    color: #000 !important;
+}
+.j5-btn-gold:hover { background: var(--j5-gold-hi); color: #000 !important; }
+.j5-btn .arrow { font-size: 18px; transition: transform 0.2s; }
+.j5-btn:hover .arrow { transform: translateX(4px); }
+
+.j5-hero-stats {
+    display: flex; gap: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--j5-border);
+}
+.j5-hero-stat .num {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 42px;
+    color: var(--j5-gold);
+    line-height: 1;
+}
+.j5-hero-stat .label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    color: var(--j5-ink-mute);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+/* Hero right panel */
+.j5-hero-card {
+    position: relative;
+    background: linear-gradient(135deg, var(--j5-bg-card) 0%, var(--j5-bg-elev) 100%);
+    border: 1px solid var(--j5-border-hi);
+    padding: 40px 36px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
+}
+.j5-hero-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 56px; height: 4px;
+    background: var(--j5-red);
+}
+.j5-hc-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--j5-red);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.j5-hc-title {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 40px;
+    color: var(--j5-bone);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.j5-hc-sub {
+    color: var(--j5-ink-dim);
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+.j5-hc-list { margin-bottom: 28px; }
+.j5-hc-list li {
+    display: flex; align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--j5-border);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    list-style: none;
+}
+.j5-hc-list li::before {
+    content: "→";
+    color: var(--j5-gold);
+    margin-right: 14px;
+    font-weight: 700;
+}
+.j5-hc-list li .meta {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--j5-ink-mute);
+}
+.j5-hc-list li a { color: inherit; }
+.j5-hc-list li a:hover { color: var(--j5-gold); }
+
+/* ============================================
+   TRUST STRIP
+   ============================================ */
+.j5-trust-strip {
+    background: #000;
+    border-top: 1px solid var(--j5-border);
+    border-bottom: 1px solid var(--j5-border);
+    padding: 20px 0;
+    overflow: hidden;
+}
+.j5-trust-inner {
+    display: flex; align-items: center;
+    gap: 60px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 13px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.j5-trust-item {
+    display: inline-flex; align-items: center; gap: 12px;
+    color: var(--j5-ink-dim);
+    white-space: nowrap;
+}
+.j5-trust-item .icon {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    background: var(--j5-bg-card);
+    border: 1px solid var(--j5-border-hi);
+    color: var(--j5-gold);
+    font-size: 14px;
+}
+.j5-trust-sep { color: var(--j5-red); font-size: 20px; }
+
+/* ============================================
+   LE PORTAL BANNER
+   ============================================ */
+.j5-le-banner {
+    position: relative;
+    padding: 64px 0;
+    overflow: hidden;
+    background: linear-gradient(100deg, #000 0%, #1a0507 50%, #000 100%);
+    border-bottom: 1px solid var(--j5-border);
+}
+.j5-le-banner::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        repeating-linear-gradient(45deg, transparent 0 20px, rgba(200,16,46,0.04) 20px 22px);
+    pointer-events: none;
+}
+.j5-le-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 40px;
+    align-items: center;
+    position: relative;
+}
+.j5-le-badge-big {
+    width: 88px; height: 88px;
+    background: var(--j5-red);
+    display: grid; place-items: center;
+    color: #fff;
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 38px;
+    line-height: 1;
+    text-align: center;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.j5-le-content h3 {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 44px;
+    color: var(--j5-bone);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.j5-le-content h3 .gold { color: var(--j5-gold); }
+.j5-le-content p {
+    color: var(--j5-ink-dim);
+    font-size: 15px;
+    max-width: 600px;
+}
+
+/* ============================================
+   SECTION BLOCK / HEADING
+   ============================================ */
+.j5-block { padding: 100px 0; border-bottom: 1px solid var(--j5-border); position: relative; }
+.j5-block-alt { background: var(--j5-bg-elev); }
+.j5-block-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 56px;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+.j5-block-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--j5-red);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+}
+.j5-block-label::before {
+    content: ""; width: 30px; height: 1px; background: var(--j5-red);
+}
+.j5-block-title {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: clamp(42px, 5vw, 72px);
+    color: var(--j5-bone);
+    line-height: 0.95;
+    max-width: 700px;
+}
+.j5-block-title .accent { color: var(--j5-red); }
+.j5-block-desc {
+    color: var(--j5-ink-dim);
+    max-width: 380px;
+    font-size: 15px;
+}
+
+/* ============================================
+   CATEGORIES GRID
+   ============================================ */
+.j5-cat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--j5-border);
+    border: 1px solid var(--j5-border);
+}
+.j5-cat-card {
+    background: var(--j5-bg-elev);
+    padding: 36px 28px;
+    position: relative;
+    overflow: hidden;
+    min-height: 260px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+.j5-cat-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 3px;
+    background: var(--j5-red);
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+}
+.j5-cat-card:hover { background: var(--j5-bg-card-hi); }
+.j5-cat-card:hover::before { width: 100%; }
+.j5-cat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--j5-ink-mute);
+    letter-spacing: 0.2em;
+}
+.j5-cat-icon {
+    width: 64px; height: 64px;
+    display: grid; place-items: center;
+    color: var(--j5-gold);
+    margin: 20px 0;
+}
+.j5-cat-icon svg { width: 100%; height: 100%; stroke-width: 1.2; }
+.j5-cat-name {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 28px;
+    color: var(--j5-bone);
+    letter-spacing: 0.03em;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.j5-cat-sub {
+    font-size: 13px;
+    color: var(--j5-ink-mute);
+    margin-bottom: 16px;
+    min-height: 36px;
+}
+.j5-cat-link {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--j5-gold) !important;
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none;
+}
+.j5-cat-link .arrow { transition: transform 0.2s; }
+.j5-cat-card:hover .j5-cat-link .arrow { transform: translateX(4px); }
+
+/* ============================================
+   PRODUCT GRID
+   ============================================ */
+.j5-prod-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+.j5-prod-card {
+    background: var(--j5-bg-card);
+    border: 1px solid var(--j5-border);
+    transition: border-color 0.2s, transform 0.2s;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+}
+.j5-prod-card:hover { border-color: var(--j5-gold); transform: translateY(-4px); }
+.j5-prod-img-wrap {
+    aspect-ratio: 1/1;
+    background: #f5f1e8;
+    position: relative;
+    overflow: hidden;
+    display: grid; place-items: center;
+}
+.j5-prod-img-wrap img {
+    width: 85%; height: 85%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+}
+.j5-prod-badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: var(--j5-red);
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    z-index: 2;
+}
+.j5-prod-badge.gold { background: var(--j5-gold); color: #000; }
+.j5-prod-body {
+    padding: 20px 22px 22px;
+    display: flex; flex-direction: column;
+    flex: 1;
+}
+.j5-prod-brand {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    color: var(--j5-gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.j5-prod-name {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--j5-bone) !important;
+    line-height: 1.3;
+    margin-bottom: 10px;
+    min-height: 39px;
+    text-decoration: none;
+}
+.j5-prod-name:hover { color: var(--j5-gold) !important; }
+.j5-prod-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+}
+.j5-prod-sku {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--j5-ink-mute);
+    letter-spacing: 0.1em;
+}
+.j5-prod-rating { color: var(--j5-gold); font-size: 12px; }
+.j5-prod-price-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+}
+.j5-prod-price {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 26px;
+    color: var(--j5-bone);
+    line-height: 1;
+}
+/* WooCommerce price_html markup — force inherit */
+.j5-prod-price .woocommerce-Price-amount,
+.j5-prod-price .amount,
+.j5-prod-price ins,
+.j5-prod-price del,
+.j5-prod-price bdi {
+    font-family: inherit;
+    color: inherit;
+    background: transparent;
+}
+.j5-prod-price del {
+    color: var(--j5-ink-mute);
+    font-size: 16px;
+    margin-right: 6px;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    text-decoration: line-through;
+}
+.j5-prod-price ins { text-decoration: none; }
+.j5-prod-price .from_ {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    color: var(--j5-ink-mute);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+.j5-prod-add {
+    background: transparent;
+    color: var(--j5-bone) !important;
+    border: 1px solid var(--j5-border-hi);
+    padding: 8px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.j5-prod-add:hover { background: var(--j5-red); border-color: var(--j5-red); color: #fff !important; }
+
+/* ============================================
+   SERVICES
+   ============================================ */
+.j5-services {
+    background: var(--j5-bg-elev);
+}
+.j5-services-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--j5-border);
+    border: 1px solid var(--j5-border);
+    margin-top: 48px;
+}
+.j5-service-card {
+    background: var(--j5-bg);
+    padding: 40px 32px;
+    position: relative;
+    transition: background 0.3s;
+}
+.j5-service-card:hover { background: var(--j5-bg-card-hi); }
+.j5-service-card .num {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 48px;
+    color: var(--j5-red-deep);
+    line-height: 1;
+    margin-bottom: 20px;
+    opacity: 0.6;
+}
+.j5-service-card h4 {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    color: var(--j5-bone);
+    margin-bottom: 12px;
+}
+.j5-service-card p {
+    font-size: 14px;
+    color: var(--j5-ink-dim);
+    margin-bottom: 20px;
+    min-height: 60px;
+}
+
+/* ============================================
+   IMPACT STATS
+   ============================================ */
+.j5-impact {
+    padding: 80px 0;
+    background: linear-gradient(180deg, var(--j5-bg) 0%, #000 100%);
+    border-bottom: 1px solid var(--j5-border);
+}
+.j5-impact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--j5-border);
+}
+.j5-impact-cell {
+    background: var(--j5-bg);
+    padding: 40px 28px;
+    text-align: left;
+}
+.j5-impact-cell .num {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 84px;
+    line-height: 0.9;
+    color: var(--j5-gold);
+    margin-bottom: 8px;
+}
+.j5-impact-cell .num .plus { color: var(--j5-red); }
+.j5-impact-cell .label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--j5-ink-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+/* ============================================
+   TESTIMONIALS
+   ============================================ */
+.j5-testi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+.j5-testi {
+    background: var(--j5-bg-card);
+    border: 1px solid var(--j5-border);
+    border-top: 3px solid var(--j5-gold);
+    padding: 32px 28px;
+    position: relative;
+}
+.j5-testi .quote {
+    font-family: 'Barlow', sans-serif;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--j5-ink);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    position: relative;
+    padding-left: 18px;
+}
+.j5-testi .quote::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 6px; bottom: 6px;
+    width: 2px;
+    background: var(--j5-red);
+}
+.j5-testi .author {
+    display: flex; align-items: center; gap: 12px;
+}
+.j5-testi .avatar {
+    width: 44px; height: 44px;
+    background: var(--j5-red);
+    color: #fff;
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 20px;
+    display: grid; place-items: center;
+}
+.j5-testi .name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--j5-bone);
+}
+.j5-testi .role {
+    font-size: 12px;
+    color: var(--j5-ink-mute);
+    margin-top: 2px;
+}
+
+/* ============================================
+   NEWSLETTER
+   ============================================ */
+.j5-news {
+    padding: 100px 0;
+    background:
+        radial-gradient(ellipse at center, rgba(200,16,46,0.12) 0%, transparent 60%),
+        #000;
+    position: relative;
+    overflow: hidden;
+}
+.j5-news-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+.j5-news-title {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: clamp(44px, 6vw, 80px);
+    color: var(--j5-bone);
+    line-height: 0.95;
+    margin-bottom: 16px;
+}
+.j5-news-title .gold { color: var(--j5-gold); }
+.j5-news p {
+    color: var(--j5-ink-dim);
+    font-size: 16px;
+    margin-bottom: 32px;
+}
+.j5-news-form {
+    display: flex;
+    max-width: 560px;
+    margin: 0 auto;
+    border: 1px solid var(--j5-border-hi);
+    background: var(--j5-bg-elev);
+}
+.j5-news-form input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--j5-bone);
+    padding: 18px 22px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+}
+.j5-news-form input::placeholder { color: var(--j5-ink-mute); }
+.j5-news-form button {
+    background: var(--j5-red);
+    color: #fff;
+    border: none;
+    padding: 0 32px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.j5-news-form button:hover { background: var(--j5-red-hi); }
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.j5-site-footer {
+    background: #050506;
+    padding: 80px 0 0;
+    border-top: 2px solid var(--j5-red);
+}
+.j5-footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 60px;
+}
+.j5-footer-col h5 {
+    font-family: 'Chakra Petch', sans-serif;
+    font-size: 20px;
+    color: var(--j5-gold);
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--j5-border);
+}
+.j5-footer-col li {
+    padding: 6px 0;
+}
+.j5-footer-col a {
+    font-size: 14px;
+    color: var(--j5-ink-dim);
+    transition: color 0.2s;
+}
+.j5-footer-col a:hover { color: var(--j5-gold); }
+.j5-footer-brand .j5-brand-text .j5-brand-name { font-size: 32px; }
+.j5-footer-brand p {
+    color: var(--j5-ink-dim);
+    font-size: 14px;
+    margin: 20px 0;
+    max-width: 340px;
+}
+.j5-footer-contact {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 20px;
+}
+.j5-footer-contact .item {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 500;
+    color: var(--j5-ink-dim);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+}
+.j5-footer-contact .item .icon { color: var(--j5-red); }
+
+.j5-socials {
+    display: flex; gap: 8px;
+    margin-top: 24px;
+}
+.j5-socials a {
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    border: 1px solid var(--j5-border-hi);
+    color: var(--j5-ink-dim);
+    transition: all 0.2s;
+}
+.j5-socials a:hover {
+    border-color: var(--j5-gold);
+    color: var(--j5-gold);
+}
+
+.j5-footer-bottom {
+    border-top: 1px solid var(--j5-border);
+    padding: 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--j5-ink-mute);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.1em;
+}
+.j5-footer-bottom a { color: var(--j5-ink-mute); margin-left: 20px; }
+.j5-footer-bottom a:hover { color: var(--j5-gold); }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1100px) {
+    .j5-main-nav { display: none; }
+    .j5-header-inner { grid-template-columns: auto 1fr auto; }
+    .j5-hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .j5-cat-grid, .j5-prod-grid, .j5-services-grid, .j5-impact-grid { grid-template-columns: repeat(2, 1fr); }
+    .j5-testi-grid { grid-template-columns: 1fr; }
+    .j5-footer-grid { grid-template-columns: 1fr 1fr; }
+    .j5-impact-cell .num { font-size: 64px; }
+}
+@media (max-width: 640px) {
+    .j5-container { padding: 0 20px; }
+    .j5-cat-grid,
+    .j5-prod-grid,
+    .j5-services-grid,
+    .j5-impact-grid,
+    .j5-footer-grid { grid-template-columns: 1fr; }
+    .j5-hero-stats { flex-direction: column; gap: 20px; }
+    .j5-le-inner { grid-template-columns: 1fr; text-align: center; }
+    .j5-le-badge-big { margin: 0 auto; }
+    .j5-footer-bottom { flex-direction: column; gap: 12px; }
+    .j5-header-actions .j5-btn-icon { padding: 8px 10px; font-size: 12px; }
+}
+
+/* ============================================================================
+   ASTRA DEFAULTS OVERRIDE — v1.0.1
+   ============================================================================ */
+
+body.j5-home-template,
+body.j5-home-template p,
+body.j5-home-template li,
+body.j5-home-template span:not(.j5-pulse-dot):not(.arrow):not(.icon):not(.meta):not(.plus):not(.gold):not(.accent):not(.rotator):not(.cart-count):not(.from_):not(.amount):not(.woocommerce-Price-amount):not(bdi),
+body.j5-home-template div,
+body.j5-home-template label {
+    color: var(--j5-ink);
+}
+
+body.j5-home-template h1,
+body.j5-home-template h2,
+body.j5-home-template h3,
+body.j5-home-template h4,
+body.j5-home-template h5,
+body.j5-home-template h6 {
+    color: var(--j5-bone);
+    font-family: 'Chakra Petch', sans-serif;
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+    line-height: 1;
+}
+
+body.j5-home-template a,
+body.j5-home-template a:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+body.j5-home-template .j5-util-bar a { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-util-bar a:hover { color: var(--j5-gold); }
+body.j5-home-template .j5-util-bar .j5-le-badge,
+body.j5-home-template .j5-util-bar .j5-le-badge:hover,
+body.j5-home-template .j5-util-bar .j5-le-badge span { color: #fff; }
+
+body.j5-home-template .j5-hero-eyebrow { color: var(--j5-gold); }
+body.j5-home-template .j5-hero-title { color: var(--j5-bone); font-family: 'Chakra Petch', sans-serif; }
+body.j5-home-template .j5-hero-title .accent { color: var(--j5-red); }
+body.j5-home-template .j5-hero-title .rotator { color: var(--j5-gold); }
+body.j5-home-template .j5-hero-desc,
+body.j5-home-template .j5-hero-desc p { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-hero-stat .num { color: var(--j5-gold); font-family: 'Chakra Petch', sans-serif; }
+body.j5-home-template .j5-hero-stat .label { color: var(--j5-ink-mute); }
+
+body.j5-home-template .j5-hc-label { color: var(--j5-red); }
+body.j5-home-template .j5-hc-title { color: var(--j5-bone); font-family: 'Chakra Petch', sans-serif; }
+body.j5-home-template .j5-hc-sub { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-hc-list li { color: var(--j5-ink); }
+body.j5-home-template .j5-hc-list li a { color: var(--j5-ink); }
+body.j5-home-template .j5-hc-list li a:hover { color: var(--j5-gold); }
+body.j5-home-template .j5-hc-list li .meta { color: var(--j5-ink-mute); }
+
+body.j5-home-template .j5-trust-item { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-trust-item .icon { color: var(--j5-gold); }
+body.j5-home-template .j5-trust-sep { color: var(--j5-red); }
+
+body.j5-home-template .j5-le-content h3 { color: var(--j5-bone); font-family: 'Chakra Petch', sans-serif; }
+body.j5-home-template .j5-le-content h3 .gold { color: var(--j5-gold); }
+body.j5-home-template .j5-le-content p { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-le-badge-big { color: #fff; font-family: 'Chakra Petch', sans-serif; }
+
+body.j5-home-template .j5-block-label { color: var(--j5-red); }
+body.j5-home-template .j5-block-title { color: var(--j5-bone); font-family: 'Chakra Petch', sans-serif; }
+body.j5-home-template .j5-block-title .accent { color: var(--j5-red); }
+body.j5-home-template .j5-block-desc { color: var(--j5-ink-dim); }
+
+body.j5-home-template .j5-cat-num { color: var(--j5-ink-mute); }
+body.j5-home-template .j5-cat-icon { color: var(--j5-gold); }
+body.j5-home-template .j5-cat-name { color: var(--j5-bone); font-family: 'Chakra Petch', sans-serif; }
+body.j5-home-template .j5-cat-sub { color: var(--j5-ink-mute); }
+body.j5-home-template .j5-cat-link,
+body.j5-home-template a.j5-cat-link { color: var(--j5-gold); }
+
+body.j5-home-template .j5-prod-card { color: var(--j5-ink); }
+body.j5-home-template .j5-prod-brand { color: var(--j5-gold); }
+body.j5-home-template .j5-prod-name,
+body.j5-home-template a.j5-prod-name { color: var(--j5-bone); }
+body.j5-home-template a.j5-prod-name:hover { color: var(--j5-gold); }
+body.j5-home-template .j5-prod-sku { color: var(--j5-ink-mute); }
+body.j5-home-template .j5-prod-rating { color: var(--j5-gold); }
+
+body.j5-home-template .j5-prod-price bdi,
+body.j5-home-template .j5-prod-price del,
+
+body.j5-home-template 
+
+body.j5-home-template .j5-prod-price .screen-reader-text {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+body.j5-home-template a.j5-cart-trigger { color: var(--j5-bone); }
+body.j5-home-template a.j5-cart-trigger:hover { color: #fff; }
+body.j
+
+body.j5-home-template .j5-btn-primary,
+body.j5-
+body.j5-home-template .j5-btn-ghost,
+body.j5-home-template a.j5-btn-ghost:hover { color: var(--j5-gold); }
+
+body.j5-home-template a.j5-btn-gold { color: #000; }
+
+body.j5-home-template .j5-footer-col a,
+body.j5-home-template .j5-footer-col li { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-footer-col a:hover { color: var(--j5-gold); }
+body.j5-home-template .j5-footer-brand p { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-socials a { color: var(--j5-ink-dim); }
+body.j5-home-template .j5-footer-bottom { color: var(--j5-ink-mute); }
+body.j5-home-template .j5-footer-bottom a:hover { color: var(--j5-gold); }
+
+body.j5-home-template .entry-content h1,
+body.j5-home-template .entry-content h3,
+body.j5-home-template .entry-content h4,
+body.j5-home-template .entry-content h6,
+/* ============================================================
+ * J5-HOME-PATCH-2 (2026-04-21)
+ * Icons replace numbers in impact cells 3 and 4.
+ * Remove between sentinels to revert.
+ * ============================================================ */
+/* J5-HOME-PATCH-2-START */
+body.j5-home-template .j5-impact-cell .j5-impact-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--j5-gold);
+	min-height: 56px;
+}
+body.j5-home-template .j5-impact-cell .j5-impact-icon svg {
+	display: block;
+	width: 44px;
+	height: 44px;
+}
+/* J5-HOME-PATCH-2-END */
+
+/* ============================================================
+ * J5-HOME-PATCH-3 (2026-04-21)
+ * Real Google reviews replace placeholder testimonials.
+ * Adds:
+ *   - White-background circular avatars containing the Google "G" logo
+ *   - Star rating + review count meta row under the section title
+ *   - Centered "See all reviews" CTA button below the grid
+ * Remove between sentinels to revert.
+ * ============================================================ */
+/* J5-HOME-PATCH-3-START */
+
+/* Google G avatar: the base .avatar style centers content, but we need
+   a white circular chip so the multi-color Google logo is legible. */
+body.j5-home-template .j5-testi .avatar.j5-avatar-google {
+	background: #ffffff;
+	color: inherit;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	font-size: 0;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+body.j5-home-template .j5-testi .avatar.j5-avatar-google svg {
+	display: block;
+}
+
+/* Rating meta row under the section title — star row + "5.0 from 43 verified" */
+body.j5-home-template .j5-testi-meta {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 10px;
+	flex-wrap: wrap;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+}
+body.j5-home-template .j5-testi-meta .j5-testi-stars {
+	color: var(--j5-gold);
+	font-size: 17px;
+	letter-spacing: 2px;
+	line-height: 1;
+}
+body.j5-home-template .j5-testi-meta .j5-testi-rating {
+	color: var(--j5-bone);
+	font-weight: 600;
+	font-size: 15px;
+}
+body.j5-home-template .j5-testi-meta .j5-testi-source {
+	color: var(--j5-ink-dim);
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	font-size: 11px;
+}
+
+/* Centered CTA below the testimonial grid */
+body.j5-home-template .j5-testi-cta {
+	margin-top: 32px;
+	text-align: center;
+}
+body.j5-home-template .j5-testi-cta .j5-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* J5-HOME-PATCH-3-END */
+
+/* ============================================================
+ * J5-HOME-PATCH-4 (2026-04-21)
+ * Homepage polish: hero vertical rhythm + impact-cell unification.
+ *
+ *   1. Hero: breathing room between title, description, CTAs.
+ *   2. Impact: all 4 cells center-aligned on a shared baseline;
+ *      shield and bolt icons scaled up to match the visual weight
+ *      of the 600+ and 5.0 numeric cells.
+ *
+ * Remove everything between the J5-HOME-PATCH-4-START and
+ * J5-HOME-PATCH-4-END sentinels to revert.
+ * ============================================================ */
+/* J5-HOME-PATCH-4-START */
+
+/* ---------- 1) Hero: vertical rhythm ---------- */
+body.j5-home-template .j5-hero-title {
+	margin: 0 0 22px;
+}
+body.j5-home-template .j5-hero-desc {
+	margin: 0 0 36px;
+}
+
+/* ---------- 2) Impact cells: unified layout ---------- */
+/* All 4 cells use the same column-flex structure so labels
+   align on a shared baseline row-to-row. */
+body.j5-home-template .j5-impact-grid .j5-impact-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+/* The big visual slot (.num) — locked to a consistent height
+   whether its child is a 600+/5.0 text run OR an SVG icon. */
+body.j5-home-template .j5-impact-grid .j5-impact-cell > .num {
+	min-height: 72px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 14px;
+}
+
+/* Scale shield + bolt SVGs up to match numeric visual weight.
+   CSS width/height overrides the inline width="44" height="44"
+   attrs on the <svg> elements in template-j5-home.php. */
+body.j5-home-template .j5-impact-grid .j5-impact-cell .j5-impact-icon svg {
+	width: 60px;
+	height: 60px;
+}
+
+/* ---------- Mobile tuning ---------- */
+@media (max-width: 720px) {
+	body.j5-home-template .j5-hero-desc {
+		margin-bottom: 28px;
+	}
+	body.j5-home-template .j5-impact-grid .j5-impact-cell > .num {
+		min-height: 60px;
+		margin-bottom: 12px;
+	}
+	body.j5-home-template .j5-impact-grid .j5-impact-cell .j5-impact-icon svg {
+		width: 50px;
+		height: 50px;
+	}
+}
+
+/* J5-HOME-PATCH-4-END */
+
+/* ============================================================
+ * J5-HOME-PATCH-5 (2026-04-21)
+ * Hero search card styling + signals section padding.
+ *
+ *   1. Hero search: longer input (flex:1), padded button,
+ *      bordered pill chips for popular searches.
+ *   2. Signals section (.j5-news): generous vertical padding
+ *      and internal rhythm (eyebrow -> title -> copy -> form).
+ *
+ * Remove everything between the patch START and END sentinels
+ * to revert.
+ * ============================================================ */
+/* J5-HOME-PATCH-5-START */
+
+/* =============================================================
+ * 1) HERO SEARCH CARD
+ * ============================================================= */
+
+/* Input + button wrapper: flex so input grows to fill space. */
+body.j5-home-template .j5-hero-search-input-wrap {
+	display: flex;
+	gap: 14px;
+	align-items: stretch;
+	width: 100%;
+}
+
+/* Search input: takes available space, comfortable padding,
+   16px font to prevent iOS zoom-on-focus. */
+body.j5-home-template .j5-hero-search-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 18px 22px;
+	font-size: 16px;
+	background: #ffffff;
+	border: 1px solid #e4e4e4;
+	color: var(--j5-bg);
+	outline: none;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+body.j5-home-template .j5-hero-search-input::placeholder {
+	color: var(--j5-ink-mute);
+}
+body.j5-home-template .j5-hero-search-input:focus {
+	border-color: var(--j5-red);
+	box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.18);
+}
+
+/* Search button: generous padding, uppercase wordmark. */
+body.j5-home-template .j5-hero-search-btn {
+	flex: 0 0 auto;
+	padding: 18px 44px;
+	background: var(--j5-red);
+	color: #ffffff;
+	border: 0;
+	font-weight: 700;
+	font-size: 15px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+body.j5-home-template .j5-hero-search-btn:hover {
+	background: var(--j5-red-deep);
+	transform: translateY(-1px);
+	box-shadow: 0 6px 18px rgba(200, 16, 46, 0.32);
+}
+body.j5-home-template .j5-hero-search-btn:active {
+	transform: translateY(0);
+	box-shadow: none;
+}
+
+/* Popular searches label: breathing room above + below. */
+body.j5-home-template .j5-hero-popular-label {
+	margin-top: 22px;
+	margin-bottom: 12px;
+}
+
+/* Pills row: flex wrap with gap. */
+body.j5-home-template .j5-hero-popular-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+/* Pill as a bordered box — the "boxes around Tourniquet, IFAK". */
+body.j5-home-template .j5-hero-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 9px 16px;
+	border: 1px solid rgba(212, 160, 68, 0.35);
+	background: rgba(255, 255, 255, 0.025);
+	color: var(--j5-ink);
+	text-decoration: none;
+	font-size: 14px;
+	letter-spacing: 0.02em;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+body.j5-home-template .j5-hero-pill:hover {
+	background: rgba(200, 16, 46, 0.14);
+	border-color: var(--j5-red);
+	color: var(--j5-bone);
+	transform: translateY(-1px);
+}
+
+/* =============================================================
+ * 2) SIGNALS SECTION
+ * ============================================================= */
+
+/* Section-level vertical padding. */
+body.j5-home-template .j5-news {
+	padding-top: 112px;
+	padding-bottom: 112px;
+}
+
+/* Eyebrow ("SIGNALS") -> title. */
+body.j5-home-template .j5-news .j5-block-label {
+	margin-bottom: 24px;
+}
+
+/* Title -> paragraph. */
+body.j5-home-template .j5-news .j5-news-title {
+	margin: 0 0 22px;
+}
+
+/* Paragraph -> form. */
+body.j5-home-template .j5-news p {
+	margin: 0 0 44px;
+}
+
+/* =============================================================
+ * 3) MOBILE
+ * ============================================================= */
+@media (max-width: 720px) {
+
+	/* Hero search: input stacks above button. */
+	body.j5-home-template .j5-hero-search-input-wrap {
+		flex-direction: column;
+		gap: 10px;
+	}
+	body.j5-home-template .j5-hero-search-input {
+		width: 100%;
+		padding: 14px 16px;
+	}
+	body.j5-home-template .j5-hero-search-btn {
+		width: 100%;
+		padding: 16px 24px;
+	}
+
+	/* Pill touch target >= 44px. */
+	body.j5-home-template .j5-hero-pill {
+		padding: 11px 14px;
+	}
+
+	/* Signals: tighter vertical padding. */
+	body.j5-home-template .j5-news {
+		padding-top: 72px;
+		padding-bottom: 72px;
+	}
+	body.j5-home-template .j5-news p {
+		margin-bottom: 34px;
+	}
+}
+
+/* J5-HOME-PATCH-5-END */
+
+/* J5-HERO-FULLWIDTH — added 2026-05-20 when search card was removed.
+   To restore search card: remove this block AND unwrap the <aside> in template-j5-home.php. */
+.j5-hero-grid {
+    grid-template-columns: 1fr;
+}
+
+/* J5-HERO-LAYOUT-V2-START — 2026-05-20
+   Center hero, cap headline width, reduce sizes, beef up buttons,
+   eliminate mobile scroll. Appended after J5-HOME-PATCH-4 so cascade wins.
+   To rollback: delete this entire block (between START/END sentinels). */
+
+/* Center the entire hero column */
+body.j5-home-template .j5-hero-grid > div:first-child {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+/* Headline: reduce desktop ceiling, cap width so it doesn't sprawl */
+body.j5-home-template .j5-hero-title {
+    font-size: clamp(44px, 6vw, 84px);
+    max-width: 16ch;
+    margin: 0 auto 22px;
+}
+
+/* Description: keep it readable, recentre */
+body.j5-home-template .j5-hero-desc {
+    max-width: 560px;
+    margin: 0 auto 36px;
+    font-size: 18px;
+}
+
+/* CTAs: bigger, centered, more presence */
+body.j5-home-template .j5-hero-ctas {
+    justify-content: center;
+    margin-bottom: 56px;
+}
+body.j5-home-template .j5-hero-ctas .j5-btn {
+    padding: 20px 38px;
+    font-size: 17px;
+    letter-spacing: 0.2em;
+}
+
+/* Stats: center, tighten the gap to buttons, scale numbers down a touch */
+body.j5-home-template .j5-hero-stats {
+    justify-content: center;
+    padding-top: 32px;
+    gap: 64px;
+}
+body.j5-home-template .j5-hero-stat {
+    text-align: center;
+}
+
+/* Reduce hero section vertical padding — pulls stats up into viewport */
+body.j5-home-template .j5-hero-grid {
+    padding: 64px 0 72px;
+}
+
+/* ---------- Mobile (≤720px): single-viewport fit, no scroll required ---------- */
+@media (max-width: 720px) {
+    body.j5-home-template .j5-hero-grid {
+        padding: 40px 0 48px;
+        gap: 24px;
+    }
+    body.j5-home-template .j5-hero-title {
+        font-size: clamp(36px, 10vw, 52px);
+        margin-bottom: 16px;
+        max-width: 100%;
+    }
+    body.j5-home-template .j5-hero-desc {
+        font-size: 15px;
+        margin-bottom: 28px;
+    }
+    body.j5-home-template .j5-hero-ctas {
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 36px;
+        width: 100%;
+    }
+    body.j5-home-template .j5-hero-ctas .j5-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 18px 24px;
+        font-size: 15px;
+    }
+    body.j5-home-template .j5-hero-stats {
+        flex-direction: row;
+        gap: 32px;
+        padding-top: 24px;
+    }
+    body.j5-home-template .j5-hero-stat .num {
+        font-size: 32px;
+    }
+}
+
+/* ---------- Narrow phones (≤380px): extra-tight ---------- */
+@media (max-width: 380px) {
+    body.j5-home-template .j5-hero-title {
+        font-size: 36px;
+    }
+    body.j5-home-template .j5-hero-stat .num {
+        font-size: 28px;
+    }
+}
+/* J5-HERO-LAYOUT-V2-END */
+
+/* J5-HERO-TEXTALIGN-START — 2026-05-20
+   Left-align headline + description while keeping the hero block
+   centered on the page. Buttons and stats remain centered.
+   To rollback: delete this entire block. */
+body.j5-home-template .j5-hero-title,
+body.j5-home-template .j5-hero-desc {
+    text-align: left;
+}
+body.j5-home-template .j5-hero-desc {
+    margin-left: 0;
+    margin-right: 0;
+}
+/* J5-HERO-TEXTALIGN-END */
+
+/* J5-HERO-WIDTHFIX-START — 2026-05-20
+   Widen headline so MISSION-READY GEAR. and Trusted By [rotator]
+   each fit on a single line. Force the centered hero block to
+   keep its full width so left-aligned text doesn't shrink-wrap. */
+
+/* Force the hero column to its full max-width regardless of content */
+body.j5-home-template .j5-hero-grid > div:first-child {
+    width: 100%;
+}
+
+/* Widen headline cap; let lines break only at the <br/> in markup */
+body.j5-home-template .j5-hero-title {
+    max-width: 100%;
+    white-space: normal;
+}
+
+/* On wide screens, the rotator line should not wrap */
+@media (min-width: 721px) {
+    body.j5-home-template .j5-hero-title .rotator,
+    body.j5-home-template .j5-hero-title .j5-hero-rotator-lead {
+        white-space: nowrap;
+    }
+}
+
+/* Mobile: allow rotator to wrap naturally if needed */
+@media (max-width: 720px) {
+    body.j5-home-template .j5-hero-title .rotator,
+    body.j5-home-template .j5-hero-title .j5-hero-rotator-lead {
+        white-space: normal;
+    }
+}
+/* J5-HERO-WIDTHFIX-END */
+
+
+/* J5-HERO-CAPABILITIES-CSS-START — 2026-05-20
+   Four-up capability badges replace the old j5-hero-stats block.
+   Icon + label, left-aligned within each cell, gold divider on top.
+   To rollback: delete this entire block AND restore the
+   j5-hero-stats block in template-j5-home.php from backup. */
+body.j5-home-template .j5-hero-capabilities {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 28px;
+	padding-top: 32px;
+	border-top: 1px solid rgba(212,168,73,0.18);
+	margin-top: 8px;
+	width: 100%;
+}
+body.j5-home-template .j5-hero-cap {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	text-align: left;
+}
+body.j5-home-template .j5-hero-cap-icon {
+	color: var(--j5-gold);
+	flex-shrink: 0;
+}
+body.j5-home-template .j5-hero-cap-label {
+	font-family: 'Chakra Petch', sans-serif;
+	font-size: 17px;
+	color: var(--j5-bone);
+	font-weight: 500;
+	line-height: 1.15;
+}
+@media (max-width: 1100px) {
+	body.j5-home-template .j5-hero-capabilities {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 24px 32px;
+	}
+}
+@media (max-width: 480px) {
+	body.j5-home-template .j5-hero-capabilities {
+		grid-template-columns: 1fr;
+		gap: 18px;
+		padding-top: 24px;
+	}
+	body.j5-home-template .j5-hero-cap-label {
+		font-size: 15px;
+	}
+}
+/* J5-HERO-CAPABILITIES-CSS-END */
+
+
+/* J5-HERO-LEFTALIGN-START — 2026-05-20
+   Align entire hero block to the left edge of the container.
+   Reduce headline font-size for better proportion.
+   Buttons and capability badges all align flush left.
+   Layered on top of J5-HERO-LAYOUT-V2 / TEXTALIGN / WIDTHFIX. */
+
+/* Stop centering the hero column — pin it to the left of the container */
+body.j5-home-template .j5-hero-grid > div:first-child {
+	max-width: 100%;
+	margin: 0;
+	align-items: flex-start;
+	text-align: left;
+}
+
+/* Reduce headline font-size — was clamp(44px, 6vw, 84px), now smaller */
+body.j5-home-template .j5-hero-title {
+	font-size: clamp(36px, 4.6vw, 64px);
+	max-width: 100%;
+}
+
+/* Left-align everything that was centered */
+body.j5-home-template .j5-hero-ctas {
+	justify-content: flex-start;
+}
+body.j5-home-template .j5-hero-desc {
+	max-width: 620px;
+	text-align: left;
+}
+
+/* Capability badges row — left-aligned, no longer centered */
+body.j5-home-template .j5-hero-capabilities {
+	justify-items: start;
+}
+
+/* Mobile: keep proportions sane */
+@media (max-width: 720px) {
+	body.j5-home-template .j5-hero-title {
+		font-size: clamp(30px, 8vw, 42px);
+	}
+	body.j5-home-template .j5-hero-desc {
+		font-size: 15px;
+	}
+}
+/* J5-HERO-LEFTALIGN-END */
+
+
+/* J5-HERO-TITLE-LEFTPIN-START — 2026-05-20
+   Override the margin:0 auto from J5-HERO-LAYOUT-V2 so the title
+   pins to the left edge instead of staying centered. */
+body.j5-home-template .j5-hero-title {
+	margin-left: 0;
+	margin-right: 0;
+}
+body.j5-home-template .j5-hero-desc {
+	margin-left: 0;
+	margin-right: 0;
+}
+/* J5-HERO-TITLE-LEFTPIN-END */
+
+
+/* J5-HERO-MOBILE-V2-START — 2026-05-20
+   Mobile-specific refinements:
+   1. Smaller headline so it stops overflowing on small screens
+   2. Capability badges: force 2x2 grid (instead of 1-col stack)
+      and center each badge within its cell */
+
+/* Phone (≤720px) — aggressive headline shrink + 2x2 badges centered */
+@media (max-width: 720px) {
+	body.j5-home-template .j5-hero-title {
+		font-size: clamp(24px, 6.4vw, 36px);
+		word-break: normal;
+		overflow-wrap: break-word;
+	}
+	body.j5-home-template .j5-hero-title .rotator,
+	body.j5-home-template .j5-hero-title .j5-hero-rotator-lead {
+		white-space: normal;
+	}
+	body.j5-home-template .j5-hero-eyebrow {
+		font-size: 10px;
+	}
+	body.j5-home-template .j5-hero-desc {
+		font-size: 14px;
+	}
+
+	/* Capability badges — keep 2x2 even below 480px, center each cell */
+	body.j5-home-template .j5-hero-capabilities {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 24px 16px;
+		justify-items: center;
+	}
+	body.j5-home-template .j5-hero-cap {
+		justify-content: center;
+		text-align: center;
+	}
+	body.j5-home-template .j5-hero-cap-label {
+		font-size: 14px;
+	}
+}
+
+/* Narrow phones (≤480px) — override the 1-col rule from capabilities patch */
+@media (max-width: 480px) {
+	body.j5-home-template .j5-hero-title {
+		font-size: clamp(22px, 7vw, 30px);
+	}
+	body.j5-home-template .j5-hero-capabilities {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 20px 12px;
+		justify-items: center;
+	}
+	body.j5-home-template .j5-hero-cap {
+		justify-content: center;
+		text-align: center;
+		gap: 10px;
+	}
+	body.j5-home-template .j5-hero-cap-label {
+		font-size: 13px;
+	}
+	body.j5-home-template .j5-hero-cap-icon {
+		width: 28px;
+		height: 28px;
+	}
+}
+
+/* Very narrow (≤380px) — last-resort sizing */
+@media (max-width: 380px) {
+	body.j5-home-template .j5-hero-title {
+		font-size: 22px;
+	}
+	body.j5-home-template .j5-hero-cap-label {
+		font-size: 12px;
+	}
+}
+/* J5-HERO-MOBILE-V2-END */
+
+
+/* J5-HERO-MOBILE-V3-START — 2026-05-20
+   Mobile tweaks: bigger headline, buttons not full-width.
+   Capability badges layout preserved (already good per user).
+   This patch overrides earlier mobile rules that made buttons 100% wide. */
+@media (max-width: 720px) {
+	/* Bigger headline on mobile */
+	body.j5-home-template .j5-hero-title {
+		font-size: clamp(34px, 9vw, 48px);
+	}
+
+	/* Buttons: side-by-side, auto width, smaller padding */
+	body.j5-home-template .j5-hero-ctas {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 12px;
+		width: auto;
+	}
+	body.j5-home-template .j5-hero-ctas .j5-btn {
+		width: auto;
+		padding: 14px 22px;
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 480px) {
+	body.j5-home-template .j5-hero-title {
+		font-size: clamp(30px, 9vw, 42px);
+	}
+	body.j5-home-template .j5-hero-ctas .j5-btn {
+		padding: 13px 20px;
+		font-size: 12px;
+	}
+}
+
+@media (max-width: 380px) {
+	body.j5-home-template .j5-hero-title {
+		font-size: 28px;
+	}
+	body.j5-home-template .j5-hero-ctas .j5-btn {
+		padding: 12px 18px;
+		font-size: 12px;
+	}
+}
+/* J5-HERO-MOBILE-V3-END */
+
+
+/* J5-HERO-PADDING-V4-START — 2026-05-20
+   Small spacing tweaks: 5px horizontal breathing room so content
+   doesn't kiss the viewport edges, and trim the empty space below
+   the capability badges row. */
+
+/* Add subtle horizontal padding to the hero container */
+body.j5-home-template .j5-hero .j5-container {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+/* Reduce the bottom padding on the hero section overall */
+body.j5-home-template .j5-hero-grid {
+	padding: 64px 0 32px;
+}
+
+/* Tighten gap between capability badges row and what follows */
+body.j5-home-template .j5-hero-capabilities {
+	padding-top: 28px;
+	padding-bottom: 0;
+	margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+	body.j5-home-template .j5-hero-grid {
+		padding: 40px 0 24px;
+	}
+}
+/* J5-HERO-PADDING-V4-END */
+
+
+/* J5-HERO-MINHEIGHT-FIX-START — 2026-05-20
+   Override min-height: 620px from .j5-hero (line 286). That min-height
+   was creating empty space at the bottom of the hero when content is
+   shorter than 620px. Let the section size to its content. */
+body.j5-home-template .j5-hero {
+	min-height: auto;
+}
+/* J5-HERO-MINHEIGHT-FIX-END */

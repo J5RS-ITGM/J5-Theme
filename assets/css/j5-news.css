@@ -1,0 +1,670 @@
+/* ============================================================
+ * J5 News Archive Styles
+ * assets/css/j5-news.css
+ *
+ * Self-contained stylesheet loaded only on archive views
+ * (home/category/tag/author/date). Uses its own CSS variables
+ * so it doesn't depend on any chrome stylesheet being loaded
+ * first. Works even if j5-chrome.css is stripped or unloaded.
+ *
+ * Color vars mirror the J5 palette intentionally.
+ * ============================================================ */
+
+:root {
+	--j5n-bg: #0b0b0b;
+	--j5n-surface: #0f1013;
+	--j5n-card-bg: #141518;
+	--j5n-border: #2a2a2a;
+	--j5n-border-strong: #3a3a3a;
+	--j5n-bone: #f5f1e8;
+	--j5n-bone-mute: #b8b3a5;
+	--j5n-bone-dim: #8a8576;
+	--j5n-ink-dim: #6a6558;
+	--j5n-gold: #c8a84e;
+	--j5n-red: #c41e24;
+	--j5n-red-mute: #e24b4a;
+	--j5n-cond: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+	--j5n-body: 'Barlow', system-ui, sans-serif;
+}
+
+/* ============================================================
+ * Root wrapper
+ * ============================================================ */
+
+.j5-news {
+	background: var(--j5n-bg);
+	color: var(--j5n-bone);
+	font-family: var(--j5n-body);
+}
+
+.j5-news .j5-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 32px;
+	box-sizing: border-box;
+}
+
+/* Section rhythm */
+.j5-news-header,
+.j5-news-hero-section,
+.j5-news-filter-section,
+.j5-news-grid-section,
+.j5-news-pagination-section {
+	padding: 40px 0;
+}
+.j5-news-filter-section { padding-bottom: 24px; }
+.j5-news-grid-section { padding-top: 8px; padding-bottom: 16px; }
+.j5-news-pagination-section { padding-top: 16px; padding-bottom: 56px; }
+
+/* Dividing line between top header block and hero */
+.j5-news-header { border-bottom: 1px solid var(--j5n-border); }
+.j5-news-hero-section { border-bottom: 1px solid var(--j5n-border); }
+
+/* ============================================================
+ * Page header (title block at the top)
+ * ============================================================ */
+
+.j5-news-eyebrow {
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 12px;
+	letter-spacing: 0.18em;
+	color: var(--j5n-gold);
+	margin: 0 0 10px;
+	text-transform: uppercase;
+}
+
+.j5-news-page-title {
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 42px;
+	line-height: 1.1;
+	color: var(--j5n-bone);
+	margin: 0 0 8px;
+	letter-spacing: 0.01em;
+}
+
+.j5-news-page-desc {
+	font-size: 15px;
+	color: var(--j5n-bone-mute);
+	margin: 0;
+	max-width: 58ch;
+	line-height: 1.55;
+}
+
+/* ============================================================
+ * Featured hero
+ * ============================================================ */
+
+.j5-news-hero {
+	display: grid;
+	grid-template-columns: 1.25fr 1fr;
+	gap: 36px;
+	align-items: stretch;
+}
+
+.j5-news-hero-img {
+	display: block;
+	aspect-ratio: 16 / 10;
+	background: var(--j5n-card-bg);
+	border: 1px solid var(--j5n-border);
+	overflow: hidden;
+	position: relative;
+	text-decoration: none;
+}
+.j5-news-hero-img img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: opacity 0.2s;
+}
+.j5-news-hero-img:hover img { opacity: 0.92; }
+
+.j5-news-placeholder-label {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--j5n-cond);
+	font-size: 11px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #4a4a4a;
+}
+
+.j5-news-hero-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 12px;
+}
+
+.j5-news-featured-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 11px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--j5n-gold);
+	margin-bottom: 2px;
+}
+.j5-news-featured-tag::before {
+	content: "";
+	display: inline-block;
+	width: 28px;
+	height: 1px;
+	background: var(--j5n-gold);
+}
+
+.j5-news-hero-title {
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 32px;
+	line-height: 1.15;
+	color: var(--j5n-bone);
+	margin: 0;
+	letter-spacing: 0.01em;
+}
+.j5-news-hero-title a {
+	color: inherit;
+	text-decoration: none;
+}
+.j5-news-hero-title a:hover { color: var(--j5n-gold); }
+
+.j5-news-hero-excerpt {
+	font-size: 15px;
+	line-height: 1.55;
+	color: var(--j5n-bone-mute);
+	margin: 4px 0 0;
+}
+
+/* ============================================================
+ * Category pills + meta
+ * ============================================================ */
+
+.j5-cat-pill {
+	display: inline-block;
+	padding: 4px 10px;
+	background: #1a1c1f;
+	border: 1px solid var(--j5n-border);
+	color: var(--j5n-gold);
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 11px;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	text-decoration: none;
+	align-self: flex-start;
+	transition: border-color 0.15s, color 0.15s;
+}
+.j5-cat-pill:hover { border-color: var(--j5n-gold); }
+.j5-cat-pill--red { color: var(--j5n-red-mute); border-color: #3a1a1a; }
+.j5-cat-pill--red:hover { border-color: var(--j5n-red-mute); }
+.j5-cat-pill--news { color: var(--j5n-bone-dim); }
+
+.j5-news-meta-row {
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: var(--j5n-cond);
+	font-size: 11px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--j5n-bone-dim);
+	margin-top: 8px;
+}
+.j5-news-meta-row .dot { color: var(--j5n-gold); opacity: 0.5; }
+
+.j5-news-cta-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--j5n-gold);
+	font-family: var(--j5n-cond);
+	font-size: 13px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	text-decoration: none;
+	margin-top: 12px;
+}
+.j5-news-cta-link:hover { color: var(--j5n-bone); }
+.j5-news-cta-link .arrow { font-size: 13px; transition: transform 0.15s; }
+.j5-news-cta-link:hover .arrow { transform: translateX(3px); }
+
+/* ============================================================
+ * Filter bar
+ * ============================================================ */
+
+.j5-news-filter-bar {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.j5-news-filter-label {
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 11px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--j5n-bone-dim);
+	margin-right: 4px;
+}
+
+.j5-news-filter {
+	padding: 7px 16px;
+	background: transparent;
+	border: 1px solid var(--j5n-border);
+	color: var(--j5n-bone-mute);
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 12px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	cursor: pointer;
+	text-decoration: none;
+	transition: border-color 0.15s, color 0.15s, background 0.15s;
+	display: inline-block;
+}
+.j5-news-filter:hover {
+	border-color: var(--j5n-gold);
+	color: var(--j5n-bone);
+}
+.j5-news-filter.is-active {
+	background: var(--j5n-gold);
+	color: var(--j5n-bg);
+	border-color: var(--j5n-gold);
+}
+
+.j5-news-count {
+	margin-left: auto;
+	font-family: var(--j5n-cond);
+	font-size: 11px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--j5n-bone-dim);
+}
+
+/* ============================================================
+ * Post card grid
+ * ============================================================ */
+
+.j5-news-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 32px 28px;
+}
+
+.j5-news-card {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.j5-news-card-img {
+	display: block;
+	aspect-ratio: 4 / 3;
+	background: var(--j5n-card-bg);
+	border: 1px solid var(--j5n-border);
+	overflow: hidden;
+	position: relative;
+	text-decoration: none;
+}
+.j5-news-card-img img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+	transition: opacity 0.2s;
+}
+.j5-news-card-img:hover img { opacity: 0.92; }
+
+.j5-news-card-body {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.j5-news-card-cat {
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 10px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--j5n-gold);
+}
+.j5-news-card-cat--red { color: var(--j5n-red-mute); }
+.j5-news-card-cat--news { color: var(--j5n-bone-dim); }
+
+.j5-news-card-title {
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 18px;
+	line-height: 1.2;
+	color: var(--j5n-bone);
+	margin: 0;
+	letter-spacing: 0.005em;
+}
+.j5-news-card-title a {
+	color: inherit;
+	text-decoration: none;
+}
+.j5-news-card-title a:hover { color: var(--j5n-gold); }
+
+.j5-news-card-excerpt {
+	font-size: 13.5px;
+	line-height: 1.5;
+	color: var(--j5n-bone-mute);
+	margin: 0;
+}
+
+.j5-news-card-meta {
+	font-family: var(--j5n-cond);
+	font-size: 10px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--j5n-ink-dim);
+	margin-top: 2px;
+}
+
+/* ============================================================
+ * Empty state
+ * ============================================================ */
+
+.j5-news-empty {
+	padding: 40px 0;
+	text-align: center;
+	color: var(--j5n-bone-mute);
+	font-size: 15px;
+}
+
+/* ============================================================
+ * Pagination
+ * ============================================================ */
+
+.j5-news-pagination {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.j5-page-btn {
+	min-width: 36px;
+	height: 36px;
+	padding: 0 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--j5n-border);
+	color: var(--j5n-bone-mute);
+	font-family: var(--j5n-cond);
+	font-weight: 500;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+	cursor: pointer;
+	background: transparent;
+	box-sizing: border-box;
+	transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.j5-page-btn:hover {
+	border-color: var(--j5n-gold);
+	color: var(--j5n-bone);
+}
+.j5-page-btn.is-active {
+	background: var(--j5n-gold);
+	color: var(--j5n-bg);
+	border-color: var(--j5n-gold);
+}
+.j5-page-btn--wide { padding: 0 16px; }
+.j5-page-btn--dots { border-color: transparent; cursor: default; }
+.j5-page-btn--dots:hover { border-color: transparent; color: var(--j5n-bone-mute); }
+
+/* ============================================================
+ * Responsive breakpoints
+ * ============================================================ */
+
+@media (max-width: 1024px) {
+	.j5-news-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.j5-news-page-title { font-size: 34px; }
+	.j5-news-hero-title { font-size: 26px; }
+}
+
+@media (max-width: 720px) {
+	.j5-news .j5-container {
+		padding: 0 20px;
+	}
+	.j5-news-header,
+	.j5-news-hero-section,
+	.j5-news-filter-section,
+	.j5-news-grid-section,
+	.j5-news-pagination-section {
+		padding: 28px 0;
+	}
+	.j5-news-hero {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+	.j5-news-grid {
+		grid-template-columns: 1fr;
+		gap: 28px;
+	}
+	.j5-news-page-title { font-size: 28px; }
+	.j5-news-hero-title { font-size: 22px; }
+	.j5-news-count {
+		margin-left: 0;
+		width: 100%;
+		margin-top: 6px;
+	}
+}
+
+/* ============================================================
+ * J5-NEWS-CONTRAST-FIX (2026-04-22)
+ * Post-deploy fixes for the news archive template.
+ *
+ * ISSUE 1: Title text rendering near-black on dark background.
+ *          Astra's .entry-title and Elementor kit CSS have
+ *          higher cascade specificity than our selectors.
+ *          Fix: add !important to color rules inside .j5-news.
+ *
+ * ISSUE 2: Card images showing at different heights because
+ *          aspect-ratio wasn't applying to the <img> child.
+ *          Fix: force image to fill container, object-fit cover.
+ *
+ * Remove between sentinels to revert.
+ * ============================================================ */
+/* J5-NEWS-CONTRAST-FIX-START */
+
+/* ---------- TEXT COLORS ---------- */
+
+.j5-news,
+.j5-news * {
+	color: inherit;
+}
+
+.j5-news {
+	color: #f5f1e8 !important;
+}
+
+/* Page header */
+.j5-news .j5-news-page-title {
+	color: #f5f1e8 !important;
+}
+.j5-news .j5-news-eyebrow {
+	color: #c8a84e !important;
+}
+.j5-news .j5-news-page-desc {
+	color: #b8b3a5 !important;
+}
+
+/* Featured hero */
+.j5-news .j5-news-hero-title,
+.j5-news .j5-news-hero-title a,
+.j5-news .j5-news-hero-title a:visited {
+	color: #f5f1e8 !important;
+}
+.j5-news .j5-news-hero-title a:hover {
+	color: #c8a84e !important;
+}
+.j5-news .j5-news-hero-excerpt {
+	color: #b8b3a5 !important;
+}
+.j5-news .j5-news-featured-tag {
+	color: #c8a84e !important;
+}
+
+/* Card grid */
+.j5-news .j5-news-card-title,
+.j5-news .j5-news-card-title a,
+.j5-news .j5-news-card-title a:visited {
+	color: #f5f1e8 !important;
+}
+.j5-news .j5-news-card-title a:hover {
+	color: #c8a84e !important;
+}
+.j5-news .j5-news-card-excerpt {
+	color: #b8b3a5 !important;
+}
+.j5-news .j5-news-card-cat {
+	color: #c8a84e !important;
+}
+.j5-news .j5-news-card-cat--red {
+	color: #e24b4a !important;
+}
+.j5-news .j5-news-card-cat--news {
+	color: #8a8576 !important;
+}
+.j5-news .j5-news-card-meta {
+	color: #6a6558 !important;
+}
+
+/* Meta rows */
+.j5-news .j5-news-meta-row {
+	color: #8a8576 !important;
+}
+.j5-news .j5-news-meta-row .dot {
+	color: #c8a84e !important;
+}
+
+/* Category pills */
+.j5-news .j5-cat-pill {
+	color: #c8a84e !important;
+}
+.j5-news .j5-cat-pill--red {
+	color: #e24b4a !important;
+}
+.j5-news .j5-cat-pill--news {
+	color: #8a8576 !important;
+}
+
+/* Filter bar */
+.j5-news .j5-news-filter-label {
+	color: #8a8576 !important;
+}
+.j5-news .j5-news-filter {
+	color: #b8b3a5 !important;
+}
+.j5-news .j5-news-filter:hover {
+	color: #f5f1e8 !important;
+}
+.j5-news .j5-news-filter.is-active {
+	color: #0b0b0b !important;
+}
+.j5-news .j5-news-count {
+	color: #8a8576 !important;
+}
+
+/* CTA link */
+.j5-news .j5-news-cta-link {
+	color: #c8a84e !important;
+}
+.j5-news .j5-news-cta-link:hover {
+	color: #f5f1e8 !important;
+}
+
+/* Pagination */
+.j5-news .j5-page-btn {
+	color: #b8b3a5 !important;
+}
+.j5-news .j5-page-btn:hover {
+	color: #f5f1e8 !important;
+}
+.j5-news .j5-page-btn.is-active {
+	color: #0b0b0b !important;
+}
+
+/* Empty state */
+.j5-news .j5-news-empty {
+	color: #b8b3a5 !important;
+}
+.j5-news .j5-news-empty p {
+	color: inherit !important;
+}
+
+/* ---------- IMAGE ASPECT LOCK ---------- */
+
+/* Card image container: force consistent 4:3 aspect */
+.j5-news .j5-news-card-img {
+	aspect-ratio: 4 / 3 !important;
+	overflow: hidden;
+	display: block;
+	position: relative;
+	width: 100%;
+}
+
+/* Any <img> inside a card image container fills the box completely */
+.j5-news .j5-news-card-img img,
+.j5-news .j5-news-card-img .attachment-post-thumbnail,
+.j5-news .j5-news-card-img .wp-post-image {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover !important;
+	object-position: center !important;
+	display: block;
+	max-width: 100%;
+	margin: 0;
+}
+
+/* Hero image — 16:10 aspect on desktop */
+.j5-news .j5-news-hero-img {
+	aspect-ratio: 16 / 10 !important;
+	overflow: hidden;
+	display: block;
+	position: relative;
+	width: 100%;
+}
+.j5-news .j5-news-hero-img img,
+.j5-news .j5-news-hero-img .wp-post-image {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: cover !important;
+	object-position: center !important;
+	display: block;
+	max-width: 100%;
+	margin: 0;
+}
+
+/* Astra often wraps featured images in extra markup — neutralize it */
+.j5-news .j5-news-card-img > a,
+.j5-news .j5-news-hero-img > a {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+/* J5-NEWS-CONTRAST-FIX-END */

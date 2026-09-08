@@ -1,0 +1,311 @@
+/* ============================================================
+   J5 Rescue Supply — Site chrome (header + footer)
+   assets/css/j5-chrome.css
+   Scoped under body.j5-custom-chrome. V2 templates are unaffected.
+   ============================================================ */
+
+/* ---- Brand tokens ---- */
+body.j5-custom-chrome {
+	--j5c-bg:        #0a0b0d;
+	--j5c-surface:   #141518;
+	--j5c-surface2:  #1b1c20;
+	--j5c-border:    rgba(245, 241, 232, 0.08);
+	--j5c-border-2:  rgba(245, 241, 232, 0.15);
+	--j5c-bone:      #f5f1e8;
+	--j5c-bone-mute: rgba(245, 241, 232, 0.65);
+	--j5c-bone-soft: rgba(245, 241, 232, 0.45);
+	--j5c-gold:      #d4a044;
+	--j5c-gold-soft: rgba(212, 160, 68, 0.55);
+	--j5c-red:       #c8102e;
+	--j5c-cond:      'Bebas Neue', 'Arial Narrow', 'Helvetica Neue Condensed', Impact, sans-serif;
+	--j5c-body:      'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+	background: var(--j5c-bg);
+	color: var(--j5c-bone);
+	font-family: var(--j5c-body);
+	margin: 0;
+}
+
+body.j5-custom-chrome .skip-link { position: absolute; left: -9999px; }
+body.j5-custom-chrome .skip-link:focus { left: 16px; top: 16px; background: var(--j5c-gold); color: #000; padding: 8px 12px; z-index: 9999; }
+
+/* ---- Site header ---- */
+body.j5-custom-chrome .j5-site-header { background: var(--j5c-bg); border-bottom: 1px solid var(--j5c-border); position: relative; z-index: 100; }
+
+/* Utility bar */
+body.j5-custom-chrome .j5-utility-bar { background: #000; border-bottom: 1px solid var(--j5c-border); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--j5c-bone-mute); }
+body.j5-custom-chrome .j5-utility-bar__inner { max-width: 1400px; margin: 0 auto; padding: 9px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+body.j5-custom-chrome .j5-utility-bar__left { display: flex; align-items: center; gap: 10px; }
+body.j5-custom-chrome .j5-utility-bar__icon { color: var(--j5c-gold); flex-shrink: 0; }
+body.j5-custom-chrome .j5-utility-bar__right { display: flex; align-items: center; gap: 14px; }
+body.j5-custom-chrome .j5-utility-bar__right a { color: var(--j5c-bone-mute); text-decoration: none; transition: color 0.2s; }
+body.j5-custom-chrome .j5-utility-bar__right a:hover { color: var(--j5c-bone); }
+body.j5-custom-chrome .j5-utility-bar__phone { color: var(--j5c-gold) !important; }
+body.j5-custom-chrome .j5-utility-bar__sep { opacity: 0.3; }
+
+/* Main header */
+body.j5-custom-chrome .j5-main-header { background: var(--j5c-bg); }
+body.j5-custom-chrome .j5-main-header__inner { max-width: 1400px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 20px; }
+
+/* Drawer toggle — mobile only */
+body.j5-custom-chrome .j5-drawer-toggle { display: none; background: transparent; border: none; color: var(--j5c-bone); cursor: pointer; padding: 4px; }
+
+/* Logo */
+body.j5-custom-chrome .j5-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; margin-right: auto; }
+body.j5-custom-chrome .j5-logo__mark { width: 44px; height: 44px; border: 2px solid var(--j5c-gold); display: flex; align-items: center; justify-content: center; font-family: var(--j5c-cond); font-size: 24px; color: var(--j5c-gold); letter-spacing: 0.02em; flex-shrink: 0; }
+body.j5-custom-chrome .j5-logo__wordmark { font-family: var(--j5c-cond); font-size: 22px; letter-spacing: 0.05em; color: var(--j5c-bone); line-height: 1; }
+
+/* Primary nav */
+body.j5-custom-chrome .j5-primary-nav { flex: 0 1 auto; }
+body.j5-custom-chrome .j5-primary-nav__list { list-style: none; margin: 0; padding: 0; display: flex; gap: 22px; font-family: var(--j5c-cond); font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; }
+body.j5-custom-chrome .j5-primary-nav__list li { position: relative; }
+body.j5-custom-chrome .j5-primary-nav__list a { color: var(--j5c-bone); text-decoration: none; padding: 6px 0; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s; }
+body.j5-custom-chrome .j5-primary-nav__list a:hover,
+body.j5-custom-chrome .j5-primary-nav__list .current-menu-item > a,
+body.j5-custom-chrome .j5-primary-nav__list .current-menu-parent > a { color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-primary-nav__list .menu-item-has-children > a::after { content: '\25BE'; font-size: 9px; margin-left: 4px; opacity: 0.7; }
+body.j5-custom-chrome .j5-primary-nav__list .sub-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--j5c-surface); border: 1px solid var(--j5c-border); min-width: 220px; padding: 8px 0; list-style: none; margin: 0; z-index: 200; }
+body.j5-custom-chrome .j5-primary-nav__list li:hover > .sub-menu,
+body.j5-custom-chrome .j5-primary-nav__list li:focus-within > .sub-menu { display: block; }
+body.j5-custom-chrome .j5-primary-nav__list .sub-menu a { display: block; padding: 9px 18px; font-size: 13px; letter-spacing: 0.1em; font-family: var(--j5c-cond); }
+body.j5-custom-chrome .j5-primary-nav__list .sub-menu a:hover { background: var(--j5c-surface2); }
+body.j5-custom-chrome .j5-nav-external::after { content: ' \2197'; font-size: 0.8em; opacity: 0.6; }
+
+/* Header actions */
+body.j5-custom-chrome .j5-header-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+body.j5-custom-chrome .j5-icon-btn { background: transparent; border: none; color: var(--j5c-bone); cursor: pointer; padding: 6px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: color 0.2s; }
+body.j5-custom-chrome .j5-icon-btn:hover { color: var(--j5c-gold); }
+
+body.j5-custom-chrome .j5-cart-btn { position: relative; padding: 8px 12px; border: 1px solid var(--j5c-border-2); display: inline-flex; align-items: center; gap: 8px; color: var(--j5c-bone); text-decoration: none; transition: border-color 0.2s; }
+body.j5-custom-chrome .j5-cart-btn:hover { border-color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-cart-btn__count { background: var(--j5c-red); color: var(--j5c-bone); font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 10px; min-width: 18px; text-align: center; line-height: 1.3; }
+body.j5-custom-chrome .j5-cart-btn__count:empty, body.j5-custom-chrome [data-j5-cart-count="0"] { display: none; }
+
+/* Mega menu */
+body.j5-custom-chrome .j5-mega-menu { position: absolute; top: 100%; left: 0; right: 0; background: var(--j5c-surface); border-top: 1px solid var(--j5c-border); border-bottom: 1px solid var(--j5c-border); z-index: 90; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: opacity 0.18s, transform 0.18s, visibility 0.18s; }
+body.j5-custom-chrome .j5-mega-menu.is-open { opacity: 1; visibility: visible; transform: none; }
+body.j5-custom-chrome .j5-mega-menu__inner { max-width: 1400px; margin: 0 auto; padding: 0; display: grid; grid-template-columns: 220px 1fr; min-height: 320px; }
+body.j5-custom-chrome .j5-mega-menu__cats { background: #0f1013; padding: 16px 0; border-right: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mega-menu__cat { display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 9px 18px; background: transparent; border: none; border-left: 3px solid transparent; color: var(--j5c-bone-mute); font-family: var(--j5c-cond); font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+body.j5-custom-chrome .j5-mega-menu__cat:hover { color: var(--j5c-bone); }
+body.j5-custom-chrome .j5-mega-menu__cat.is-active { background: var(--j5c-surface2); border-left-color: var(--j5c-gold); color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mega-menu__cat.is-deal { color: var(--j5c-red); }
+body.j5-custom-chrome .j5-mega-menu__cat-arrow { font-size: 12px; opacity: 0.6; }
+body.j5-custom-chrome .j5-mega-menu__content { padding: 24px 28px; }
+body.j5-custom-chrome .j5-mega-menu__panel { display: none; }
+body.j5-custom-chrome .j5-mega-menu__panel.is-active { display: block; }
+body.j5-custom-chrome .j5-mega-menu__panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mega-menu__panel-title { font-family: var(--j5c-cond); font-size: 20px; letter-spacing: 0.08em; color: var(--j5c-bone); margin: 0; text-transform: uppercase; font-weight: 500; }
+body.j5-custom-chrome .j5-mega-menu__panel-viewall { font-family: var(--j5c-cond); font-size: 12px; letter-spacing: 0.2em; color: var(--j5c-gold); text-decoration: none; text-transform: uppercase; }
+body.j5-custom-chrome .j5-mega-menu__items { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 24px; font-size: 13px; }
+body.j5-custom-chrome .j5-mega-menu__items a { color: var(--j5c-bone-mute); text-decoration: none; transition: color 0.2s; }
+body.j5-custom-chrome .j5-mega-menu__items a:hover { color: var(--j5c-gold); }
+
+/* ---- Search overlay ---- */
+body.j5-custom-chrome .j5-search-overlay { position: fixed; inset: 0; z-index: 1000; }
+body.j5-custom-chrome .j5-search-overlay[hidden] { display: none; }
+body.j5-custom-chrome .j5-search-overlay__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.65); }
+body.j5-custom-chrome .j5-search-overlay__panel { position: relative; background: var(--j5c-bg); border-bottom: 1px solid var(--j5c-gold-soft); padding: 22px 24px; }
+body.j5-custom-chrome .j5-search-overlay__form { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+body.j5-custom-chrome .j5-search-overlay__icon { color: var(--j5c-gold); flex-shrink: 0; }
+body.j5-custom-chrome .j5-search-overlay__input { flex: 1; background: transparent; border: none; border-bottom: 2px solid var(--j5c-border-2); color: var(--j5c-bone); font-family: var(--j5c-body); font-size: 22px; padding: 10px 4px; outline: none; }
+body.j5-custom-chrome .j5-search-overlay__input::placeholder { color: var(--j5c-bone-soft); }
+body.j5-custom-chrome .j5-search-overlay__input:focus { border-bottom-color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-search-overlay__close { background: transparent; border: 1px solid var(--j5c-border-2); color: var(--j5c-bone); padding: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
+body.j5-custom-chrome .j5-search-overlay__close:hover { border-color: var(--j5c-gold); }
+
+/* ---- Mobile drawer ---- */
+body.j5-custom-chrome .j5-mobile-drawer { position: fixed; inset: 0; z-index: 1000; }
+body.j5-custom-chrome .j5-mobile-drawer[hidden] { display: none; }
+body.j5-custom-chrome .j5-mobile-drawer__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
+body.j5-custom-chrome .j5-mobile-drawer__panel { position: absolute; top: 0; bottom: 0; left: 0; width: 86%; max-width: 380px; background: var(--j5c-bg); border-right: 1px solid var(--j5c-border); display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.22s ease-out; }
+body.j5-custom-chrome .j5-mobile-drawer.is-open .j5-mobile-drawer__panel { transform: none; }
+body.j5-custom-chrome .j5-mobile-drawer__header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mobile-drawer__title { font-family: var(--j5c-cond); font-size: 16px; letter-spacing: 0.15em; color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mobile-drawer__close { background: transparent; border: none; color: var(--j5c-bone); cursor: pointer; padding: 4px; }
+body.j5-custom-chrome .j5-mobile-drawer__search { padding: 12px 16px; border-bottom: 1px solid var(--j5c-border); display: flex; align-items: center; gap: 10px; background: var(--j5c-surface); }
+body.j5-custom-chrome .j5-mobile-drawer__search svg { color: var(--j5c-bone-soft); }
+body.j5-custom-chrome .j5-mobile-drawer__search input { flex: 1; background: transparent; border: none; color: var(--j5c-bone); font-family: var(--j5c-body); font-size: 14px; outline: none; }
+body.j5-custom-chrome .j5-mobile-drawer__search input::placeholder { color: var(--j5c-bone-soft); }
+body.j5-custom-chrome .j5-mobile-drawer__nav { flex: 1; overflow-y: auto; }
+body.j5-custom-chrome .j5-mobile-nav { list-style: none; margin: 0; padding: 0; }
+body.j5-custom-chrome .j5-mobile-nav > li { border-bottom: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mobile-nav > li > a { display: block; padding: 14px 16px; font-family: var(--j5c-cond); font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--j5c-bone); text-decoration: none; }
+body.j5-custom-chrome .j5-mobile-nav > li > a:hover { background: var(--j5c-surface); color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mobile-nav .sub-menu { list-style: none; margin: 0; padding: 0 0 8px 16px; background: #0d0e11; }
+body.j5-custom-chrome .j5-mobile-nav .sub-menu a { display: block; padding: 10px 16px; font-size: 13px; color: var(--j5c-bone-mute); text-decoration: none; }
+body.j5-custom-chrome .j5-mobile-nav .sub-menu a:hover { color: var(--j5c-bone); }
+body.j5-custom-chrome .j5-mobile-drawer__footer { padding: 14px 16px; border-top: 1px solid var(--j5c-border); background: #0d0e11; }
+body.j5-custom-chrome .j5-mobile-drawer__account { display: flex; align-items: center; gap: 8px; color: var(--j5c-bone); text-decoration: none; font-size: 13px; margin-bottom: 10px; }
+body.j5-custom-chrome .j5-mobile-drawer__account svg { color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mobile-drawer__contact { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--j5c-bone-soft); display: flex; gap: 8px; flex-wrap: wrap; }
+body.j5-custom-chrome .j5-mobile-drawer__contact a { color: var(--j5c-bone-soft); text-decoration: none; }
+body.j5-custom-chrome .j5-mobile-drawer__contact a:hover { color: var(--j5c-gold); }
+
+/* ---- Site content spacer ---- */
+body.j5-custom-chrome .j5-site-content { min-height: 200px; background: var(--j5c-bg); }
+
+/* ---- Footer ---- */
+body.j5-custom-chrome .j5-site-footer { background: var(--j5c-bg); border-top: 1px solid var(--j5c-border); margin-top: 40px; }
+body.j5-custom-chrome .j5-footer-main__inner { max-width: 1400px; margin: 0 auto; padding: 48px 24px 32px; display: grid; grid-template-columns: 1.25fr repeat(4, 1fr); gap: 28px; }
+body.j5-custom-chrome .j5-footer-col__title { font-family: var(--j5c-cond); font-size: 14px; letter-spacing: 0.22em; color: var(--j5c-gold); margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--j5c-border); text-transform: uppercase; font-weight: 500; }
+body.j5-custom-chrome .j5-footer-col--brand .j5-logo--footer { text-decoration: none; margin-bottom: 16px; display: inline-flex; }
+body.j5-custom-chrome .j5-footer-col--brand .j5-logo__mark { width: 36px; height: 36px; font-size: 18px; }
+body.j5-custom-chrome .j5-footer-col--brand .j5-logo__wordmark { font-size: 15px; }
+body.j5-custom-chrome .j5-footer-contact { font-style: normal; font-size: 12px; color: var(--j5c-bone-mute); line-height: 1.9; }
+body.j5-custom-chrome .j5-footer-contact a { color: var(--j5c-bone-mute); text-decoration: none; }
+body.j5-custom-chrome .j5-footer-contact a:hover { color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; font-size: 12px; }
+body.j5-custom-chrome .j5-footer-links a { color: var(--j5c-bone-mute); text-decoration: none; transition: color 0.2s; }
+body.j5-custom-chrome .j5-footer-links a:hover { color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-footer-links__all a { color: var(--j5c-gold); padding-top: 4px; display: inline-block; }
+body.j5-custom-chrome .j5-footer-links__empty { color: var(--j5c-bone-soft); font-size: 12px; font-style: italic; }
+body.j5-custom-chrome .j5-footer-bottom { background: #000; border-top: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-footer-bottom__inner { max-width: 1400px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--j5c-bone-soft); }
+body.j5-custom-chrome .j5-footer-bottom__legal-list { list-style: none; margin: 0; padding: 0; display: flex; gap: 16px; }
+body.j5-custom-chrome .j5-footer-bottom__legal-list a { color: var(--j5c-bone-soft); text-decoration: none; }
+body.j5-custom-chrome .j5-footer-bottom__legal-list a:hover { color: var(--j5c-bone); }
+
+/* ---- Responsive breakpoints ---- */
+@media (max-width: 1024px) {
+	body.j5-custom-chrome .j5-primary-nav__list { gap: 16px; font-size: 14px; }
+	body.j5-custom-chrome .j5-footer-main__inner { grid-template-columns: 1fr 1fr 1fr; }
+	body.j5-custom-chrome .j5-footer-col--brand { grid-column: 1 / -1; margin-bottom: 12px; }
+	body.j5-custom-chrome .j5-mega-menu__items { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+	body.j5-custom-chrome .j5-drawer-toggle { display: inline-flex; }
+	body.j5-custom-chrome .j5-primary-nav { display: none; }
+	body.j5-custom-chrome .j5-mega-menu { display: none; }
+	body.j5-custom-chrome .j5-utility-bar__right a { display: none; }
+	body.j5-custom-chrome .j5-utility-bar__right .j5-utility-bar__sep { display: none; }
+	body.j5-custom-chrome .j5-utility-bar__right .j5-utility-bar__phone { display: inline; }
+	body.j5-custom-chrome .j5-main-header__inner { padding: 12px 16px; gap: 12px; }
+	body.j5-custom-chrome .j5-logo { margin-right: auto; }
+	body.j5-custom-chrome .j5-logo__mark { width: 34px; height: 34px; font-size: 18px; }
+	body.j5-custom-chrome .j5-logo__wordmark { font-size: 16px; }
+	body.j5-custom-chrome .j5-icon-btn--account { display: none; }
+	body.j5-custom-chrome .j5-cart-btn { padding: 6px 10px; }
+	body.j5-custom-chrome .j5-utility-bar__inner { padding: 7px 16px; font-size: 10px; letter-spacing: 0.1em; }
+	body.j5-custom-chrome .j5-footer-main__inner { grid-template-columns: 1fr 1fr; padding: 32px 16px 24px; gap: 20px; }
+	body.j5-custom-chrome .j5-footer-col--brand { grid-column: 1 / -1; }
+	body.j5-custom-chrome .j5-footer-bottom__inner { flex-direction: column; text-align: center; padding: 14px 16px; }
+}
+
+@media (max-width: 480px) {
+	body.j5-custom-chrome .j5-logo__wordmark { display: none; }
+	body.j5-custom-chrome .j5-cart-btn span:not(.j5-cart-btn__count) { display: none; }
+	body.j5-custom-chrome .j5-search-overlay__input { font-size: 18px; }
+	body.j5-custom-chrome .j5-footer-main__inner { grid-template-columns: 1fr; }
+}
+/* ============================================================
+ * J5-ELEMENTOR-TEXT-V2 (2026-04-22)
+ * Readability fix for Elementor-built pages on dark J5 chrome.
+ *
+ * v2 CHANGE: Scope tightened from body-wide to the Elementor
+ *            content wrapper only. v1 accidentally colored
+ *            header links (SHOP, ABOUT, CONTACT) and footer
+ *            shop/account columns gold because selectors like
+ *            `body...a` matched every link on the page.
+ *
+ * SCOPE (v2):
+ *   - Elements inside .elementor[data-elementor-type="wp-page"] ONLY
+ *   - On body.elementor-page (= any Elementor page)
+ *   - EXCEPT: woocommerce-page, j5-home-template, j5-shop-template
+ *
+ * Guarantees .j5-site-header, .j5-utility-bar, .j5-site-footer
+ * are completely untouched because none of them are inside the
+ * Elementor page wrapper.
+ *
+ * Remove between sentinels to revert.
+ * ============================================================ */
+/* J5-ELEMENTOR-TEXT-V2-START */
+
+/* Base color anchor for the Elementor content area only */
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] {
+	color: #f5f1e8;
+}
+
+/* ---------- Body text -> bone ---------- */
+
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] p,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] li,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-text-editor,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-text-editor *,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-icon-list .elementor-icon-list-text,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-icon-box .elementor-icon-box-description {
+	color: #f5f1e8 !important;
+}
+
+/* Spans inside paragraphs/headings should NOT be forced — let inline accents through.
+   Only force spans that are top-level widget containers. */
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-text-editor span:not([style*="color"]) {
+	color: inherit;
+}
+
+/* ---------- Headings -> gold ---------- */
+
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] h1,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] h2,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] h3,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] h4,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] h5,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] h6,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-heading-title,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-heading .elementor-heading-title,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-icon-box .elementor-icon-box-title,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-icon-box .elementor-icon-box-title a {
+	color: #c8a84e !important;
+}
+
+/* ---------- Inline links -> gold with underline ---------- */
+
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] p a,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] li a,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-text-editor a {
+	color: #c8a84e !important;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+/* ---------- Buttons: don't touch ---------- */
+/* Explicitly preserve Elementor button text color — don't let the page-scope
+   color rule cascade into them. */
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-button,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] a.elementor-button {
+	color: inherit;
+	text-decoration: none;
+}
+
+/* ---------- Icon list bullets -> gold accent ---------- */
+
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-icon-list .elementor-icon-list-icon i,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] .elementor-widget-icon-list .elementor-icon-list-icon svg {
+	color: #c8a84e !important;
+	fill: #c8a84e !important;
+}
+
+/* ---------- Blockquotes ---------- */
+
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] blockquote,
+body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-template):not(.j5-shop-template) .elementor[data-elementor-type="wp-page"] blockquote p {
+	color: #f5f1e8 !important;
+	border-left-color: #c8a84e !important;
+}
+
+/* J5-ELEMENTOR-TEXT-V2-END */
+
+/* ============================================================
+ * J5-PHONE-MOBILE-V1 (2026-05-06)
+ * Reduce phone-link font size on mobile. At ≤768px the rest of
+ * the utility-bar links are hidden and the bar drops to 10px;
+ * this brings the phone down to 9px with tighter letter-spacing
+ * so it sits cleanly without dominating the bar.
+ * ============================================================ */
+@media (max-width: 768px) {
+	body.j5-custom-chrome .j5-utility-bar__phone {
+		font-size: 9px;
+		letter-spacing: 0.05em;
+	}
+}

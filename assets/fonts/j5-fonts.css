@@ -1,0 +1,46 @@
+/**
+ * J5 Self-Hosted Fonts — @font-face declarations
+ *
+ * Local WOFF2 files replacing Google Fonts. All faces use font-display:swap
+ * so text renders immediately in a fallback and swaps when the font arrives
+ * (matches the previous &display=swap behaviour).
+ *
+ * Filenames follow the convention {family-slug}-{weight}.woff2 and are fetched
+ * by the companion download script into this same directory.
+ *
+ * Families/weights (union of all previous per-page loads):
+ *   Bebas Neue       400
+ *   Barlow           300 400 500 600 700 800
+ *   Barlow Condensed 400 500 600 700 800
+ *   JetBrains Mono   400 500 600
+ *   Chakra Petch     400 500 600 700
+ */
+
+/* ---------- Bebas Neue ---------- */
+@font-face{font-family:'Bebas Neue';font-style:normal;font-weight:400;font-display:swap;src:url('bebas-neue-400.woff2') format('woff2');}
+
+/* ---------- Barlow ---------- */
+@font-face{font-family:'Barlow';font-style:normal;font-weight:300;font-display:swap;src:url('barlow-300.woff2') format('woff2');}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:400;font-display:swap;src:url('barlow-400.woff2') format('woff2');}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:500;font-display:swap;src:url('barlow-500.woff2') format('woff2');}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:600;font-display:swap;src:url('barlow-600.woff2') format('woff2');}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:700;font-display:swap;src:url('barlow-700.woff2') format('woff2');}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:800;font-display:swap;src:url('barlow-800.woff2') format('woff2');}
+
+/* ---------- Barlow Condensed ---------- */
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:400;font-display:swap;src:url('barlow-condensed-400.woff2') format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:500;font-display:swap;src:url('barlow-condensed-500.woff2') format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url('barlow-condensed-600.woff2') format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('barlow-condensed-700.woff2') format('woff2');}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:800;font-display:swap;src:url('barlow-condensed-800.woff2') format('woff2');}
+
+/* ---------- JetBrains Mono ---------- */
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400;font-display:swap;src:url('jetbrains-mono-400.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url('jetbrains-mono-500.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:600;font-display:swap;src:url('jetbrains-mono-600.woff2') format('woff2');}
+
+/* ---------- Chakra Petch ---------- */
+@font-face{font-family:'Chakra Petch';font-style:normal;font-weight:400;font-display:swap;src:url('chakra-petch-400.woff2') format('woff2');}
+@font-face{font-family:'Chakra Petch';font-style:normal;font-weight:500;font-display:swap;src:url('chakra-petch-500.woff2') format('woff2');}
+@font-face{font-family:'Chakra Petch';font-style:normal;font-weight:600;font-display:swap;src:url('chakra-petch-600.woff2') format('woff2');}
+@font-face{font-family:'Chakra Petch';font-style:normal;font-weight:700;font-display:swap;src:url('chakra-petch-700.woff2') format('woff2');}
