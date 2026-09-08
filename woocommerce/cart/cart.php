@@ -141,22 +141,22 @@ $cart_count = WC()->cart->get_cart_contents_count();
                                     @ <?php echo apply_filters( 'woocommerce_cart_item_price', WC()->cart->get_product_price( $_product ), $cart_item, $cart_item_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </div>
                             <?php endif; ?>
+                            <?php
+                            echo apply_filters( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                                'woocommerce_cart_item_remove_link',
+                                sprintf(
+                                    '<a href="%s" class="j5-cart-item__remove j5-remove-btn" aria-label="%s" data-product_id="%s" data-product_sku="%s"><svg viewBox=\"0 0 12 12\" width=\"11\" height=\"11\" aria-hidden=\"true\"><path d=\"M1.5 1.5l9 9M10.5 1.5l-9 9\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg> Remove</a>',
+                                    esc_url( wc_get_cart_remove_url( $cart_item_key ) ),
+                                    /* translators: %s is the product name */
+                                    esc_attr( sprintf( __( 'Remove %s from cart', 'woocommerce' ), wp_strip_all_tags( $_product->get_name() ) ) ),
+                                    esc_attr( $product_id ),
+                                    esc_attr( $_product->get_sku() )
+                                ),
+                                $cart_item_key
+                            );
+                            ?>
                         </div>
 
-                        <?php
-                        echo apply_filters( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                            'woocommerce_cart_item_remove_link',
-                            sprintf(
-                                '<a href="%s" class="j5-cart-item__remove j5-remove-btn" aria-label="%s" data-product_id="%s" data-product_sku="%s"><span aria-hidden="true">&times;</span> Remove</a>',
-                                esc_url( wc_get_cart_remove_url( $cart_item_key ) ),
-                                /* translators: %s is the product name */
-                                esc_attr( sprintf( __( 'Remove %s from cart', 'woocommerce' ), wp_strip_all_tags( $_product->get_name() ) ) ),
-                                esc_attr( $product_id ),
-                                esc_attr( $_product->get_sku() )
-                            ),
-                            $cart_item_key
-                        );
-                        ?>
 
                     </div>
                     <?php
