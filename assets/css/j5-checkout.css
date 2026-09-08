@@ -665,7 +665,7 @@ body.woocommerce-checkout form.checkout.j5-checkout {
 }
 
 /* Hide WooCommerce's default "Billing details" h3 — we have our own 01 header */
-body.woocommerce-checkout #customer_details h3:not(.j5-checkout__section-title) {
+body.woocommerce-checkout #customer_details h3:not(.j5-checkout__section-title):not(#ship-to-different-address) {
     display: none !important;
 }
 
@@ -2574,3 +2574,61 @@ body.woocommerce-checkout .j5-checkout__customer #billing_phone_field > label {
     }
 }
 /* === J5-EMAIL-PHONE-PAIR-END === */
+
+/* ==========================================================================
+   J5-FIELD-FLEX-1 — 2026-09-07
+   Root-cause fix for the checkout field layout (July investigation closed).
+
+   The field rows were laid out by WC-core float/clear rules fighting the
+   50%-width overrides, which visually dropped billing_phone to the bottom
+   despite correct DOM order (server-verified: phone emits in position 4).
+   J5-EMAIL-PHONE-PAIR (decb82e) targeted the right fields but assumed a
+   flex formatting context that did not exist: the fields' parent is
+   .woocommerce-*-fields__field-wrapper, which nothing made flex — so its
+   flex/order properties were inert.
+
+   This section creates that flex context at the correct DOM level. Floats
+   are ignored on flex items, which neutralises the WC-core float rules in
+   one move. Source order = visual order: phone renders beside email.
+
+   Also in this deploy: the #customer_details h3 hide-rule now exempts
+   h3#ship-to-different-address — WooCommerce renders the shipping toggle
+   checkbox INSIDE that h3, so hiding it removed the entire shipping form.
+   ========================================================================== */
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    column-gap: 16px !important;
+    row-gap: 18px !important;
+}
+
+/* Full row by default; halves pair up. Width intent from existing rules is
+   respected — flex-basis mirrors the established calc(50% - 8px). */
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row,
+body.woocommerce-checkout .woocommerce-additional-fields__field-wrapper .form-row {
+    float: none !important;
+    clear: none !important;
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row.j5-field-half,
+body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row.j5-field-half {
+    width: calc(50% - 8px) !important;
+    flex: 0 0 calc(50% - 8px) !important;
+}
+
+@media (max-width: 640px) {
+    body.woocommerce-checkout .woocommerce-billing-fields__field-wrapper .form-row.j5-field-half,
+    body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row.j5-field-half {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+}
+/* === J5-FIELD-FLEX-1-END === */
