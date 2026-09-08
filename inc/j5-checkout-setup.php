@@ -331,3 +331,36 @@ add_action( 'wp_footer', function() {
     <?php
 } );
 /* === J5-BATCH-7-PHP-END === */
+
+
+/* === J5-LOCALE-PRIORITY-START === 2026-09-07
+ * Root-cause fix, part 2 of the July checkout investigation.
+ *
+ * WooCommerce's wc-address-i18n.js RE-SORTS checkout fields client-side
+ * using COUNTRY LOCALE priorities — a separate system from the
+ * woocommerce_checkout_fields filter above. Locale defaults place phone
+ * near the end, so the JS moved billing_phone from its server-rendered
+ * slot (4th, beside email) to the bottom of the form on every load.
+ * Server HTML was verified correct; only the JS sort disagreed.
+ *
+ * Pin email + phone in the locale layer (defaults, base, and every
+ * country override) so the client-side sort matches the server order.
+ * Address-field geometry (state/postcode order per country) is left
+ * to WooCommerce's locale data on purpose.
+ */
+function j5_locale_pin_email_phone( $fields ) {
+	$fields['email']['priority'] = 30;
+	$fields['phone']['priority'] = 40;
+	return $fields;
+}
+add_filter( 'woocommerce_get_country_locale_default', 'j5_locale_pin_email_phone', 20 );
+add_filter( 'woocommerce_get_country_locale_base', 'j5_locale_pin_email_phone', 20 );
+
+add_filter( 'woocommerce_get_country_locale', function ( $locale ) {
+	foreach ( $locale as $country => $fields ) {
+		$locale[ $country ]['email']['priority'] = 30;
+		$locale[ $country ]['phone']['priority'] = 40;
+	}
+	return $locale;
+}, 20 );
+/* === J5-LOCALE-PRIORITY-END === */
