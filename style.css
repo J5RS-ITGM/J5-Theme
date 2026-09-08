@@ -323,3 +323,50 @@ a.j5-remove-btn svg { display: block; }
     align-self: flex-end;
 }
 /* === J5-CART-REMOVE-1-END === */
+
+/* ==========================================================================
+   J5-PROGRAM-PAGE-1 — 2026-09-08
+   Styling for program/info pages (Military & First Responder Discount).
+   ========================================================================== */
+.j5-program__terms {
+    margin: 22px 0;
+    padding: 16px 20px;
+    border: 1px solid rgba(212, 160, 68, 0.45);
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: rgba(212, 160, 68, 0.06);
+    font-size: 16px;
+    color: #f5f1e8;
+}
+.j5-program__steps { counter-reset: j5step; list-style: none; padding: 0; margin: 22px 0; }
+.j5-program__steps li {
+    counter-increment: j5step;
+    position: relative;
+    padding: 0 0 18px 52px;
+    min-height: 38px;
+}
+.j5-program__steps li::before {
+    content: counter(j5step, decimal-leading-zero);
+    position: absolute;
+    left: 0; top: 0;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: #d4a044;
+    line-height: 1;
+}
+.j5-program__cta {
+    display: inline-block;
+    margin: 8px 0 24px;
+    padding: 12px 26px;
+    background: #c8102e;
+    color: #fff !important;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none !important;
+    border-radius: 6px;
+}
+.j5-program__cta:hover { background: #d92b32; }
+.j5-program__fineprint { font-size: 13px; opacity: 0.75; }
+/* === J5-PROGRAM-PAGE-1-END === */
