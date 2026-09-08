@@ -100,6 +100,11 @@ add_filter( 'woocommerce_checkout_fields', function ( $fields ) {
 		$fields['billing']['billing_state']['class'] = array( 'form-row-wide', 'j5-field-half' );
 	}
 
+	// ── Phone required (decision 2026-09-07: required for fraud verification) ──
+	if ( isset( $fields['billing']['billing_phone'] ) ) {
+		$fields['billing']['billing_phone']['required'] = true;
+	}
+
 	// ── Cleaner placeholders ──
 	$placeholders = array(
 		'billing_first_name' => 'First name',
