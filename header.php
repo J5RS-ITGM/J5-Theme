@@ -175,7 +175,7 @@ $j5_cart_url    = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : hom
 			<div class="j5-mobile-drawer__contact">
 				<a href="<?php echo esc_url( $j5_phone_tel ); ?>"><?php echo esc_html( $j5_phone ); ?></a>
 				<span aria-hidden="true">&middot;</span>
-				<a href="mailto:orders@j5rescue.com">orders@j5rescue.com</a>
+				<a href="mailto:Info@J5Rescue.com">Info@J5Rescue.com</a>
 			</div>
 		</div>
 	</aside>

@@ -29,7 +29,7 @@ $j5_year      = date_i18n( 'Y' );
 				<address class="j5-footer-contact">
 					Northern Illinois<br>
 					<a href="<?php echo esc_url( $j5_phone_tel ); ?>"><?php echo esc_html( $j5_phone ); ?></a><br>
-					<a href="mailto:orders@j5rescue.com">orders@j5rescue.com</a>
+					<a href="mailto:Info@J5Rescue.com">Info@J5Rescue.com</a>
 				</address>
 			</div>
 
