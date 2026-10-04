@@ -46,6 +46,8 @@ function auto_redirect_after_logout(){
 // === J5-CAT-CONTENT-REQUIRES-START ===
 // Editable category pages: native description above grid + buyer's guide below.
 require_once get_stylesheet_directory() . '/inc/j5-category-content.php';
+// Rich category layout (wp-admin editable sections; enable per category). J5-RICH-CAT
+require_once get_stylesheet_directory() . '/inc/j5-rich-category.php';
 // === J5-CAT-CONTENT-REQUIRES-END ===
 
 // J5 Home Template setup

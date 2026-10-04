@@ -101,7 +101,9 @@ if ( function_exists( 'is_product_category' ) && is_product_category() ) {
                 <span class="sep">/</span>
                 <span class="current"><?php echo esc_html( $j5_crumb_label ); ?></span>
             </div>
-            <h1 class="j5-shop-title"><?php echo esc_html( $j5_page_title ); ?></h1>
+            <?php do_action( 'j5_archive_hero_before_title' ); /* J5-RICH-CAT */ ?>
+            <h1 class="j5-shop-title"><?php echo wp_kses( apply_filters( 'j5_archive_title_html', esc_html( $j5_page_title ) ), array( 'span' => array( 'class' => array() ) ) ); ?></h1>
+            <?php do_action( 'j5_archive_hero_after_title' ); /* J5-RICH-CAT */ ?>
         </div>
         <div class="j5-shop-meta">
             <div class="j5-shop-meta-card">
@@ -118,11 +120,13 @@ if ( function_exists( 'is_product_category' ) && is_product_category() ) {
 
 <?php /* J5-CAT-CONTENT-INTRO-START — above-grid editable category intro */ ?>
 <?php
-if ( function_exists( 'j5_render_category_intro' ) ) {
+if ( function_exists( 'j5_render_category_intro' ) && apply_filters( 'j5_archive_show_intro', true ) ) {
 	j5_render_category_intro( 'Filter by brand, protection level, price, or agency fitment. No drop-ship surprises.' );
 }
 ?>
 <?php /* J5-CAT-CONTENT-INTRO-END */ ?>
+
+<?php do_action( 'j5_archive_before_toolbar' ); /* J5-RICH-CAT: shop-by tiles */ ?>
 
 <!-- TOOLBAR -->
 <?php
@@ -329,6 +333,8 @@ if ( $j5_search_term !== '' ) :
     </div>
 </div>
 
+<?php do_action( 'j5_archive_after_grid' ); /* J5-RICH-CAT: compare, checklist, articles, FAQ, agency, related */ ?>
+
 <?php /* J5-CAT-CONTENT-GUIDE-START — below-grid editable buyer's guide */ ?>
 <?php
 if ( function_exists( 'j5_render_category_guide' ) ) {
@@ -346,7 +352,7 @@ $spotlight_terms = get_terms( array(
     'orderby'    => 'count',
     'order'      => 'DESC',
 ) );
-if ( ! empty( $spotlight_terms ) && ! is_wp_error( $spotlight_terms ) ) : ?>
+if ( ! empty( $spotlight_terms ) && ! is_wp_error( $spotlight_terms ) && apply_filters( 'j5_archive_show_spotlight', true ) ) : ?>
 <section class="j5-cat-spotlight">
     <div class="j5-container">
         <div class="j5-cat-spotlight-head">
