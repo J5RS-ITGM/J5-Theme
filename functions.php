@@ -48,6 +48,8 @@ function auto_redirect_after_logout(){
 require_once get_stylesheet_directory() . '/inc/j5-category-content.php';
 // Rich category layout (wp-admin editable sections; enable per category). J5-RICH-CAT
 require_once get_stylesheet_directory() . '/inc/j5-rich-category.php';
+// Brand pages on WooCommerce Brands (Products -> Brands). J5-BRANDS
+require_once get_stylesheet_directory() . '/inc/j5-brands.php';
 // === J5-CAT-CONTENT-REQUIRES-END ===
 
 // J5 Home Template setup

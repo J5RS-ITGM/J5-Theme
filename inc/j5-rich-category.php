@@ -39,6 +39,24 @@ const J5RC_ROWS   = 8;
 const J5RC_STEPS  = 8;
 const J5RC_FAQS   = 10;
 
+/**
+ * Taxonomies that get the rich layout: product categories and brands
+ * (WooCommerce's built-in Products -> Brands, see inc/j5-brands.php).
+ */
+function j5rc_taxonomies() {
+	return apply_filters( 'j5rc_taxonomies', array( 'product_cat', 'product_brand' ) );
+}
+
+/** True on a product category or brand archive. */
+function j5rc_is_rich_archive() {
+	foreach ( j5rc_taxonomies() as $tax ) {
+		if ( 'product_cat' === $tax ? ( function_exists( 'is_product_category' ) && is_product_category() ) : is_tax( $tax ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* =========================================================================
  * 1. DATA
  * ========================================================================= */
@@ -110,7 +128,7 @@ function j5rc_current() {
 		return $cache;
 	}
 	$cache = null;
-	if ( ! function_exists( 'is_product_category' ) || ! is_product_category() ) {
+	if ( ! j5rc_is_rich_archive() ) {
 		return $cache;
 	}
 	$term = get_queried_object();
@@ -148,7 +166,12 @@ function j5rc_filled( $rows, $keys ) {
  * 2. ADMIN — fields on the product category edit screen
  * ========================================================================= */
 
-add_action( 'product_cat_edit_form_fields', 'j5rc_admin_fields', 20, 1 );
+add_action( 'init', function () {
+	foreach ( j5rc_taxonomies() as $tax ) {
+		add_action( $tax . '_edit_form_fields', 'j5rc_admin_fields', 20, 1 );
+		add_action( 'edited_' . $tax, 'j5rc_save', 10, 1 );
+	}
+}, 100 );
 
 function j5rc_admin_fields( $term ) {
 	$d    = j5rc_get( $term->term_id );
@@ -184,7 +207,7 @@ function j5rc_admin_fields( $term ) {
 	};
 	?>
 	<tr class="form-field j5rc-wrap">
-		<th scope="row"><label><?php esc_html_e( 'Rich Category Page', 'astra-child' ); ?></label></th>
+		<th scope="row"><label><?php echo 'product_brand' === $term->taxonomy ? esc_html__( 'Brand Page', 'astra-child' ) : esc_html__( 'Rich Category Page', 'astra-child' ); ?></label></th>
 		<td>
 			<style>
 				.j5rc-wrap details{background:#fff;border:1px solid #dcdcde;margin:0 0 10px;padding:0 14px}
@@ -195,7 +218,7 @@ function j5rc_admin_fields( $term ) {
 				.j5rc-wrap select[multiple]{min-height:160px;width:100%}
 			</style>
 
-			<p><label><input type="checkbox" name="j5rc[enabled]" value="1" <?php checked( ! empty( $d['enabled'] ) ); ?> /> <strong><?php esc_html_e( 'Use the rich layout for this category', 'astra-child' ); ?></strong></label></p>
+			<p><label><input type="checkbox" name="j5rc[enabled]" value="1" <?php checked( ! empty( $d['enabled'] ) ); ?> /> <strong><?php esc_html_e( 'Use the rich layout for this page', 'astra-child' ); ?></strong></label></p>
 			<p class="description"><?php esc_html_e( 'Empty sections are hidden. The hero intro paragraph is the Description field above. HTML links are allowed in paragraph and answer fields.', 'astra-child' ); ?></p>
 
 			<details open>
@@ -317,7 +340,6 @@ function j5rc_admin_fields( $term ) {
 	<?php
 }
 
-add_action( 'edited_product_cat', 'j5rc_save', 10, 1 );
 
 function j5rc_save( $term_id ) {
 	if ( ! isset( $_POST[ J5RC_NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ J5RC_NONCE ] ) ), 'j5rc_save' ) ) {
@@ -818,14 +840,14 @@ add_action( 'wp_head', function () {
  *
  * @return string Result message.
  */
-function j5rc_seed_category( $slug, $force = false ) {
-	$seeds = j5rc_seeds();
+function j5rc_seed_category( $slug, $force = false, $taxonomy = 'product_cat' ) {
+	$seeds = 'product_brand' === $taxonomy ? apply_filters( 'j5rc_brand_seeds', array() ) : j5rc_seeds();
 	if ( ! isset( $seeds[ $slug ] ) ) {
 		return "No starter content for '$slug'.";
 	}
-	$term = get_term_by( 'slug', $slug, 'product_cat' );
+	$term = get_term_by( 'slug', $slug, $taxonomy );
 	if ( ! $term ) {
-		return "Category '$slug' not found.";
+		return "'$slug' not found in $taxonomy.";
 	}
 	$existing = get_term_meta( $term->term_id, J5RC_META, true );
 	if ( ! empty( $existing ) && ! $force ) {
@@ -838,6 +860,7 @@ function j5rc_seed_category( $slug, $force = false ) {
 		$t = get_term_by( 'slug', $s, 'product_cat' );
 		return $t ? (int) $t->term_id : 0;
 	};
+	$seed['tiles'] = isset( $seed['tiles'] ) ? $seed['tiles'] : array();
 	foreach ( $seed['tiles'] as &$tile ) {
 		if ( ! empty( $tile['cat_slug'] ) ) {
 			$tile['cat'] = $id_for( $tile['cat_slug'] );
@@ -845,7 +868,7 @@ function j5rc_seed_category( $slug, $force = false ) {
 		unset( $tile['cat_slug'] );
 	}
 	unset( $tile );
-	$seed['related'] = array_values( array_filter( array_map( $id_for, $seed['related_slugs'] ) ) );
+	$seed['related'] = array_values( array_filter( array_map( $id_for, isset( $seed['related_slugs'] ) ? $seed['related_slugs'] : array() ) ) );
 	unset( $seed['related_slugs'] );
 
 	$description = isset( $seed['_description'] ) ? $seed['_description'] : '';
@@ -853,9 +876,9 @@ function j5rc_seed_category( $slug, $force = false ) {
 
 	update_term_meta( $term->term_id, J5RC_META, j5rc_sanitize( $seed ) );
 	if ( $description && ( $force || '' === trim( $term->description ) ) ) {
-		wp_update_term( $term->term_id, 'product_cat', array( 'description' => $description ) );
+		wp_update_term( $term->term_id, $taxonomy, array( 'description' => $description ) );
 	}
-	return "Starter content loaded for '$slug'.";
+	return "Starter content loaded for '$slug' ($taxonomy).";
 }
 
 function j5rc_seeds() {

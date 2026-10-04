@@ -304,6 +304,47 @@
 .j5rc-rel span { color: var(--j5-gold, #d4a044); }
 .j5rc-rel:hover { border-color: var(--j5-gold, #d4a044); color: var(--j5-bone, #f5f1e8); }
 
+/* ---- Brand pages (inc/j5-brands.php) ---- */
+.j5rc-brand-logo {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 64px;
+	padding: 10px 16px;
+	margin: 0 0 18px;
+	background: var(--j5-bone, #f5f1e8);
+	box-sizing: border-box;
+}
+.j5rc-brand-logo img { max-height: 44px; max-width: 220px; width: auto; height: auto; display: block; }
+
+/* [j5_brands] grid */
+.j5rc-brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.j5rc-brand-card {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 18px;
+	background: var(--j5-bg-card, #15181d);
+	border: 1px solid var(--j5-border, #23272f);
+	color: var(--j5-ink, #eceae2);
+	text-decoration: none;
+	transition: border-color .2s;
+}
+.j5rc-brand-card:hover { border-color: var(--j5-gold, #d4a044); }
+.j5rc-brand-card-logo {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 96px;
+	padding: 12px;
+	background: var(--j5-bone, #f5f1e8);
+	box-sizing: border-box;
+}
+.j5rc-brand-card-logo img { max-height: 100%; max-width: 100%; object-fit: contain; }
+.j5rc-brand-card-logo span { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 20px; color: #0a0b0d; text-align: center; }
+.j5rc-brand-card-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; color: var(--j5-bone, #f5f1e8); }
+.j5rc-brand-card-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--j5-gold, #d4a044); }
+
 /* ---- Comparison table stacks into cards on phones ---- */
 @media (max-width: 640px) {
 	.j5rc-table-wrap { overflow: visible; border: 0; }

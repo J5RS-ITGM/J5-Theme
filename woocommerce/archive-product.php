@@ -79,6 +79,14 @@ if ( function_exists( 'is_product_category' ) && is_product_category() ) {
         $j5_crumb_label = $j5_term_name;
         $j5_is_category_or_tag = true;
     }
+} elseif ( taxonomy_exists( 'product_brand' ) && is_tax( 'product_brand' ) ) { /* J5-BRANDS */
+    $j5_term = get_queried_object();
+    if ( $j5_term && ! empty( $j5_term->name ) ) {
+        $j5_term_name   = wp_specialchars_decode( $j5_term->name, ENT_QUOTES );
+        $j5_page_title  = strtoupper( $j5_term_name );
+        $j5_crumb_label = $j5_term_name;
+        $j5_is_category_or_tag = true;
+    }
 } elseif ( function_exists( 'is_product_tag' ) && is_product_tag() ) {
     $j5_term = get_queried_object();
     if ( $j5_term && ! empty( $j5_term->name ) ) {
@@ -97,7 +105,8 @@ if ( function_exists( 'is_product_category' ) && is_product_category() ) {
             <div class="j5-crumbs">
                 <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a>
                 <span class="sep">/</span>
-                <a href="<?php echo esc_url( $j5_shop_url ); ?>">Catalog</a>
+                <?php $j5_crumb_parent = apply_filters( 'j5_archive_crumb_parent', array( 'label' => 'Catalog', 'url' => $j5_shop_url ) ); /* J5-BRANDS */ ?>
+                <a href="<?php echo esc_url( $j5_crumb_parent['url'] ); ?>"><?php echo esc_html( $j5_crumb_parent['label'] ); ?></a>
                 <span class="sep">/</span>
                 <span class="current"><?php echo esc_html( $j5_crumb_label ); ?></span>
             </div>

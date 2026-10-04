@@ -254,7 +254,8 @@ function j5_build_product_query_args() {
         }
     }
     /* END J5-SHOP-SEARCH-PATCH-1-PHP */
-    return $args;
+    // Lets other modules scope the archive query (brand pages: inc/j5-brands.php). J5-BRANDS
+    return apply_filters( 'j5_product_query_args', $args );
 }
 
 /* ============================================================================
@@ -561,7 +562,9 @@ function j5_render_filter_sidebar() {
     <aside class="j5-filters">
         <?php
         j5_render_filter_category();
-        j5_render_filter_taxonomy_checkbox( 'brand', 'pa_product-brands', 'Brand' );
+        if ( ! ( function_exists( 'j5_is_brand_archive' ) && j5_is_brand_archive() ) ) { // brand pages are already one brand. J5-BRANDS
+            j5_render_filter_taxonomy_checkbox( 'brand', 'pa_product-brands', 'Brand' );
+        }
         j5_render_filter_price();
         j5_render_filter_taxonomy_pill( 'protection', 'pa_threat-level', 'Protection Level' );
         j5_render_filter_taxonomy_pill( 'nij-cert', 'pa_nij-certified', 'NIJ Certified' );
