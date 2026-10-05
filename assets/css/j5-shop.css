@@ -1305,3 +1305,37 @@ body.j5-shop-template .j5-container {
 .j5-ack-gate-row.j5-ack-cond-hidden {
     display: none;
 }
+
+/* ============================================================
+   J5-FLAGS — N/A variation attributes + Law Enforcement Only
+   See inc/j5-product-flags.php and J5-VAR-NA-1 in j5-shop.js.
+   ============================================================ */
+.j5-variant-group.j5-vg-na { display: none; }
+.j5-variant-pill.j5-opt-na,
+.j5-variant-card.j5-opt-na,
+.j5-variant-swatch.j5-opt-na { display: none; }
+
+.j5-le-only {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin: -12px 0 24px;
+    padding: 14px 18px;
+    background: rgba(74, 144, 194, 0.08);
+    border: 1px solid rgba(74, 144, 194, 0.35);
+    border-left: 3px solid #4a90c2;
+}
+.j5-le-only__icon { color: #7fb6dd; flex: none; margin-top: 1px; }
+.j5-le-only__title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--j5-bone);
+}
+.j5-le-only__body { margin-top: 3px; font-size: 13px; line-height: 1.55; color: var(--j5-ink-dim); }
+.j5-le-only__body a { color: #7fb6dd; text-decoration: none; border-bottom: 1px solid rgba(127, 182, 221, 0.4); }
+.j5-le-only__body a:hover { color: #a9d0ec; }
+
+.j5-prod-badge.le-only { background: #1d3a52; color: #b9dbf2; border: 1px solid #2f5d80; }

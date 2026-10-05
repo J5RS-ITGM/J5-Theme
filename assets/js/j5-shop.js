@@ -121,6 +121,24 @@
             return $$( '[data-value]', group );
         }
 
+        /* J5-VAR-NA-1: attribute terms meaning "doesn't apply" (Level = N/A
+         * for a carrier-only model). Published by inc/j5-product-flags.php. */
+        var naSlugs = Array.isArray( window.j5NaSlugs ) ? window.j5NaSlugs : [ 'n-a', 'na', 'none', 'not-applicable' ];
+        function isNa( val ) { return !! val && naSlugs.indexOf( String( val ).toLowerCase() ) > -1; }
+
+        /* If every variation matching the earlier choices uses an N/A term
+         * for this attribute, return that term (the group is then hidden and
+         * auto-filled). Otherwise null. WC's "Any" ('') is NOT treated as N/A. */
+        function naValueFor( attr, selEarlier ) {
+            if ( ! variations || ! Object.keys( selEarlier ).length ) { return null; }
+            var matching = variations.filter( function ( v ) { return matches( v, selEarlier ); } );
+            if ( ! matching.length ) { return null; }
+            for ( var n = 0; n < matching.length; n++ ) {
+                if ( ! isNa( matching[ n ].attributes[ attr ] ) ) { return null; }
+            }
+            return matching[ 0 ].attributes[ attr ];
+        }
+
         function matches( variation, sel ) {
             for ( var key in sel ) {
                 if ( ! sel[ key ] ) { continue; }
@@ -186,8 +204,33 @@
                         select.value = '';
                         groupOptions( group ).forEach( function ( o ) { o.classList.remove( 'active' ); } );
                     }
+                    select.removeAttribute( 'data-j5-na' );
+                    group.classList.remove( 'j5-vg-na' );
                     chainComplete = false;
                     return;
+                }
+
+                /* J5-VAR-NA-1: N/A options never show as choices. */
+                groupOptions( group ).forEach( function ( o ) {
+                    o.classList.toggle( 'j5-opt-na', isNa( o.getAttribute( 'data-value' ) ) );
+                } );
+
+                /* J5-VAR-NA-1: attribute doesn't apply to this combination
+                 * (e.g. Carrier Only has no Level). Hide the group and pick
+                 * the N/A term so WC can match the variation. */
+                var naVal = naValueFor( attr, selEarlier );
+                if ( naVal !== null ) {
+                    select.value = naVal;
+                    select.setAttribute( 'data-j5-na', '1' );
+                    group.classList.add( 'j5-vg-na' );
+                    selEarlier[ attr ] = naVal;
+                    return;
+                }
+                group.classList.remove( 'j5-vg-na' );
+                if ( select.getAttribute( 'data-j5-na' ) ) {
+                    /* Was auto-filled for a previous choice; no longer applies. */
+                    select.removeAttribute( 'data-j5-na' );
+                    if ( isNa( select.value ) ) { select.value = ''; }
                 }
 
                 if ( variations ) {

@@ -446,6 +446,8 @@ function j5_render_shop_product_card( $product, $compact = false ) {
     if ( $product->is_in_stock() ) {
         $badges[] = array( 'class' => 'stock', 'label' => '● IN STOCK' );
     }
+    // Lets other modules add badges (LE ONLY: inc/j5-product-flags.php). J5-FLAGS
+    $badges = apply_filters( 'j5_product_card_badges', $badges, $product );
 
     // Specs (from key attributes)
     $specs = j5_get_product_specs( $product );

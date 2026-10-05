@@ -261,6 +261,13 @@ get_header();
                     </div>
                 <?php endif; ?>
 
+                <!-- LAW ENFORCEMENT ONLY (inc/j5-product-flags.php) J5-FLAGS -->
+                <?php
+                if ( function_exists( 'j5_render_le_only_banner' ) ) {
+                    j5_render_le_only_banner( $product );
+                }
+                ?>
+
                 <!-- PRODUCT ANNOUNCEMENTS (marketing notices) -->
                 <?php
                 if ( function_exists( 'j5_render_product_announcements' ) ) {
