@@ -302,6 +302,79 @@
             } );
         }
 
+        /* J5-VAR-FIT-1: pills that don't fit on one line become a dropdown.
+         * Re-checked whenever a group becomes visible and on resize, so a
+         * row that fits on desktop can still collapse on a phone. The hidden
+         * select already drives Woo, so the dropdown is that select shown. */
+        function pillsWrap( wrap ) {
+            var top = null;
+            var shown = $$( '[data-value]', wrap ).filter( function ( p ) { return p.offsetParent !== null; } );
+            for ( var i = 0; i < shown.length; i++ ) {
+                if ( top === null ) { top = shown[ i ].offsetTop; }
+                else if ( Math.abs( shown[ i ].offsetTop - top ) > 4 ) { return true; }
+            }
+            return false;
+        }
+
+        function setDropdownMode( group, on ) {
+            var select = groupSelect( group );
+            if ( ! select ) { return; }
+            group.classList.toggle( 'j5-vg-dropdown', on );
+            select.classList.toggle( 'j5-variant-select', on );
+            select.style.display = on ? '' : 'none';
+            var first = select.querySelector( 'option[value=""]' );
+            if ( first ) {
+                if ( ! first.getAttribute( 'data-j5-orig' ) ) { first.setAttribute( 'data-j5-orig', first.textContent ); }
+                var lbl = group.querySelector( '.j5-variant-label' );
+                first.textContent = on ? 'Select ' + ( lbl ? lbl.textContent.trim().toLowerCase() : 'an option' ) : first.getAttribute( 'data-j5-orig' );
+            }
+        }
+
+        function fitGroup( group ) {
+            var wrap = group.querySelector( '[data-j5-fit]' );
+            if ( ! wrap || group.offsetParent === null ) { return; }
+            setDropdownMode( group, false );          /* measure as pills */
+            if ( pillsWrap( wrap ) ) { setDropdownMode( group, true ); }
+        }
+
+        /* Mirror pill availability onto the dropdown's options: hide
+         * combinations that don't exist and N/A terms, and add the stock
+         * state on the final group. Re-run after Woo rebuilds the select. */
+        function syncDropdownOptions() {
+            groups.forEach( function ( group ) {
+                if ( ! group.classList.contains( 'j5-vg-dropdown' ) ) { return; }
+                var select = groupSelect( group );
+                if ( ! select ) { return; }
+                var last = group.classList.contains( 'j5-vg-last' );
+                $$( 'option', select ).forEach( function ( opt ) {
+                    if ( ! opt.value ) { return; }
+                    var pill = group.querySelector( '[data-value="' + CSS.escape( opt.value ) + '"]' );
+                    if ( ! pill ) { return; }
+                    if ( ! opt.getAttribute( 'data-j5-label' ) ) { opt.setAttribute( 'data-j5-label', opt.textContent ); }
+                    var gone = pill.classList.contains( 'j5-opt-none' ) || pill.classList.contains( 'j5-opt-na' );
+                    opt.hidden = gone;
+                    opt.disabled = gone;
+                    var suffix = '';
+                    if ( last && ! gone ) {
+                        if ( pill.classList.contains( 'j5-opt-oos' ) ) { suffix = ' \u00b7 Out of stock'; }
+                        else if ( pill.classList.contains( 'j5-opt-special' ) ) { suffix = ' \u00b7 Special order'; }
+                    }
+                    opt.textContent = opt.getAttribute( 'data-j5-label' ) + suffix;
+                } );
+            } );
+        }
+
+        function fitAll() {
+            groups.forEach( fitGroup );
+            syncDropdownOptions();
+        }
+
+        var fitTimer = null;
+        window.addEventListener( 'resize', function () {
+            clearTimeout( fitTimer );
+            fitTimer = setTimeout( fitAll, 120 );
+        } );
+
         /* Without variation data, reveal everything and let Woo's native
          * option-disabling drive a legacy grey-out sync. */
         if ( ! variations ) {
@@ -341,17 +414,19 @@
                     }
                     clearAfter( i );
                     refresh();
+                    fitAll();
                     triggerWoo( select );
                 } );
             } );
 
-            /* Visible dropdown displays: the select IS the UI. */
-            if ( group.getAttribute( 'data-display' ) === 'dropdown' ) {
-                select.addEventListener( 'change', function () {
-                    clearAfter( i );
-                    refresh();
-                } );
-            }
+            /* Visible dropdown displays: the select IS the UI. Includes pill
+             * groups switched to a dropdown by J5-VAR-FIT-1. */
+            select.addEventListener( 'change', function () {
+                if ( group.getAttribute( 'data-display' ) !== 'dropdown' && ! group.classList.contains( 'j5-vg-dropdown' ) ) { return; }
+                clearAfter( i );
+                refresh();
+                fitAll();
+            } );
         } );
 
         /* ----- Woo event wiring: banner, price, legacy disabled-sync ----- */
@@ -390,6 +465,13 @@
                 bannerSelectState();
                 if ( priceEl ) { priceEl.innerHTML = parentPriceHTML; }
                 refresh();
+                fitAll();
+            } );
+
+            /* Woo rebuilds each select's options on every change; re-apply
+             * the dropdown labels/hiding afterwards (J5-VAR-FIT-1). */
+            $form.on( 'woocommerce_update_variation_values', function () {
+                setTimeout( syncDropdownOptions, 0 );
             } );
 
             /* Legacy fallback sync when no variations JSON: grey pills whose
@@ -411,6 +493,7 @@
         }
 
         refresh();
+        fitAll();
     } )();
 
     /* ============ 8. STICKY MOBILE CART ============ */

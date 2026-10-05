@@ -1317,25 +1317,52 @@ body.j5-shop-template .j5-container {
 
 .j5-le-only {
     display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    margin: -12px 0 24px;
-    padding: 14px 18px;
-    background: rgba(74, 144, 194, 0.08);
-    border: 1px solid rgba(74, 144, 194, 0.35);
-    border-left: 3px solid #4a90c2;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: -8px 0 18px;
 }
-.j5-le-only__icon { color: #7fb6dd; flex: none; margin-top: 1px; }
-.j5-le-only__title {
+.j5-le-only__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border: 1px solid rgba(74, 144, 194, 0.55);
+    background: rgba(74, 144, 194, 0.1);
+    color: #a9d0ec;
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.15em;
+    font-size: 12px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--j5-bone);
+    white-space: nowrap;
 }
-.j5-le-only__body { margin-top: 3px; font-size: 13px; line-height: 1.55; color: var(--j5-ink-dim); }
-.j5-le-only__body a { color: #7fb6dd; text-decoration: none; border-bottom: 1px solid rgba(127, 182, 221, 0.4); }
-.j5-le-only__body a:hover { color: #a9d0ec; }
+.j5-le-only__body { font-size: 13px; line-height: 1.5; color: var(--j5-ink-dim); }
+.j5-le-only__body a { color: #a9d0ec; text-decoration: none; border-bottom: 1px solid rgba(169, 208, 236, 0.4); }
+.j5-le-only__body a:hover { color: #cfe6f6; }
+
+/* J5-COMPACT-1: tighter buy box. Stock banner, selectors and the
+   acknowledgment gate sat on generous spacing that stacked up into a
+   very tall column once all three showed. */
+.j5-product-info .j5-product-stock { padding: 11px 16px; margin-bottom: 20px; }
+.j5-product-info .j5-variant-group { margin-bottom: 16px; }
+.j5-product-info .j5-variant-label { margin-bottom: 8px; }
+.j5-product-info .j5-ack-gate { margin: 4px 0 14px; }
+.j5-product-info .j5-ack-gate-row { padding: 10px 12px; }
+
+/* J5-VAR-FIT-1: pill groups that don't fit on one line become a dropdown. */
+.j5-variant-group.j5-vg-dropdown .j5-variant-pills { display: none; }
+.j5-variant-group.j5-vg-dropdown .j5-variant-select {
+    display: block;
+    width: 100%;
+    max-width: 360px;
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 40px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--j5-gold) 50%), linear-gradient(135deg, var(--j5-gold) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+}
 
 .j5-prod-badge.le-only { background: #1d3a52; color: #b9dbf2; border: 1px solid #2f5d80; }

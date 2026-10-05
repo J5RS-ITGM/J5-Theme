@@ -159,16 +159,16 @@ function j5_render_le_only_banner( $product ) {
 	$title = apply_filters( 'j5_le_only_title', 'Law Enforcement Only', $product );
 	$body  = apply_filters(
 		'j5_le_only_body',
-		'Sold to law enforcement agencies and sworn officers only. Questions about eligibility? <a href="' . esc_url( home_url( '/contact-us/' ) ) . '">Contact us</a>.',
+		'Sold to law enforcement agencies, sworn officers, and licensed security professionals only. <a href="' . esc_url( home_url( '/contact-us/' ) ) . '">Questions?</a>',
 		$product
 	);
 	?>
 	<div class="j5-le-only" role="note">
-		<svg class="j5-le-only__icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
-		<div>
-			<div class="j5-le-only__title"><?php echo esc_html( $title ); ?></div>
-			<div class="j5-le-only__body"><?php echo wp_kses_post( $body ); ?></div>
-		</div>
+		<span class="j5-le-only__tag">
+			<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6l-8-3Z"/></svg>
+			<?php echo esc_html( $title ); ?>
+		</span>
+		<span class="j5-le-only__body"><?php echo wp_kses_post( $body ); ?></span>
 	</div>
 	<?php
 }

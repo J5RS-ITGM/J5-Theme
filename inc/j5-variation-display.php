@@ -68,19 +68,17 @@ function j5_attribute_display_type( $attribute_name, $options, $option_prices ) 
 		return 'image-swatches';
 	}
 
-	if ( count( $options ) > 7 ) {
+	/*
+	 * J5-COMPACT-1 (2026-10-05): more than a handful of options → dropdown.
+	 * Radio cards are no longer chosen automatically (per-option prices are
+	 * suppressed, so cards were full-width rows holding one short label).
+	 * Pills that would wrap onto a second line are also switched to a
+	 * dropdown client-side (j5-shop.js, J5-VAR-FIT-1), so this threshold
+	 * only needs to catch the obvious cases. Cards are still available via
+	 * the j5_attr_display_map filter.
+	 */
+	if ( count( $options ) > (int) apply_filters( 'j5_pill_max_options', 4, $attribute_name ) ) {
 		return 'dropdown';
-	}
-
-	// Price variance across options → radio cards (price becomes part of the choice).
-	$mins = array();
-	foreach ( $option_prices as $p ) {
-		if ( $p['min'] !== null ) {
-			$mins[ (string) $p['min'] ] = true;
-		}
-	}
-	if ( count( $mins ) > 1 ) {
-		return 'radio-cards';
 	}
 
 	return 'pills';
@@ -281,7 +279,7 @@ function j5_render_variation_groups( $product, $attributes, $available_variation
 						<?php endforeach; ?>
 					</div>
 				<?php else : ?>
-					<div class="j5-variant-pills" data-attribute="<?php echo esc_attr( $field_name ); ?>">
+					<div class="j5-variant-pills" data-attribute="<?php echo esc_attr( $field_name ); ?>" data-j5-fit="1">
 						<?php foreach ( $labels as $value => $label ) :
 							$is_selected = sanitize_title( $current_value ) === sanitize_title( $value );
 						?>

@@ -169,6 +169,13 @@ get_header();
                     <span class="j5-product-sku">SKU: <?php echo esc_html( strtoupper( $sku ) ); ?></span>
                 </div>
 
+                <!-- LAW ENFORCEMENT ONLY: compact line under the title (inc/j5-product-flags.php) J5-FLAGS -->
+                <?php
+                if ( function_exists( 'j5_render_le_only_banner' ) ) {
+                    j5_render_le_only_banner( $product );
+                }
+                ?>
+
                 <?php if ( $short_desc ) : ?>
                     <div class="j5-product-short-desc"><?php echo wp_kses_post( $short_desc ); ?></div>
                 <?php endif; ?>
@@ -261,13 +268,6 @@ get_header();
                     </div>
                 <?php endif; ?>
 
-                <!-- LAW ENFORCEMENT ONLY (inc/j5-product-flags.php) J5-FLAGS -->
-                <?php
-                if ( function_exists( 'j5_render_le_only_banner' ) ) {
-                    j5_render_le_only_banner( $product );
-                }
-                ?>
-
                 <!-- PRODUCT ANNOUNCEMENTS (marketing notices) -->
                 <?php
                 if ( function_exists( 'j5_render_product_announcements' ) ) {
@@ -310,18 +310,6 @@ get_header();
 
                         <?php
                         /*
-                         * Acknowledgment gate (placement = 'product'). MUST be
-                         * inside the form so the checkboxes post with the
-                         * add-to-cart request; validation is server-side in
-                         * inc/j5-acknowledgments.php.
-                         */
-                        if ( function_exists( 'j5_render_ack_gate' ) ) {
-                            j5_render_ack_gate( $product );
-                        }
-                        ?>
-
-                        <?php
-                        /*
                          * Renders each attribute group in its resolved display
                          * style (pills / radio-cards / dropdown) with hidden
                          * selects for Woo's variation JS. Cascade behavior
@@ -335,6 +323,20 @@ get_header();
                         <?php if ( count( $attributes ) > 1 ) : ?>
                             <a href="#" class="reset_variations" style="display:none;">Reset</a>
                         <?php endif; ?>
+
+                        <?php
+                        /*
+                         * Acknowledgment gate (placement = 'product'). MUST be
+                         * inside the form so the checkboxes post with the
+                         * add-to-cart request; validation is server-side in
+                         * inc/j5-acknowledgments.php. Sits after the selectors,
+                         * right above Add to Cart, so it reads as the last step
+                         * instead of crowding the top of the form. J5-COMPACT-1
+                         */
+                        if ( function_exists( 'j5_render_ack_gate' ) ) {
+                            j5_render_ack_gate( $product );
+                        }
+                        ?>
 
                         <div class="single_variation_wrap">
                             <div class="woocommerce-variation single_variation"></div>
