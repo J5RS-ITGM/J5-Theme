@@ -415,6 +415,7 @@ get_header();
             <div class="j5-tabs-nav">
                 <button class="j5-tab-btn active" data-tab="description">Description</button>
                 <button class="j5-tab-btn" data-tab="specs">Specifications</button>
+                <?php if ( function_exists( 'j5_render_spec_sheets_tab_button' ) ) { j5_render_spec_sheets_tab_button( $product ); } /* J5-SPECSHEETS */ ?>
                 <button class="j5-tab-btn" data-tab="reviews">Reviews <?php if ( $review_cnt > 0 ) echo '<span class="count">(' . esc_html( $review_cnt ) . ')</span>'; ?></button>
                 <button class="j5-tab-btn" data-tab="shipping">Shipping &amp; Returns</button>
             </div>
@@ -462,6 +463,8 @@ get_header();
                     <?php endif; ?>
                     <?php if ( $j5_specs_extra !== '' ) { echo $j5_specs_extra; } // already wp_kses_post()'d in renderer ?>
                 </div>
+
+                <?php if ( function_exists( 'j5_render_spec_sheets_panel' ) ) { j5_render_spec_sheets_panel( $product ); } /* J5-SPECSHEETS */ ?>
 
                 <div class="j5-tab-panel" data-panel="reviews">
                     <?php

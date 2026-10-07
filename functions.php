@@ -52,6 +52,8 @@ require_once get_stylesheet_directory() . '/inc/j5-rich-category.php';
 require_once get_stylesheet_directory() . '/inc/j5-brands.php';
 // N/A variation attributes + Law Enforcement Only flag. J5-FLAGS
 require_once get_stylesheet_directory() . '/inc/j5-product-flags.php';
+// Spec Sheets tab (PDF links to the B2 Media bucket). J5-SPECSHEETS
+require_once get_stylesheet_directory() . '/inc/j5-spec-sheets.php';
 // === J5-CAT-CONTENT-REQUIRES-END ===
 
 // J5 Home Template setup
