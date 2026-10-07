@@ -49,7 +49,7 @@ $j5_show_life_safety    = isset( $j5_config['show_life_safety_callout'] ) ? (boo
 $j5_secondary           = isset( $j5_config['secondary_callout'] ) ? $j5_config['secondary_callout'] : null;
 // Suppress any secondary callout that points at the portal while it's disabled.
 if ( ! $j5_portal_on && is_array( $j5_secondary ) && ! empty( $j5_secondary['link_url'] )
-	&& false !== strpos( $j5_secondary['link_url'], 'ops.j5rescue.com' ) ) {
+	&& ( false !== strpos( $j5_secondary['link_url'], 'ops.j5rescue.com' ) || false !== strpos( $j5_secondary['link_url'], 'portal.j5rescue.com' ) ) ) {
 	$j5_secondary = null;
 }
 $j5_hero                = isset( $j5_config['hero'] ) ? $j5_config['hero'] : array();
@@ -177,7 +177,7 @@ get_header();
 						<span class="j5-inline-banner__label">Agency &amp; Department Buyers</span>
 						<span class="j5-inline-banner__msg">Specialized pricing, Net 30 terms, and dedicated POCs are available on our agency portal</span>
 					</div>
-					<?php if ( function_exists( 'j5_portal_enabled' ) && j5_portal_enabled() ) : ?><a href="<?php echo esc_url( j5_portal_url() ); ?>" class="j5-inline-banner__link" target="_blank" rel="noopener">ops.j5rescue.com &nbsp;→</a><?php endif; ?>
+					<?php if ( function_exists( 'j5_portal_enabled' ) && j5_portal_enabled() ) : ?><a href="<?php echo esc_url( j5_portal_url() ); ?>" class="j5-inline-banner__link" target="_blank" rel="noopener">portal.j5rescue.com &nbsp;→</a><?php endif; ?>
 				</div>
 			<?php endif; ?>
 

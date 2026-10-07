@@ -231,7 +231,7 @@ function j5_landing_config() {
 				'kicker'    => 'Agency Portal',
 				'title_html' => 'Built for How<br>Agencies Buy',
 				'body_html' => 'Net 30 terms · PO uploads · departmental pricebooks · dedicated point of contact per agency · CJIS-aware portal. Quote out of ops, receive in your inbox, pay by PO, ship to the department.',
-				'link_url'  => 'https://ops.j5rescue.com',
+				'link_url'  => 'https://portal.j5rescue.com',
 				'link_text' => 'Request portal access',
 				'link_target' => '_blank',
 			),

@@ -45,5 +45,6 @@ function j5_portal_enabled() {
  * @return string
  */
 function j5_portal_url() {
-	return apply_filters( 'j5_portal_url', 'https://ops.j5rescue.com' );
+	// ops.j5rescue.com (Odoo) is retired; the portal now lives at portal.j5rescue.com (2026-10).
+	return apply_filters( 'j5_portal_url', 'https://portal.j5rescue.com' );
 }

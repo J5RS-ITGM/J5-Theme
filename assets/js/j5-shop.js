@@ -124,7 +124,11 @@
         /* J5-VAR-NA-1: attribute terms meaning "doesn't apply" (Level = N/A
          * for a carrier-only model). Published by inc/j5-product-flags.php. */
         var naSlugs = Array.isArray( window.j5NaSlugs ) ? window.j5NaSlugs : [ 'n-a', 'na', 'none', 'not-applicable' ];
-        function isNa( val ) { return !! val && naSlugs.indexOf( String( val ).toLowerCase() ) > -1; }
+        /* Values arrive as term slugs ("n-a") for global attributes but as
+         * the literal text ("N/A") for custom product attributes, so compare
+         * on a slug-style form of both (same rule as sanitize_title). */
+        function naNorm( val ) { return String( val ).toLowerCase().replace( /[^a-z0-9]+/g, '-' ).replace( /^-+|-+$/g, '' ); }
+        function isNa( val ) { return !! val && naSlugs.indexOf( naNorm( val ) ) > -1; }
 
         /* If every variation matching the earlier choices uses an N/A term
          * for this attribute, return that term (the group is then hidden and
