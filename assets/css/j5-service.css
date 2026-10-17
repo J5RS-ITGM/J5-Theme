@@ -408,36 +408,72 @@
 	text-transform: uppercase;
 }
 
-/* ----- Team (About) ------------------------------------------------------- */
+/* ----- Team cards (About) ----------------------------------------------- */
 
-.j5-service-content .j5-team {
-	gap: 40px;
-	margin: 2em 0 2.4em;
-	align-items: flex-start;
+.j5-service-content .j5-team-grid {
+	gap: 24px;
+	margin: 0 0 24px;
+	align-items: stretch;
 }
-.j5-service-content .j5-team h3 {
+.j5-service-content .j5-team-card {
+	background: var(--j5-svc-dark-2);
+	border: 1px solid var(--j5-svc-border);
+	border-top: 3px solid var(--j5-svc-red);
+	border-radius: 2px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+.j5-service-content .j5-team-photo,
+.j5-service-content .j5-team-monogram {
+	margin: 0 !important;
+	aspect-ratio: 4 / 3;
+	width: 100%;
+}
+.j5-service-content .j5-team-photo img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 30%;
+	border-radius: 0;
+	display: block;
+}
+.j5-service-content .j5-team-monogram {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--j5-svc-display);
+	font-size: clamp(64px, 8vw, 110px);
+	letter-spacing: 0.06em;
+	color: var(--j5-svc-gold);
+	background: linear-gradient(135deg, #161616 0%, #1f1f1f 100%);
+	border-bottom: 1px solid var(--j5-svc-border);
+}
+.j5-service-content .j5-team-body {
+	padding: 24px 24px 8px;
+}
+.j5-service-content .j5-team-card h3 {
 	margin: 0 0 2px !important;
-	font-size: 26px !important;
+	font-size: 28px !important;
 }
 .j5-service-content .j5-team-creds {
 	font-family: var(--j5-svc-display);
 	letter-spacing: 0.08em;
 	color: var(--j5-svc-text-dim);
 	font-size: 17px;
+	white-space: nowrap;
 }
 .j5-service-content .j5-team-role {
 	font-family: var(--j5-svc-display);
 	letter-spacing: 0.16em;
 	color: var(--j5-svc-gold);
-	font-size: 15px;
-	margin: 0 0 10px !important;
+	font-size: 16px;
+	margin: 0 0 12px !important;
 	text-transform: uppercase;
 }
-.j5-service-content .j5-team-person {
-	margin-bottom: 28px;
-}
-.j5-service-content .j5-team figure {
-	margin: 0;
+.j5-service-content .j5-team-body p:not(.j5-team-role) {
+	font-size: 16px;
+	color: var(--j5-svc-text-dim);
 }
 
 /* ----- FAQ accordions (core Details block) ------------------------------- */
