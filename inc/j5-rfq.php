@@ -61,12 +61,22 @@ add_shortcode( 'j5_rfq', function () {
 					<input name="title" placeholder="Title / rank" autocomplete="organization-title">
 					<input name="email" type="email" placeholder="Work email" autocomplete="email" required>
 					<input name="phone" type="tel" placeholder="Phone" autocomplete="tel">
-					<select name="agency_type" aria-label="Organization type">
-						<option value="police">Police / Sheriff</option>
-						<option value="fire">Fire / EMS</option>
-						<option value="corrections">Corrections</option>
-						<option value="business">Business / Private security</option>
-						<option value="other">Other / Individual</option>
+					<select name="role" aria-label="Organization type">
+						<?php
+						// Label shown => DP agency_type (the DP API accepts police|fire|corrections|business|other).
+						// The exact label is also prepended to the notes so the DP inbox shows it.
+						$j5_roles = array(
+							'Individual / Other'      => 'other',
+							'Business'                => 'business',
+							'NGO / Non-profit'        => 'other',
+							'Law Enforcement'         => 'police',
+							'Federal Law Enforcement' => 'police',
+							'Corrections'             => 'corrections',
+							'Private Security'        => 'business',
+						);
+						foreach ( $j5_roles as $label => $type ) : ?>
+							<option value="<?php echo esc_attr( $label ); ?>" data-type="<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
 					</select>
 					<select name="state" aria-label="State">
 						<option value="">State</option>

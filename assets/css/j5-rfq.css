@@ -22,7 +22,7 @@
 .j5rfq__paths button span{font-size:13px;color:var(--q-dim)}
 .j5rfq__paths button.is-on{border-color:var(--q-gold);background:#1f1b12}
 .j5rfq__paths button.is-on b{color:var(--q-gold)}
-.j5rfq__search{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px}
+.j5rfq__search{display:grid;grid-template-columns:1fr;gap:10px}
 .j5rfq__results{margin-top:6px;max-height:420px;overflow:auto}
 
 /* result rows */
@@ -104,7 +104,7 @@
 @media (max-width:640px){
 	.j5rfq__card{padding:20px 16px}
 	.j5rfq__fields{grid-template-columns:1fr 1fr}
-	.j5rfq__search,.j5rfq__paths{grid-template-columns:1fr}
+	.j5rfq__paths{grid-template-columns:1fr}
 	.j5rfq__row{grid-template-columns:1fr auto}
 	.j5rfq__row select{grid-column:1/-1;max-width:none}
 }

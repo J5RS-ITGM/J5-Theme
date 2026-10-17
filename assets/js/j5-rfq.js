@@ -240,11 +240,16 @@
     var btn = document.getElementById('j5rfq-submit');
     btn.disabled = true; btn.textContent = 'Sending…'; msgEl.hidden = true;
     var officers = parseInt(v('officers'), 10);
+    var roleSel = form.querySelector('select[name="role"]');
+    var roleOpt = roleSel ? roleSel.options[roleSel.selectedIndex] : null;
+    var role = roleOpt ? roleOpt.value : '';
+    var agencyType = roleOpt ? roleOpt.getAttribute('data-type') : null;
+    var notes = [role ? 'Organization type: ' + role : '', v('notes')].filter(Boolean).join('\n\n');
     postJSON('/submit', {
       kind: 'quote', organization: v('organization'), name: v('name'), title: v('title') || null, email: v('email'),
       phone: v('phone') || null, state: v('state') || null, officers: isNaN(officers) ? null : officers,
-      agency_type: v('agency_type') || null, timeline: v('timeline') || null, heard_from: v('heard_from') || null,
-      notes: v('notes') || null, website: v('website'),
+      agency_type: agencyType || null, timeline: v('timeline') || null, heard_from: v('heard_from') || null,
+      notes: notes || null, website: v('website'),
       items: items.map(function (it) { return { variant_id: it.variant_id, sku: it.sku || null, name: it.name, qty: it.qty }; }),
       source: source.source, source_url: source.source_url
     }).then(function (r) {
