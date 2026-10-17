@@ -52,6 +52,7 @@ function j5_id_email_context( $claim_id ) {
 			'total'  => html_entity_decode( wp_strip_all_tags( wc_price( $o->get_total(), array( 'currency' => $o->get_currency() ) ) ), ENT_QUOTES, 'UTF-8' ),
 			'items'  => $items,
 			'url'    => $o->get_view_order_url(),
+			'released' => $o->has_status( array( 'processing', 'completed' ) ),
 		);
 	}
 	return $ctx;
@@ -84,7 +85,12 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 		$body .= $p( 'Thanks for your patience. We reviewed your ID and your account is now verified' . $what . '.' );
 		if ( $has_order ) {
 			$n = count( $ctx['orders'] );
-			$body .= $p( $n > 1 ? 'Your orders below have been released and are being prepared now. You\'ll get tracking by email as soon as they ship.' : 'Your order has been released and is being prepared now. You\'ll get tracking by email as soon as it ships.' );
+			$all = ! in_array( false, wp_list_pluck( $ctx['orders'], 'released' ), true );
+			if ( $all ) {
+				$body .= $p( $n > 1 ? 'Your orders below have been released and are being prepared now. You\'ll get tracking by email as soon as they ship.' : 'Your order has been released and is being prepared now. You\'ll get tracking by email as soon as it ships.' );
+			} else {
+				$body .= $p( 'We\'ll release your order as soon as payment is confirmed. If your payment didn\'t go through, you can pay from your account or give us a call.' );
+			}
 		}
 		if ( $has_code ) {
 			$body .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 20px;border:2px dashed ' . $gold . ';border-radius:2px;background:#fbf8ef"><tr><td style="padding:20px;text-align:center;font-family:Arial,Helvetica,sans-serif">'
@@ -94,8 +100,11 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 				. '</td></tr></table>';
 			$body .= $p( 'Use it at checkout on any order. It\'s tied to ' . $e( $ctx['email'] ) . ' and it\'s yours to keep. You can always find it under <a href="' . $e( $ctx['discount'] ) . '" style="color:' . $red . '">Service Discount</a> in your account.' );
 		}
+		$le_type = defined( 'J5LE_ALLOWED_TYPES' ) ? in_array( $ctx['type'], J5LE_ALLOWED_TYPES, true ) : in_array( $ctx['type'], array( 'Law Enforcement', 'Licensed Security' ), true );
 		if ( ! $has_order && ! $has_code ) {
-			$body .= $p( 'You can now purchase items sold only to law enforcement and licensed security professionals. You won\'t need to verify again for future orders.' );
+			$body .= $p( $le_type
+				? 'You can now purchase items sold only to law enforcement and licensed security professionals. You won\'t need to verify again for future orders.'
+				: 'Your verification is on file with your account. You won\'t need to submit it again.' );
 		} elseif ( $has_order ) {
 			$body .= $p( 'You won\'t need to verify again for future orders of law-enforcement-only items.' );
 		}
@@ -128,7 +137,7 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 		foreach ( $o['items'] as $it ) {
 			$lines .= '<tr><td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:' . $ink . '">' . $e( $it['name'] ) . '</td><td style="padding:6px 0;text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:' . $dim . ';white-space:nowrap">&times; ' . (int) $it['qty'] . '</td></tr>';
 		}
-		$status = $approved ? '<span style="color:#2E8B57;font-weight:700">Released for fulfillment</span>' : '<span style="color:' . $red . ';font-weight:700">Canceled &amp; Refunded</span>';
+		$status = $approved ? ( $o['released'] ? '<span style="color:#2E8B57;font-weight:700">Released for fulfillment</span>' : '<span style="color:#B8963F;font-weight:700">Awaiting payment</span>' ) : '<span style="color:' . $red . ';font-weight:700">Canceled &amp; Refunded</span>';
 		$orders_html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px;border:1px solid ' . $line . ';border-radius:2px"><tr><td style="padding:16px 18px">'
 			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
 			. '<td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:' . $ink . '">Order #' . $e( $o['number'] ) . '</td>'
@@ -177,15 +186,15 @@ function j5_id_email_text( $kind, $ctx ) {
 	$out = ( $ctx['first'] ? "Hi {$ctx['first']},\n\n" : "Hi there,\n\n" );
 	if ( $approved ) {
 		$out .= "We reviewed your ID and your account is now verified" . ( $ctx['type'] ? " as {$ctx['type']}" : '' ) . ".\n\n";
-		if ( $ctx['orders'] ) $out .= "Your order has been released and is being prepared. You'll get tracking by email when it ships.\n\n";
+		if ( $ctx['orders'] ) $out .= ( in_array( false, wp_list_pluck( $ctx['orders'], 'released' ), true ) ? "We'll release your order as soon as payment is confirmed.\n\n" : "Your order has been released and is being prepared. You'll get tracking by email when it ships.\n\n" );
 		if ( $ctx['code'] ) $out .= "Your personal service discount code: {$ctx['code']}\n" . ( $ctx['terms'] ? ucfirst( $ctx['terms'] ) . ".\n" : '' ) . "It's tied to {$ctx['email']} and yours to keep.\n\n";
 	} else {
 		$out .= $ctx['orders']
 			? "We weren't able to verify the ID submitted with your order. Because it includes items we can only sell to verified law enforcement and licensed security professionals, it's being canceled and refunded in full. Refunds usually post within 5 to 10 business days.\n\n"
-			: "We weren't able to approve your service discount request with the document you submitted. You can submit a new, clearer document from your account: {$ctx['discount']}\n\n";
+			: "We weren't able to approve your service discount request with the document you submitted. You can submit a new document from your account: {$ctx['discount']}\n\n";
 		if ( $ctx['reason'] ) $out .= "Reason: {$ctx['reason']}\n\n";
 	}
-	foreach ( $ctx['orders'] as $o ) $out .= "Order #{$o['number']} ({$o['total']}): " . ( $approved ? 'Released for fulfillment' : 'Canceled and Refunded' ) . "\n";
+	foreach ( $ctx['orders'] as $o ) $out .= "Order #{$o['number']} ({$o['total']}): " . ( $approved ? ( $o['released'] ? 'Released for fulfillment' : 'Awaiting payment' ) : 'Canceled and Refunded' ) . "\n";
 	$out .= "\nFor your privacy, the ID you uploaded was deleted as soon as we finished reviewing it.\n\nQuestions? Reply to this email, call (630) 442-4938, or email info@j5rescue.com.\nJ5 Rescue Supply LLC\n";
 	return $out;
 }

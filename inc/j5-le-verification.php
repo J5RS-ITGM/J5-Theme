@@ -351,3 +351,48 @@ add_filter( 'j5v_portal_record', function ( $record, $claim_id ) {
 	$record['order_numbers'] = array_values( wp_list_pluck( $record['orders'], 'number' ) );
 	return $record;
 }, 10, 2 );
+
+/* ── Admin "New order" email: flag orders that need ID verification ──────── */
+
+function j5le_admin_banner_state( $order ) {
+	$st = $order instanceof WC_Order ? (string) $order->get_meta( '_j5le_status' ) : '';
+	return in_array( $st, array( 'pending', 'missing', 'verified' ), true ) ? $st : '';
+}
+
+// Banner at the very top of the email body (right after the header).
+add_action( 'woocommerce_email_header', function ( $heading, $email = null ) {
+	if ( ! $email || 'new_order' !== $email->id || ! ( $email->object instanceof WC_Order ) ) return;
+	$order = $email->object;
+	$st    = j5le_admin_banner_state( $order );
+	if ( ! $st ) return;
+	$claim = (int) $order->get_meta( '_j5le_claim' );
+	if ( 'verified' === $st ) {
+		$bg = '#2E8B57'; $title = 'LE item: customer already verified';
+		$msg = 'Law-enforcement-only item. This customer\'s ID was already approved' . ( $claim ? " (claim #$claim)" : '' ) . '. OK to fulfill.';
+	} elseif ( 'missing' === $st ) {
+		$bg = '#C41E24'; $title = '&#9888; ID verification missing: do not ship';
+		$msg = 'This order has a law-enforcement-only item but no ID on file. Contact the customer for verification before shipping.';
+	} else {
+		$bg = '#C41E24'; $title = '&#9888; ID verification required: do not ship';
+		$msg = 'This order has a law-enforcement-only item. It\'s On Hold until the customer\'s ID is approved in the DP ID Review queue' . ( $claim ? " (claim #$claim)" : '' ) . '. Approving releases it to Processing automatically.';
+	}
+	echo '<div class="j5le_admin_banner" style="margin:0 0 24px;padding:16px 18px;background:' . $bg . ';color:#ffffff;font-family:Arial,Helvetica,sans-serif;border-radius:2px">'
+		. '<div style="font-size:16px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;color:#ffffff">' . $title . '</div>'
+		. '<div style="font-size:14px;line-height:1.5;color:#ffffff">' . esc_html( $msg ) . '</div></div>';
+}, 20, 2 );
+
+// Subject line flag so it stands out in the inbox.
+add_filter( 'woocommerce_email_subject_new_order', function ( $subject, $order ) {
+	$st = j5le_admin_banner_state( $order );
+	if ( 'pending' === $st || 'missing' === $st ) return '[ID VERIFICATION REQUIRED] ' . $subject;
+	if ( 'verified' === $st ) return '[LE verified] ' . $subject;
+	return $subject;
+}, 20, 2 );
+
+// Plain-text version of the email.
+add_action( 'woocommerce_email_order_details', function ( $order, $sent_to_admin, $plain_text, $email = null ) {
+	if ( ! $plain_text || ! $sent_to_admin || ! $email || 'new_order' !== $email->id ) return;
+	$st = j5le_admin_banner_state( $order );
+	if ( 'pending' === $st || 'missing' === $st ) echo "*** ID VERIFICATION REQUIRED: DO NOT SHIP ***\nThis order is On Hold until the customer's ID is approved in the DP ID Review queue.\n\n";
+	elseif ( 'verified' === $st ) echo "LE item: customer already verified. OK to fulfill.\n\n";
+}, 1, 4 );

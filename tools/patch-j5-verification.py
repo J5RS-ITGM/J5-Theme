@@ -1,5 +1,5 @@
 # Patches the j5-verification plugin (lives only on the server, not in git)
-# to v0.5.1:
+# to v0.5.2:
 #   0.5.0  LE-only purchase verification
 #     - adds "Licensed Security" to the My Account claim type dropdown
 #     - wraps the DP push record in apply_filters('j5v_portal_record') so the
@@ -7,6 +7,9 @@
 #   0.5.1  Branded ID decision emails (inc/j5-id-emails.php)
 #     - plain-text coupon email gated by apply_filters('j5v_send_coupon_email')
 #     - DP decision callback stores an optional `reason` as _j5v_reason
+#   0.5.2  DP "Approve" vs "Approve & issue coupon"
+#     - decision payload `issue_coupon` (true/false; missing = true for older DP builds)
+#       is stored as _j5v_issue_coupon; the coupon is only issued when true
 # Idempotent: safe to re-run. Backups go to /tmp, never the web root.
 # Usage: python3 tools/patch-j5-verification.py /path/to/wp-content/plugins/j5-verification
 import sys, os, re, shutil, time
@@ -50,11 +53,20 @@ patch('includes/class-j5v-portal.php',
       "\t\tif ( ! empty( $p['reason'] ) ) {\n\t\t\tupdate_post_meta( $claim_id, '_j5v_reason', sanitize_textarea_field( $p['reason'] ) );\n\t\t}\n\t\tupdate_post_meta( $claim_id, '_j5v_status', $decision );\n",
       "_j5v_reason")
 
-# version -> 0.5.1 (from any earlier version)
+# 0.5.2
+patch('includes/class-j5v-portal.php',
+      "\t\tif ( 'approved' === $decision ) {\n\t\t\tJ5V_Discount::issue_coupon( $claim_id );\n",
+      "\t\t// DP sends issue_coupon true/false (Approve vs Approve & issue coupon). Missing = true (older DP builds).\n"
+      "\t\t$issue = array_key_exists( 'issue_coupon', (array) $p ) ? filter_var( $p['issue_coupon'], FILTER_VALIDATE_BOOLEAN ) : true;\n"
+      "\t\tupdate_post_meta( $claim_id, '_j5v_issue_coupon', $issue ? 1 : 0 );\n"
+      "\t\tif ( 'approved' === $decision && $issue ) {\n\t\t\tJ5V_Discount::issue_coupon( $claim_id );\n",
+      "_j5v_issue_coupon")
+
+# version -> 0.5.2 (from any earlier version)
 p = f"{root}/j5-verification.php"; s = open(p, encoding='utf-8').read()
-n = re.sub(r"Version: 0\.\d+\.\d+", "Version: 0.5.1", s, count=1)
-n = re.sub(r"define\( 'J5V_VERSION', '0\.\d+\.\d+' \);", "define( 'J5V_VERSION', '0.5.1' );", n, count=1)
+n = re.sub(r"Version: 0\.\d+\.\d+", "Version: 0.5.2", s, count=1)
+n = re.sub(r"define\( 'J5V_VERSION', '0\.\d+\.\d+' \);", "define( 'J5V_VERSION', '0.5.2' );", n, count=1)
 if n != s:
-    backup('j5-verification.php'); open(p, 'w', encoding='utf-8', newline='\n').write(n); print("  j5-verification.php: version 0.5.1")
-else: print("  j5-verification.php: already 0.5.1")
+    backup('j5-verification.php'); open(p, 'w', encoding='utf-8', newline='\n').write(n); print("  j5-verification.php: version 0.5.2")
+else: print("  j5-verification.php: already 0.5.2")
 print("done")
