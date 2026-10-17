@@ -375,3 +375,131 @@
 		font-size: 48px !important;
 	}
 }
+
+/* ----- Stats strip (About) ------------------------------------------------ */
+
+.j5-service-content .j5-stats {
+	gap: 0;
+	margin: 2.4em 0;
+	border: 1px solid var(--j5-svc-border);
+	background: var(--j5-svc-dark-2);
+}
+.j5-service-content .j5-stats .wp-block-column {
+	padding: 28px 16px;
+	text-align: center;
+	border-right: 1px solid var(--j5-svc-border);
+}
+.j5-service-content .j5-stats .wp-block-column:last-child {
+	border-right: 0;
+}
+.j5-service-content .j5-stat-num {
+	font-family: var(--j5-svc-display);
+	font-size: clamp(40px, 4.5vw, 56px) !important;
+	color: var(--j5-svc-gold) !important;
+	line-height: 1 !important;
+	margin: 0 0 6px !important;
+}
+.j5-service-content .j5-stat-label {
+	font-family: var(--j5-svc-display);
+	letter-spacing: 0.14em;
+	font-size: 15px;
+	color: var(--j5-svc-text-dim);
+	margin: 0 !important;
+	text-transform: uppercase;
+}
+
+/* ----- Team (About) ------------------------------------------------------- */
+
+.j5-service-content .j5-team {
+	gap: 40px;
+	margin: 2em 0 2.4em;
+	align-items: flex-start;
+}
+.j5-service-content .j5-team h3 {
+	margin: 0 0 2px !important;
+	font-size: 26px !important;
+}
+.j5-service-content .j5-team-creds {
+	font-family: var(--j5-svc-display);
+	letter-spacing: 0.08em;
+	color: var(--j5-svc-text-dim);
+	font-size: 17px;
+}
+.j5-service-content .j5-team-role {
+	font-family: var(--j5-svc-display);
+	letter-spacing: 0.16em;
+	color: var(--j5-svc-gold);
+	font-size: 15px;
+	margin: 0 0 10px !important;
+	text-transform: uppercase;
+}
+.j5-service-content .j5-team-person {
+	margin-bottom: 28px;
+}
+.j5-service-content .j5-team figure {
+	margin: 0;
+}
+
+/* ----- FAQ accordions (core Details block) ------------------------------- */
+
+.j5-service-content .wp-block-details {
+	border: 1px solid var(--j5-svc-border);
+	background: var(--j5-svc-dark-2);
+	border-radius: 2px;
+	margin: 0 0 10px;
+	padding: 0;
+}
+.j5-service-content .wp-block-details summary {
+	cursor: pointer;
+	list-style: none;
+	padding: 18px 56px 18px 20px;
+	position: relative;
+	font-weight: 600;
+	color: #fff;
+	font-size: 17px;
+	line-height: 1.4;
+}
+.j5-service-content .wp-block-details summary::-webkit-details-marker {
+	display: none;
+}
+.j5-service-content .wp-block-details summary::after {
+	content: '+';
+	position: absolute;
+	right: 20px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-family: var(--j5-svc-display);
+	font-size: 28px;
+	color: var(--j5-svc-red);
+	line-height: 1;
+}
+.j5-service-content .wp-block-details[open] summary::after {
+	content: '\2212';
+}
+.j5-service-content .wp-block-details[open] {
+	border-left: 3px solid var(--j5-svc-red);
+}
+.j5-service-content .wp-block-details > :not(summary) {
+	padding: 0 20px;
+	color: var(--j5-svc-text-dim);
+}
+.j5-service-content .wp-block-details > :last-child {
+	padding-bottom: 18px;
+	margin-bottom: 0;
+}
+.j5-service-content .j5-faq-group {
+	margin-top: 2.2em !important;
+}
+.j5-service-content .j5-faq-group:first-child {
+	margin-top: 0 !important;
+}
+
+@media (max-width: 781px) {
+	.j5-service-content .j5-stats .wp-block-column {
+		border-right: 0;
+		border-bottom: 1px solid var(--j5-svc-border);
+	}
+	.j5-service-content .j5-stats .wp-block-column:last-child {
+		border-bottom: 0;
+	}
+}
