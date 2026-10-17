@@ -78,14 +78,9 @@ function j5le_user_state( $user_id ) {
 /* ── Checkout: force an account when LE-only items are in the cart ───────── */
 
 add_filter( 'woocommerce_checkout_registration_required', function ( $required ) {
-	if ( ! j5le_cart_has_le_only() || is_user_logged_in() ) return $required;
-	// The email already has an account: don't make them log in. The order is
-	// linked to that account after it's placed (see order_processed below) and
-	// they upload an ID like anyone else. Guests never inherit the account's
-	// verified status, since we can't confirm who's typing the email.
-	$email = isset( $_POST['billing_email'] ) ? sanitize_email( wp_unslash( $_POST['billing_email'] ) ) : '';
-	if ( $email && email_exists( $email ) ) return $required;
-	return true;
+	// LE-only items need an account: new emails get one at checkout; existing
+	// accounts log in (inline box under the email field, see j5le_login below).
+	return j5le_cart_has_le_only() ? true : $required;
 } );
 add_filter( 'woocommerce_checkout_registration_enabled', function ( $enabled ) {
 	return j5le_cart_has_le_only() ? true : $enabled;
@@ -110,7 +105,7 @@ add_action( 'woocommerce_checkout_after_customer_details', function () {
 		<?php else : ?>
 			<p class="j5le-panel__hint">Your cart includes items sold only to law enforcement and licensed security professionals. Upload a photo of your agency ID or security license. You can place your order right away; it will be held until we verify your ID, typically within 1–2 business days. Your document is stored securely and deleted after review.</p>
 			<?php if ( ! is_user_logged_in() ) : ?>
-				<p class="j5le-panel__hint">Already verified with us? <a href="#" class="showlogin">Log in</a> and you won't need to upload again.</p>
+				<p class="j5le-panel__hint">Already have an account? Enter your email above and log in when asked. If you're already verified, you won't need to upload again.</p>
 			<?php endif; ?>
 			<div class="j5le-panel__row">
 				<select id="j5le-type" aria-label="I am">
@@ -169,16 +164,7 @@ add_action( 'woocommerce_after_checkout_validation', function ( $data, $errors )
 add_action( 'woocommerce_checkout_order_processed', function ( $order_id, $posted, $order ) {
 	if ( ! j5le_order_has_le_only( $order ) || ! j5le_available() ) return;
 	$uid = (int) $order->get_customer_id();
-	$guest = ! is_user_logged_in();
-	if ( ! $uid && ( $u = get_user_by( 'email', $order->get_billing_email() ) ) ) {
-		// Guest checkout with an email that has an account: file the order (and the ID claim) under it.
-		$uid = (int) $u->ID;
-		$order->set_customer_id( $uid );
-		$order->add_order_note( 'Placed as a guest with the email of account #' . $uid . '; order linked to that account.' );
-		$order->save();
-	}
-	// A guest never inherits the account's verified/pending status: they upload an ID.
-	$st = $guest ? array( 'state' => 'none', 'claim' => 0 ) : j5le_user_state( $uid );
+	$st  = j5le_user_state( $uid );
 
 	if ( 'verified' === $st['state'] ) {
 		$order->update_meta_data( '_j5le_status', 'verified' );
@@ -409,3 +395,85 @@ add_filter( 'woocommerce_email_enabled_customer_processing_order', function ( $e
 	$order->save_meta_data();
 	return false;
 }, 20, 2 );
+
+/* ── Checkout: inline login when the email already has an account ───────── */
+// Shown under the billing email field (LE carts, logged out). Rate-limited per IP.
+function j5le_rate_ok( $what, $max, $ttl ) {
+	$k = 'j5le_rl_' . $what . '_' . md5( $_SERVER['REMOTE_ADDR'] ?? '' );
+	$n = (int) get_transient( $k );
+	if ( $n >= $max ) return false;
+	set_transient( $k, $n + 1, $ttl );
+	return true;
+}
+add_action( 'wp_ajax_nopriv_j5le_email_check', function () {
+	if ( ! check_ajax_referer( 'j5le_login', 'nonce', false ) || ! j5le_rate_ok( 'chk', 40, HOUR_IN_SECONDS ) ) wp_send_json_error();
+	$email = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+	wp_send_json_success( array( 'exists' => (bool) ( $email && is_email( $email ) && email_exists( $email ) ) ) );
+} );
+add_action( 'wp_ajax_nopriv_j5le_login', function () {
+	if ( ! check_ajax_referer( 'j5le_login', 'nonce', false ) ) wp_send_json_error( array( 'msg' => 'Session expired. Refresh the page and try again.' ) );
+	if ( ! j5le_rate_ok( 'login', 8, 15 * MINUTE_IN_SECONDS ) ) wp_send_json_error( array( 'msg' => 'Too many attempts. Wait a few minutes or reset your password.' ) );
+	$user = wp_signon( array(
+		'user_login'    => sanitize_email( wp_unslash( $_POST['email'] ?? '' ) ),
+		'user_password' => (string) wp_unslash( $_POST['password'] ?? '' ),
+		'remember'      => true,
+	), is_ssl() );
+	if ( is_wp_error( $user ) ) wp_send_json_error( array( 'msg' => 'That password didn\'t work. Try again or reset it.' ) );
+	wp_send_json_success();
+} );
+add_action( 'wp_footer', function () {
+	if ( is_user_logged_in() || ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() || ! j5le_cart_has_le_only() ) return;
+	?>
+	<style>
+	.j5le-login{margin:10px 0 18px;padding:16px 18px;border:1px solid #2a2a2a;border-left:3px solid #C8A84E;background:#161616;border-radius:2px}
+	.j5le-login__t{color:#fff;font-weight:600;margin:0 0 4px}
+	.j5le-login__s{color:#b0b0b0;font-size:14px;margin:0 0 12px}
+	.j5le-login__row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+	.j5le-login__row input{flex:1 1 220px;min-width:0}
+	.j5le-login__btn{background:#C8A84E!important;color:#0B0B0B!important;border:0!important;padding:12px 22px!important;font-weight:700!important;cursor:pointer;border-radius:2px}
+	.j5le-login__msg{font-size:14px;margin:8px 0 0;color:#ff8a80}
+	.j5le-login a{color:#C8A84E}
+	</style>
+	<script>
+	(function () {
+	  var ajax = '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', nonce = '<?php echo esc_js( wp_create_nonce( 'j5le_login' ) ); ?>';
+	  var lost = '<?php echo esc_url( wp_lostpassword_url( wc_get_checkout_url() ) ); ?>', last = '';
+	  function post(data) { var fd = new FormData(); for (var k in data) fd.append(k, data[k]); fd.append('nonce', nonce); return fetch(ajax, { method: 'POST', body: fd, credentials: 'same-origin' }).then(function (r) { return r.json(); }); }
+	  function box() { return document.getElementById('j5le-login'); }
+	  function show(email) {
+	    if (box()) { box().querySelector('[data-email]').textContent = email; return; }
+	    var f = document.getElementById('billing_email_field'); if (!f) return;
+	    var d = document.createElement('div'); d.id = 'j5le-login'; d.className = 'j5le-login';
+	    d.innerHTML = '<p class="j5le-login__t">You already have an account with <span data-email></span></p>'
+	      + '<p class="j5le-login__s">Log in to place this order. If your ID is already verified, you won\'t need to upload it again.</p>'
+	      + '<div class="j5le-login__row"><input type="password" id="j5le-pw" placeholder="Password" autocomplete="current-password">'
+	      + '<button type="button" class="j5le-login__btn" id="j5le-go">Log in</button></div>'
+	      + '<p class="j5le-login__msg" id="j5le-lmsg" role="alert"></p>'
+	      + '<p class="j5le-login__s" style="margin:8px 0 0"><a href="' + lost + '">Forgot your password?</a></p>';
+	    f.parentNode.insertBefore(d, f.nextSibling);
+	    d.querySelector('[data-email]').textContent = email;
+	  }
+	  function hide() { if (box()) box().remove(); }
+	  function check() {
+	    var el = document.getElementById('billing_email'); if (!el) return;
+	    var v = (el.value || '').trim(); if (v === last) return; last = v;
+	    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { hide(); return; }
+	    post({ action: 'j5le_email_check', email: v }).then(function (j) { if (j.success && j.data.exists) show(v); else hide(); }).catch(function () {});
+	  }
+	  document.addEventListener('change', function (e) { if (e.target && e.target.id === 'billing_email') check(); });
+	  document.addEventListener('focusout', function (e) { if (e.target && e.target.id === 'billing_email') check(); });
+	  document.addEventListener('keydown', function (e) { if (e.target && e.target.id === 'j5le-pw' && e.key === 'Enter') { e.preventDefault(); document.getElementById('j5le-go').click(); } });
+	  document.addEventListener('click', function (e) {
+	    var b = e.target.closest && e.target.closest('#j5le-go'); if (!b) return;
+	    var pw = document.getElementById('j5le-pw').value, m = document.getElementById('j5le-lmsg');
+	    if (!pw) { m.textContent = 'Enter your password.'; return; }
+	    b.disabled = true; b.textContent = 'Logging in...'; m.textContent = '';
+	    post({ action: 'j5le_login', email: document.getElementById('billing_email').value.trim(), password: pw })
+	      .then(function (j) { if (j.success) { window.location.reload(); } else { m.textContent = (j.data && j.data.msg) || 'Login failed.'; b.disabled = false; b.textContent = 'Log in'; } })
+	      .catch(function () { m.textContent = 'Login failed. Check your connection.'; b.disabled = false; b.textContent = 'Log in'; });
+	  });
+	  if (document.readyState !== 'loading') check(); else document.addEventListener('DOMContentLoaded', check);
+	})();
+	</script>
+	<?php
+}, 60 );
