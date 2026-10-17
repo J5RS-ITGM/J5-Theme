@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
 $context = isset( $context ) ? $context : 'thankyou';
 $acct    = 'account' === $context;
 
-$le        = (string) $order->get_meta( '_j5le_status' );   // pending | approved | rejected | ''
+$le        = (string) $order->get_meta( '_j5le_status' );   // pending | verified | rejected | ''
+$le_ok     = in_array( $le, array( 'verified', 'approved' ), true );
 $status    = $order->get_status();
 $pickup    = false;
 foreach ( $order->get_shipping_methods() as $m ) {
@@ -44,6 +45,11 @@ if ( 'failed' === $status ) {
 		$title = 'refunded' === $status ? 'Order refunded' : 'Order canceled';
 		$lead  = 'refunded' === $status ? 'This order was refunded to your original payment method. Refunds usually post within 5 to 10 business days.' : 'This order was canceled. If you have questions, reach out and we\'ll help.';
 	}
+} elseif ( 'rejected' === $le ) {
+	// ID rejected, order not canceled yet (staff cancels and refunds by hand).
+	$state = 'failed';
+	$title = 'We couldn\'t verify your ID';
+	$lead  = 'We weren\'t able to verify the ID submitted with this order, so it won\'t ship. It\'s being canceled and refunded in full to your original payment method. Refunds usually post within 5 to 10 business days. Check your email for details.';
 } elseif ( 'pending' === $le ) {
 	$state = 'review';
 	$title = 'Verification in progress';
@@ -64,7 +70,7 @@ if ( 'failed' === $status ) {
 		$title = $first ? "Thanks, {$first}. Your order is in." : 'Thank you. Your order is in.';
 	}
 	$lead = $pickup ? 'We\'re getting it ready. We\'ll email you when it\'s ready for pickup.' : 'We\'re getting it ready to ship. You\'ll get tracking by email as soon as it leaves.';
-	if ( 'approved' === $le ) $lead = 'Your ID is verified. ' . $lead;
+	if ( $le_ok ) $lead = 'Your ID is verified. ' . $lead;
 }
 
 // Progress tracker: [label, done | active | todo].
@@ -73,10 +79,14 @@ if ( in_array( $state, array( 'ok', 'review', 'hold' ), true ) && 'pending' !== 
 	$done   = 'completed' === $status;
 	$moving = in_array( $status, array( 'processing', 'completed' ), true );
 	$steps[] = array( 'Order placed', 'done' );
-	if ( $le ) $steps[] = array( 'ID verification', 'approved' === $le ? 'done' : 'active' );
+	if ( $le ) $steps[] = array( 'ID verification', $le_ok ? 'done' : 'active' );
 	$steps[] = array( $pickup ? 'Preparing' : 'Packing', $done ? 'done' : ( $moving ? 'active' : 'todo' ) );
 	$steps[] = array( $pickup ? 'Ready for pickup' : 'Shipped', $done ? 'done' : 'todo' );
 }
+// Rejection reason from the ID claim (j5-verification stores the DP reviewer's text as _j5v_reason).
+$reason = '';
+if ( 'rejected' === $le && ( $cid = (int) $order->get_meta( '_j5le_claim' ) ) ) $reason = (string) get_post_meta( $cid, '_j5v_reason', true );
+
 $eyebrow = 'Order #' . $order->get_order_number() . ( $acct ? ' · Placed ' . wc_format_datetime( $order->get_date_created() ) : ( 'failed' === $status ? '' : ' received' ) );
 ?>
 <div class="j5-ty j5-ty--<?php echo esc_attr( $state ); ?> j5-ty--<?php echo esc_attr( $context ); ?>">
@@ -94,6 +104,10 @@ $eyebrow = 'Order #' . $order->get_order_number() . ( $acct ? ' · Placed ' . wc
 		<p class="j5-ty__eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
 		<h1 class="j5-ty__title"><?php echo esc_html( $title ); ?></h1>
 		<p class="j5-ty__lead"><?php echo esc_html( $lead ); ?></p>
+		<?php if ( $reason ) : ?>
+			<div class="j5-ty__reason"><span>Reason</span><?php echo esc_html( $reason ); ?></div>
+			<p class="j5-ty__muted">If you believe this was a mistake, call us at <a href="tel:+16304424938">(630) 442-4938</a> or email <a href="mailto:info@j5rescue.com">info@j5rescue.com</a> and we'll take another look.</p>
+		<?php endif; ?>
 
 		<?php if ( $cta || ( 'failed' === $state && ! $acct && is_user_logged_in() ) ) : ?>
 			<p class="j5-ty__cta">

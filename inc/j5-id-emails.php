@@ -36,6 +36,7 @@ function j5_id_email_context( $claim_id ) {
 		'terms'     => class_exists( 'J5V_Discount' ) ? J5V_Discount::terms_line() : '',
 		'reason'    => (string) get_post_meta( $claim_id, '_j5v_reason', true ),
 		'orders'    => array(),
+		'billing'   => array(),
 		'account'   => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
 		'discount'  => function_exists( 'wc_get_account_endpoint_url' ) ? wc_get_account_endpoint_url( 'service-discount' ) : home_url( '/my-account/service-discount/' ),
 		'shop'      => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' ),
@@ -45,9 +46,10 @@ function j5_id_email_context( $claim_id ) {
 		if ( ! $o ) continue;
 		$items = array();
 		foreach ( $o->get_items() as $it ) $items[] = array( 'name' => $it->get_name(), 'qty' => $it->get_quantity() );
+		$ctx['billing'][] = $o->get_billing_email();
 		$ctx['orders'][] = array(
 			'number' => $o->get_order_number(),
-			'total'  => wp_strip_all_tags( wc_price( $o->get_total(), array( 'currency' => $o->get_currency() ) ) ),
+			'total'  => html_entity_decode( wp_strip_all_tags( wc_price( $o->get_total(), array( 'currency' => $o->get_currency() ) ) ), ENT_QUOTES, 'UTF-8' ),
 			'items'  => $items,
 			'url'    => $o->get_view_order_url(),
 		);
@@ -108,9 +110,11 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 			$body .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 20px;border-left:4px solid ' . $red . ';background:#f7f7f7"><tr><td style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:' . $ink . '">'
 				. '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:' . $dim . ';margin-bottom:4px">Reason</div>' . nl2br( $e( $ctx['reason'] ) ) . '</td></tr></table>';
 		}
-		$body .= $p( 'This usually happens when the photo is blurry, cropped, or doesn\'t clearly show your name and agency or license. ' . ( $has_order
+		// With a specific reason, skip the generic "blurry photo" explanation.
+		$next = $has_order
 			? 'If you believe this was a mistake, reply to this email or call us and we\'ll take another look.'
-			: 'You\'re welcome to submit a new, clearer document from your account.' ) );
+			: 'You\'re welcome to submit a new document from your account.';
+		$body .= $p( $ctx['reason'] ? $next : 'This usually happens when the photo is blurry, cropped, or doesn\'t clearly show your name and agency or license. ' . $next );
 	}
 
 	// Privacy line. Accurate: the DP deletes the ID file the moment a decision is
@@ -124,7 +128,7 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 		foreach ( $o['items'] as $it ) {
 			$lines .= '<tr><td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:' . $ink . '">' . $e( $it['name'] ) . '</td><td style="padding:6px 0;text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:' . $dim . ';white-space:nowrap">&times; ' . (int) $it['qty'] . '</td></tr>';
 		}
-		$status = $approved ? '<span style="color:#2E8B57;font-weight:700">Released for fulfillment</span>' : '<span style="color:' . $red . ';font-weight:700">Canceled &amp; refunded</span>';
+		$status = $approved ? '<span style="color:#2E8B57;font-weight:700">Released for fulfillment</span>' : '<span style="color:' . $red . ';font-weight:700">Canceled &amp; Refunded</span>';
 		$orders_html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px;border:1px solid ' . $line . ';border-radius:2px"><tr><td style="padding:16px 18px">'
 			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'
 			. '<td style="font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:' . $ink . '">Order #' . $e( $o['number'] ) . '</td>'
@@ -181,7 +185,7 @@ function j5_id_email_text( $kind, $ctx ) {
 			: "We weren't able to approve your service discount request with the document you submitted. You can submit a new, clearer document from your account: {$ctx['discount']}\n\n";
 		if ( $ctx['reason'] ) $out .= "Reason: {$ctx['reason']}\n\n";
 	}
-	foreach ( $ctx['orders'] as $o ) $out .= "Order #{$o['number']} ({$o['total']}): " . ( $approved ? 'released for fulfillment' : 'canceled and refunded' ) . "\n";
+	foreach ( $ctx['orders'] as $o ) $out .= "Order #{$o['number']} ({$o['total']}): " . ( $approved ? 'Released for fulfillment' : 'Canceled and Refunded' ) . "\n";
 	$out .= "\nFor your privacy, the ID you uploaded was deleted as soon as we finished reviewing it.\n\nQuestions? Reply to this email, call (630) 442-4938, or email info@j5rescue.com.\nJ5 Rescue Supply LLC\n";
 	return $out;
 }
@@ -201,7 +205,10 @@ add_filter( 'woocommerce_email_classes', function ( $emails ) {
 			public function trigger( $claim_id ) {
 				$this->setup_locale();
 				$this->ctx       = j5_id_email_context( $claim_id );
-				$this->recipient = $this->ctx['email'];
+				// Account email, plus the billing email on any linked LE orders if different.
+				$to = array( strtolower( $this->ctx['email'] ) => $this->ctx['email'] );
+				foreach ( $this->ctx['billing'] as $b ) if ( $b ) $to[ strtolower( $b ) ] = $b;
+				$this->recipient = implode( ',', array_filter( $to ) );
 				if ( $this->is_enabled() && $this->get_recipient() ) {
 					$this->send( $this->get_recipient(), $this->get_subject(), $this->get_content(), $this->get_headers(), array() );
 				}

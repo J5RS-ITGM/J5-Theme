@@ -102,3 +102,8 @@ a.j5-ty__line-name:hover{color:var(--ty-gold)}
 .j5-ty__updates .j5-ty__notes li:first-child{border-top:0;padding-top:0}
 .j5-ty__updates .j5-ty__notes p{margin:4px 0 0}
 .j5-ty__continue{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+/* ID rejection reason (from the DP reviewer) */
+.j5-ty__reason{margin:4px 0 14px;max-width:720px;padding:14px 16px;border-left:3px solid var(--ty-red);background:rgba(196,30,36,.08);color:var(--ty-text);font-size:16px;line-height:1.5}
+.j5-ty__reason span{display:block;font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.14em;font-size:14px;color:var(--ty-dim);margin-bottom:2px}
+.j5-ty__hero .j5-ty__muted a{color:var(--ty-gold)}
