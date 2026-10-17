@@ -31,15 +31,24 @@ function j5_quote_mode( $product ) {
 }
 
 /**
- * Quote requests go to the DP portal, which accepts ?sku=&name=&qty=&from=
- * on /quote (and /instant-quote): it fills the line, looks up the SKU for
- * pricing, and records the product page the request came from.
+ * Quote requests go to the native RFQ page (inc/j5-rfq.php): whichever
+ * published page holds the [j5_rfq] shortcode, wherever its slug points.
+ * It reads ?sku=&name=&qty=&from= to pre-fill the line. Never the portal.
  */
+function j5_rfq_page_id() {
+	static $id = null;
+	if ( null !== $id ) return $id;
+	$id = (int) get_option( 'j5_rfq_page_id' );
+	if ( $id && 'publish' === get_post_status( $id ) && has_shortcode( (string) get_post_field( 'post_content', $id ), 'j5_rfq' ) ) return $id;
+	global $wpdb;
+	$found = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'page' AND post_status = 'publish' AND post_content LIKE '%[j5_rfq%' ORDER BY ID ASC LIMIT 1" );
+	if ( $found !== $id ) update_option( 'j5_rfq_page_id', $found, true );
+	return $id = $found;
+}
+
 function j5_quote_base() {
-	// Native RFQ page (inc/j5-rfq.php) that searches the DP catalog and submits to the DP.
-	// Same ?sku=&name=&qty=&from= contract as portal.j5rescue.com/quote.
-	$page = get_page_by_path( 'request-a-quote' );
-	return apply_filters( 'j5_quote_base', $page ? get_permalink( $page ) : home_url( '/request-a-quote/' ) );
+	$id = j5_rfq_page_id();
+	return apply_filters( 'j5_quote_base', $id ? get_permalink( $id ) : home_url( '/request-a-quote/' ) );
 }
 
 function j5_quote_url( $product, $qty = 1 ) {

@@ -30,6 +30,8 @@ require_once get_stylesheet_directory() . '/inc/j5-free-shipping.php';
 
 // LE-only purchases require an approved LE / Licensed Security ID (j5-verification pipeline -> DP).
 require_once get_stylesheet_directory() . '/inc/j5-le-verification.php';
+// Branded ID approved / rejected emails (WooCommerce > Settings > Emails).
+require_once get_stylesheet_directory() . '/inc/j5-id-emails.php';
 
 // Per-product Request a Quote button / quote-only mode (DP _j5_quote_mode or tags).
 require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
