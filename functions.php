@@ -20,6 +20,10 @@ define( 'CHILD_THEME_ASTRA_CHILD_VERSION', '2.0.0' );
 // Standalone theme declarations (title tag, thumbnails, WooCommerce support,
 // custom logo, HTML5). Previously supplied by the Astra parent.
 require_once get_stylesheet_directory() . '/inc/j5-theme-setup.php';
+
+// Self-hosted brand fonts (Bebas Neue, Barlow, Barlow Condensed, JetBrains Mono,
+// Chakra Petch) loaded site-wide. Replaces all Google Fonts requests.
+require_once get_stylesheet_directory() . '/inc/j5-fonts.php';
 // === J5-THEME-SETUP-REQUIRES-END ===
 
 /**
