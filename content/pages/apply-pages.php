@@ -28,6 +28,12 @@ $pages = [
 		'intro'   => 'Type 07 FFL / Class 2 SOT manufacturer in Northern Illinois, focused on prototyping and concept design.',
 		'cta'     => ['Contact Us', '/contact-us/'],
 	],
+	84492 => [
+		'file'    => 'j5-kit-packing-84492.html',
+		'eyebrow' => 'Services · Custom Kit Packing',
+		'intro'   => 'Built to spec. Ready to deploy. Medical, trauma, and tactical kits for departments, agencies, and individual responders.',
+		'cta'     => ['Request a Quote', '/request-a-quote/'],
+	],
 	'services' => [
 		'file'    => 'j5-services.html',
 		'title'   => 'Services',
