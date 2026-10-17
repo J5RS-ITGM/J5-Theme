@@ -26,9 +26,11 @@ $pages = [
 foreach ( $pages as $id => $p ) {
 	$html = file_get_contents( "$dir/{$p['file']}" );
 	if ( ! $html || ! get_post( $id ) ) { echo "$id: SKIPPED (missing file or page)\n"; continue; }
+	// Set the template first: wp_update_post rejects a save when the page still
+	// points at a template that no longer exists (old Elementor/Astra ones).
+	update_post_meta( $id, '_wp_page_template', 'template-j5-service.php' );
 	$r = wp_update_post( [ 'ID' => $id, 'post_content' => $html, 'post_excerpt' => $p['intro'] ], true );
 	if ( is_wp_error( $r ) ) { echo "$id: ERROR " . $r->get_error_message() . "\n"; continue; }
-	update_post_meta( $id, '_wp_page_template', 'template-j5-service.php' );
 	update_post_meta( $id, '_j5_service_eyebrow', $p['eyebrow'] );
 	if ( $p['cta'] ) {
 		update_post_meta( $id, '_j5_service_cta_label', $p['cta'][0] );
