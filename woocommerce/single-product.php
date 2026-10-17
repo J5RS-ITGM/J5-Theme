@@ -296,6 +296,9 @@ get_header();
                     <div class="j5-add-to-cart-row j5-cart-blocked">
                         <button type="button" class="j5-add-to-cart-btn is-disabled" disabled aria-disabled="true"><?php echo 'discontinued' === $j5_fulfillment['type'] ? 'Discontinued' : 'Currently Unavailable'; ?></button>
                     </div>
+                <?php elseif ( function_exists( 'j5_quote_mode' ) && 'only' === j5_quote_mode( $product ) ) :
+                    // Quote-only: no cart. The quote button renders just below.
+                    ?>
                 <?php elseif ( $product->is_type( 'variable' ) ) :
                     $attributes = $product->get_variation_attributes();
                     $available_variations = $product->get_available_variations();
@@ -371,6 +374,13 @@ get_header();
                         </div>
                     </form>
                 <?php endif; ?>
+
+                <?php
+                // Request a Quote button (DP _j5_quote_mode or request-quote / quote-only tags). See inc/j5-quote-mode.php.
+                if ( ! $j5_cart_blocked && function_exists( 'j5_render_quote_button' ) ) {
+                    j5_render_quote_button( $product );
+                }
+                ?>
 
                 <?php
                 /*
@@ -530,7 +540,11 @@ get_header();
             <div class="j5-sticky-name"><?php echo esc_html( wp_trim_words( $name, 6 ) ); ?></div>
             <div class="j5-sticky-price<?php echo $j5_not_buyable ? ' j5-price-unavailable' : ''; ?>"><?php echo wp_kses_post( $price_html ); ?></div>
         </div>
+        <?php if ( function_exists( 'j5_quote_mode' ) && 'only' === j5_quote_mode( $product ) ) : ?>
+        <a class="j5-sticky-btn" href="<?php echo esc_url( j5_quote_url( $product ) ); ?>">Request a Quote →</a>
+        <?php else : ?>
         <button type="button" class="j5-sticky-btn" id="j5StickyBtn">Add to Cart →</button>
+        <?php endif; ?>
     </div>
 </div>
 

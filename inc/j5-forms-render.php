@@ -64,6 +64,7 @@ function j5_forms_field( $args ) {
 			'hint'        => '',
 			'options'     => array(),
 			'rows'        => 5,
+			'value'       => '',
 		)
 	);
 
@@ -87,13 +88,14 @@ function j5_forms_field( $args ) {
 				name="<?php echo esc_attr( $args['name'] ); ?>"
 				placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
 				rows="<?php echo (int) $args['rows']; ?>"
-				<?php echo $req_attr; ?>></textarea>
+				<?php echo $req_attr; ?>><?php echo esc_textarea( $args['value'] ); ?></textarea>
 		<?php else : ?>
 			<input
 				class="input"
 				type="<?php echo esc_attr( $args['type'] ); ?>"
 				name="<?php echo esc_attr( $args['name'] ); ?>"
 				placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>"
+				value="<?php echo esc_attr( $args['value'] ); ?>"
 				<?php echo $req_attr; ?>>
 		<?php endif; ?>
 		<?php if ( ! empty( $args['hint'] ) ) : ?>
@@ -274,7 +276,15 @@ function j5_render_quote_form( $atts = array() ) {
 	$body .= '<div class="form-section">';
 	$body .= '<div class="form-section-head"><span class="form-section-num">03</span><span class="form-section-title">Project Details</span></div>';
 	$body .= '<div class="field-row">';
-	$body .= j5_forms_field( array( 'type' => 'textarea', 'name' => 'description', 'label' => 'Describe what you need', 'placeholder' => 'Specs, sizes, colors, artwork notes, NIJ level, anything that helps us quote accurately…', 'required' => true ) );
+	// Product page "Request a Quote" button passes ?product=ID: pre-fill what they're asking about.
+	$j5_prefill = '';
+	$j5_qp      = isset( $_GET['product'] ) ? wc_get_product( absint( $_GET['product'] ) ) : null;
+	if ( $j5_qp && 'publish' === get_post_status( $j5_qp->get_id() ) ) {
+		$j5_prefill = 'Product: ' . $j5_qp->get_name()
+			. ( $j5_qp->get_sku() ? ' (SKU ' . $j5_qp->get_sku() . ')' : '' )
+			. "\n" . get_permalink( $j5_qp->get_id() ) . "\n\nQuantity / sizes / options needed:\n";
+	}
+	$body .= j5_forms_field( array( 'type' => 'textarea', 'name' => 'description', 'label' => 'Describe what you need', 'placeholder' => 'Specs, sizes, colors, artwork notes, NIJ level, anything that helps us quote accurately…', 'required' => true, 'value' => $j5_prefill ) );
 	$body .= '</div>';
 
 	// File upload
