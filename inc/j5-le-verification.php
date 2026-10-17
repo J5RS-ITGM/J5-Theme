@@ -260,6 +260,10 @@ function j5le_on_claim_status( $meta_id, $claim_id, $key, $value ) {
 			// On Hold isn't a WC "paid" status, so check the payment record itself.
 			$paid = $order->get_date_paid() || $order->get_transaction_id();
 			if ( $order->has_status( 'on-hold' ) && $paid ) {
+				// The branded "You're verified" email (inc/j5-id-emails.php) already tells the
+				// customer the order is released, so skip WooCommerce's "Processing order" email.
+				// Flag on the order (not just in memory) so it also holds if WC sends emails deferred.
+				$order->update_meta_data( '_j5le_quiet_processing', 1 );
 				$order->update_status( 'processing', 'LE ID verified (claim #' . $claim_id . '). Released for fulfillment.' );
 			} else {
 				$order->add_order_note( 'LE ID verified (claim #' . $claim_id . '). Order can be released once payment is confirmed.' );
@@ -396,3 +400,12 @@ add_action( 'woocommerce_email_order_details', function ( $order, $sent_to_admin
 	if ( 'pending' === $st || 'missing' === $st ) echo "*** ID VERIFICATION REQUIRED: DO NOT SHIP ***\nThis order is On Hold until the customer's ID is approved in the DP ID Review queue.\n\n";
 	elseif ( 'verified' === $st ) echo "LE item: customer already verified. OK to fulfill.\n\n";
 }, 1, 4 );
+
+/* On ID approval the customer gets one email: "You're verified" (it includes the released order). */
+add_filter( 'woocommerce_email_enabled_customer_processing_order', function ( $enabled, $order ) {
+	if ( ! $order instanceof WC_Order || ! $order->get_meta( '_j5le_quiet_processing' ) ) return $enabled;
+	// One-shot: later Processing emails (e.g. a manual resend from wp-admin) still go out.
+	$order->delete_meta_data( '_j5le_quiet_processing' );
+	$order->save_meta_data();
+	return false;
+}, 20, 2 );
