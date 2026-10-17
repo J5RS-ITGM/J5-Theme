@@ -31,13 +31,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		filemtime( get_stylesheet_directory() . '/assets/css/j5-checkout.css' )
 	);
 
-	// Google Fonts — same stack as homepage/shop
-	wp_enqueue_style(
-		'j5-google-fonts-checkout',
-		'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap',
-		array(),
-		null
-	);
+	// Brand fonts are self-hosted and loaded site-wide by inc/j5-fonts.php.
 }, 20 );
 
 

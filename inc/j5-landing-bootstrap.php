@@ -68,18 +68,7 @@ add_action( 'wp_enqueue_scripts', function () {
 	);
 }, 20 );
 
-// ===========================================================================
-//  Google Fonts — direct <link> in <head>
-//  Bypasses LiteSpeed's Google Fonts optimizer which was dropping the
-//  stylesheet when enqueued via wp_enqueue_style.
-// ===========================================================================
-
-add_action( 'wp_head', function () {
-	if ( ! j5_landing_current_slug() ) { return; }
-	echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
-	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-	echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">' . "\n";
-}, 5 );
+// Brand fonts are self-hosted and loaded site-wide by inc/j5-fonts.php.
 
 // ===========================================================================
 //  SVG icon sprite — injected inline at top of landing body

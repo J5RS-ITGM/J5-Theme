@@ -41,12 +41,7 @@ function j5_shop_enqueue_assets() {
         return;
     }
 
-    wp_enqueue_style(
-        'j5-shop-fonts',
-        'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap',
-        array(),
-        null
-    );
+    // Brand fonts are self-hosted and loaded site-wide by inc/j5-fonts.php.
 
     /* Version = file mtime: every deployed change busts LiteSpeed/browser
      * caches automatically. No more manual bumps. J5-AUTOVER-1 */
