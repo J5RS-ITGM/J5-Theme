@@ -227,7 +227,8 @@ add_filter( 'woocommerce_email_classes', function ( $emails ) {
 			public function get_content_plain() { return j5_id_email_text( $this->kind, $this->ctx ); }
 			// Our HTML is a complete, inline-styled document; skip WC's wrapper/inliner.
 			public function style_inline( $content ) { return $content; }
-			public function get_content_type( $default_content_type = '' ) { return 'plain' === $this->get_email_type() ? 'text/plain' : 'text/html'; }
+			// Send HTML + plain-text together (multipart) by default: HTML-only mail scores worse with spam filters.
+			public function get_email_type() { $t = parent::get_email_type(); return 'html' === $t ? 'multipart' : $t; }
 		}
 		class J5_Email_ID_Approved extends J5_Email_ID_Decision {
 			public function __construct() {
@@ -236,7 +237,10 @@ add_filter( 'woocommerce_email_classes', function ( $emails ) {
 				$this->description = 'Sent when an ID verification is approved (LE-only orders and/or service discount). Includes released orders and the discount code.';
 				parent::__construct();
 			}
-			public function get_default_subject() { return 'You\'re verified at J5 Rescue Supply'; }
+			public function get_default_subject() {
+				$n = $this->ctx['orders'][0]['number'] ?? '';
+				return $n ? "Your J5 Rescue Supply order #{$n} is verified" : 'Your J5 Rescue Supply account is verified';
+			}
 			public function get_default_heading() { return ''; } // blank = automatic heading per situation
 		}
 		class J5_Email_ID_Rejected extends J5_Email_ID_Decision {
@@ -246,7 +250,10 @@ add_filter( 'woocommerce_email_classes', function ( $emails ) {
 				$this->description = 'Sent when an ID verification is rejected (LE-only orders and/or service discount).';
 				parent::__construct();
 			}
-			public function get_default_subject() { return 'About your ID verification at J5 Rescue Supply'; }
+			public function get_default_subject() {
+				$n = $this->ctx['orders'][0]['number'] ?? '';
+				return $n ? "An update on your J5 Rescue Supply order #{$n}" : 'An update on your J5 Rescue Supply request';
+			}
 			public function get_default_heading() { return ''; }
 		}
 	}
