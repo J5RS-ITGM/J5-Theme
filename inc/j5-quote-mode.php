@@ -10,7 +10,7 @@
  * Fallback for quick one-offs from wp-admin: product tags `request-quote`
  * (= also) and `quote-only` (= only). Meta wins when set.
  *
- * The button opens the DP portal quote form (portal.j5rescue.com/quote)
+ * The button opens the native RFQ page (/request-a-quote/, inc/j5-rfq.php)
  * pre-filled with sku, name, qty and the product page it came from. On
  * variable products the SKU follows the picked variation, and qty follows
  * the quantity box.
@@ -36,7 +36,10 @@ function j5_quote_mode( $product ) {
  * pricing, and records the product page the request came from.
  */
 function j5_quote_base() {
-	return apply_filters( 'j5_quote_base', 'https://portal.j5rescue.com/quote' ); // or /instant-quote
+	// Native RFQ page (inc/j5-rfq.php) that searches the DP catalog and submits to the DP.
+	// Same ?sku=&name=&qty=&from= contract as portal.j5rescue.com/quote.
+	$page = get_page_by_path( 'request-a-quote' );
+	return apply_filters( 'j5_quote_base', $page ? get_permalink( $page ) : home_url( '/request-a-quote/' ) );
 }
 
 function j5_quote_url( $product, $qty = 1 ) {
