@@ -10,8 +10,10 @@
  * Fallback for quick one-offs from wp-admin: product tags `request-quote`
  * (= also) and `quote-only` (= only). Meta wins when set.
  *
- * The button links to /request-a-quote/?product=ID, and the quote form
- * pre-fills the product name, SKU and link (inc/j5-forms-render.php).
+ * The button opens the DP portal quote form (portal.j5rescue.com/quote)
+ * pre-filled with sku, name, qty and the product page it came from. On
+ * variable products the SKU follows the picked variation, and qty follows
+ * the quantity box.
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -28,10 +30,23 @@ function j5_quote_mode( $product ) {
 	return '';
 }
 
-function j5_quote_url( $product ) {
-	$page = get_page_by_path( 'request-a-quote' );
-	$base = $page ? get_permalink( $page ) : home_url( '/request-a-quote/' );
-	return add_query_arg( 'product', $product->get_id(), $base );
+/**
+ * Quote requests go to the DP portal, which accepts ?sku=&name=&qty=&from=
+ * on /quote (and /instant-quote): it fills the line, looks up the SKU for
+ * pricing, and records the product page the request came from.
+ */
+function j5_quote_base() {
+	return apply_filters( 'j5_quote_base', 'https://portal.j5rescue.com/quote' ); // or /instant-quote
+}
+
+function j5_quote_url( $product, $qty = 1 ) {
+	$args = array_filter( array(
+		'sku'  => $product->get_sku(),
+		'name' => $product->get_name(),
+		'qty'  => max( 1, (int) $qty ),
+		'from' => get_permalink( $product->get_parent_id() ?: $product->get_id() ),
+	) );
+	return add_query_arg( array_map( 'rawurlencode', $args ), j5_quote_base() );
 }
 
 /** Button markup, used under the cart form and (quote-only) in place of it. */
@@ -44,7 +59,11 @@ function j5_render_quote_button( $product ) {
 		: 'Buying for a department or in volume? Get a written quote.';
 	?>
 	<div class="j5-quote-cta j5-quote-cta--<?php echo esc_attr( $mode ); ?>">
-		<a class="j5-quote-btn" href="<?php echo esc_url( j5_quote_url( $product ) ); ?>"><?php echo esc_html( $label ); ?> →</a>
+		<a class="j5-quote-btn" href="<?php echo esc_url( j5_quote_url( $product ) ); ?>"
+		   data-base="<?php echo esc_attr( j5_quote_base() ); ?>"
+		   data-sku="<?php echo esc_attr( $product->get_sku() ); ?>"
+		   data-name="<?php echo esc_attr( $product->get_name() ); ?>"
+		   data-from="<?php echo esc_attr( get_permalink( $product->get_id() ) ); ?>"><?php echo esc_html( $label ); ?> →</a>
 		<span class="j5-quote-hint"><?php echo esc_html( $hint ); ?></span>
 	</div>
 	<?php
@@ -83,3 +102,29 @@ add_action( 'wp_head', function () {
 	</style>
 	<?php
 } );
+
+/* Keep the quote link in sync with the picked variation's SKU and the quantity box. */
+add_action( 'wp_footer', function () {
+	if ( ! function_exists( 'is_product' ) || ! is_product() ) return;
+	?>
+	<script>
+	jQuery(function ($) {
+	  var $b = $('.j5-quote-btn'); if (!$b.length) return;
+	  var base = $b.data('base'), parentSku = String($b.data('sku') || ''), sku = parentSku;
+	  function qty() { return Math.max(1, parseInt($('.j5-qty-input, form.cart input.qty').first().val(), 10) || 1); }
+	  function update() {
+	    var p = new URLSearchParams();
+	    if (sku) p.set('sku', sku);
+	    p.set('name', $b.data('name')); p.set('qty', qty()); p.set('from', $b.data('from'));
+	    $b.attr('href', base + '?' + p.toString());
+	  }
+	  $('form.variations_form')
+	    .on('found_variation', function (e, v) { sku = (v && v.sku) || parentSku; update(); })
+	    .on('reset_data', function () { sku = parentSku; update(); });
+	  $(document).on('change input click', '.j5-qty-input, .j5-qty-btn, form.cart input.qty', function () { setTimeout(update, 0); });
+	  update();
+	});
+	</script>
+	<?php
+}, 50 );
+
