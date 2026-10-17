@@ -34,6 +34,8 @@ require_once get_stylesheet_directory() . '/inc/j5-le-verification.php';
 require_once get_stylesheet_directory() . '/inc/j5-id-emails.php';
 // Order status view (order received + My Account > View order) and the email link to it.
 require_once get_stylesheet_directory() . '/inc/j5-order-view.php';
+// My Account > Service Discount page (shows the coupon from any approved claim) + dashboard card.
+require_once get_stylesheet_directory() . '/inc/j5-service-discount.php';
 
 // Per-product Request a Quote button / quote-only mode (DP _j5_quote_mode or tags).
 require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
