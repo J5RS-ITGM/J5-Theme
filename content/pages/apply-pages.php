@@ -22,8 +22,27 @@ $pages = [
 		'intro'   => 'Answers to common questions about orders, shipping, discounts, and working with J5 Rescue Supply.',
 		'cta'     => null,
 	],
+	86942 => [
+		'file'    => 'j5-ffl-services-86942.html',
+		'eyebrow' => 'Services · FFL',
+		'intro'   => 'Type 07 FFL / Class 2 SOT manufacturer in Northern Illinois, focused on prototyping and concept design.',
+		'cta'     => ['Contact Us', '/contact-us/'],
+	],
+	'services' => [
+		'file'    => 'j5-services.html',
+		'title'   => 'Services',
+		'eyebrow' => 'What We Do',
+		'intro'   => 'Kit packing, FFL services, agency procurement, and the guidance to get it right.',
+		'cta'     => ['Request a Quote', '/request-a-quote/'],
+	],
 ];
 foreach ( $pages as $id => $p ) {
+	// String keys are slugs: find the page, or create it as a draft-free published page.
+	if ( ! is_int( $id ) ) {
+		$existing = get_page_by_path( $id );
+		$id = $existing ? $existing->ID : wp_insert_post( [ 'post_type' => 'page', 'post_status' => 'publish', 'post_name' => $id, 'post_title' => $p['title'] ] );
+		if ( ! $id || is_wp_error( $id ) ) { echo "Could not create page {$p['title']}\n"; continue; }
+	}
 	$html = file_get_contents( "$dir/{$p['file']}" );
 	if ( ! $html || ! get_post( $id ) ) { echo "$id: SKIPPED (missing file or page)\n"; continue; }
 	// Set the template first: wp_update_post rejects a save when the page still
@@ -42,4 +61,23 @@ foreach ( $pages as $id => $p ) {
 	delete_post_meta( $id, '_elementor_edit_mode' );
 	clean_post_cache( $id );
 	echo "$id: " . get_the_title( $id ) . " -> " . get_permalink( $id ) . "\n";
+}
+
+// Point the header's "Services" dropdown parent at the Services page instead of "#".
+$services = get_page_by_path( 'services' );
+$primary  = get_nav_menu_locations()['primary'] ?? 0;
+if ( $services && $primary ) {
+	foreach ( (array) wp_get_nav_menu_items( $primary ) as $item ) {
+		if ( $item->title === 'Services' && ! $item->menu_item_parent && $item->type === 'custom' ) {
+			wp_update_nav_menu_item( $primary, $item->ID, [
+				'menu-item-title'     => 'Services',
+				'menu-item-object-id' => $services->ID,
+				'menu-item-object'    => 'page',
+				'menu-item-type'      => 'post_type',
+				'menu-item-status'    => 'publish',
+				'menu-item-position'  => $item->menu_order,
+			] );
+			echo "Header menu: Services now links to " . get_permalink( $services ) . "\n";
+		}
+	}
 }
