@@ -166,7 +166,9 @@ get_header();
                             <span class="count"><?php echo esc_html( number_format( $rating, 1 ) ); ?> (<?php echo esc_html( $review_cnt ); ?> reviews)</span>
                         </span>
                     <?php endif; ?>
-                    <span class="j5-product-sku">SKU: <?php echo esc_html( strtoupper( $sku ) ); ?></span>
+                    <span class="j5-product-sku">
+                        <?php if ( $sku ) : ?>SKU: <?php echo esc_html( strtoupper( $sku ) ); ?><span class="j5-product-sku__sep" aria-hidden="true">&nbsp;&middot;&nbsp;</span><?php endif; ?>ID: <?php echo esc_html( $product->get_id() ); ?>
+                    </span>
                 </div>
 
                 <!-- LAW ENFORCEMENT ONLY: compact line under the title (inc/j5-product-flags.php) J5-FLAGS -->
