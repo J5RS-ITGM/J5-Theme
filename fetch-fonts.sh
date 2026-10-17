@@ -26,8 +26,11 @@ fetch() {
   local css url
   # Ask the CSS API for just this family+weight; UA forces WOFF2 responses.
   css=$(curl -s -A "$UA" "${API}?family=${family}:wght@${weight}&display=swap")
-  # Pull the first woff2 URL out of the returned @font-face block.
-  url=$(printf '%s' "$css" | grep -oE 'https://fonts.gstatic.com/[^)]+\.woff2' | head -1)
+  # Google returns one @font-face per unicode subset (cyrillic, vietnamese,
+  # latin-ext, latin...), each preceded by a /* subset */ comment. We need the
+  # basic "latin" subset; grabbing the first URL gets cyrillic/vietnamese and
+  # the site falls back to system fonts.
+  url=$(printf '%s' "$css" | awk '/\/\* latin \*\//{f=1} f && /woff2/{match($0,/https:\/\/fonts\.gstatic\.com\/[^)]+\.woff2/); print substr($0,RSTART,RLENGTH); exit}')
   if [ -z "$url" ]; then
     echo "!! FAILED to resolve URL for ${family} ${weight}" >&2
     return 1
