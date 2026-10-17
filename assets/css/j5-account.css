@@ -958,6 +958,17 @@ body.woocommerce-account .woocommerce-info a {
     padding: 0 !important;
 }
 
+/* WC's clearfix ::before/::after (display:table) become grid items and push the
+   billing card into column 2, shipping onto a second row. Take them out. */
+.j5-account-content .woocommerce-Addresses::before,
+.j5-account-content .woocommerce-Addresses::after,
+.j5-account-content .col2-set.addresses::before,
+.j5-account-content .col2-set.addresses::after {
+    content: none !important;
+    display: none !important;
+}
+.j5-account-content .woocommerce-Addresses { align-items: start !important; }
+
 /* Each address card — billing + shipping */
 .j5-account-content .woocommerce-Address,
 .j5-account-content .u-column1.woocommerce-Address,
