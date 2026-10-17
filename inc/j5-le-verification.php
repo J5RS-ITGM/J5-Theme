@@ -425,7 +425,7 @@ add_action( 'wp_footer', function () {
 	if ( is_user_logged_in() || ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() || ! j5le_cart_has_le_only() ) return;
 	?>
 	<style>
-	.j5le-login{margin:10px 0 18px;padding:16px 18px;border:1px solid #2a2a2a;border-left:3px solid #C8A84E;background:#161616;border-radius:2px}
+	.j5le-login{display:block;width:100%;box-sizing:border-box;clear:both;margin:4px 0 20px;padding:16px 18px;border:1px solid #2a2a2a;border-left:3px solid #C8A84E;background:#161616;border-radius:2px}
 	.j5le-login__t{color:#fff;font-weight:600;margin:0 0 4px}
 	.j5le-login__s{color:#b0b0b0;font-size:14px;margin:0 0 12px}
 	.j5le-login__row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
@@ -442,7 +442,10 @@ add_action( 'wp_footer', function () {
 	  function box() { return document.getElementById('j5le-login'); }
 	  function show(email) {
 	    if (box()) { box().querySelector('[data-email]').textContent = email; return; }
+	    // Insert after the email/phone row so the half-width pair stays side by side.
 	    var f = document.getElementById('billing_email_field'); if (!f) return;
+	    var ph = document.getElementById('billing_phone_field');
+	    if (ph && ph.parentNode === f.parentNode && (f.compareDocumentPosition(ph) & Node.DOCUMENT_POSITION_FOLLOWING)) f = ph;
 	    var d = document.createElement('div'); d.id = 'j5le-login'; d.className = 'j5le-login';
 	    d.innerHTML = '<p class="j5le-login__t">You already have an account with <span data-email></span></p>'
 	      + '<p class="j5le-login__s">Log in to place this order. If your ID is already verified, you won\'t need to upload it again.</p>'
