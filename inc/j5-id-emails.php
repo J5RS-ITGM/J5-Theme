@@ -113,6 +113,10 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 			: 'You\'re welcome to submit a new, clearer document from your account.' ) );
 	}
 
+	// Privacy line. Accurate: the DP deletes the ID file the moment a decision is
+	// recorded, and WP already dropped its copy when the DP accepted the push.
+	$privacy = '<p style="margin:22px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:' . $dim . '">For your privacy, the ID you uploaded was deleted as soon as we finished reviewing it.</p>';
+
 	// Order summary cards
 	$orders_html = '';
 	foreach ( $ctx['orders'] as $o ) {
@@ -138,6 +142,7 @@ function j5_id_email_html( $kind, $ctx, $heading = '' ) {
 		$cta = $has_order ? $btn( 'mailto:info@j5rescue.com?subject=' . rawurlencode( 'ID verification - order #' . $ctx['orders'][0]['number'] ), 'Contact us' ) : $btn( $ctx['discount'], 'Submit a new document' );
 	}
 	$body .= '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 4px"><tr><td>' . $cta . '</td></tr></table>';
+	$body .= $privacy;
 
 	return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $e( $heading ) . '</title></head>'
 		. '<body style="margin:0;padding:0;background:#eeeeee">'
@@ -177,7 +182,7 @@ function j5_id_email_text( $kind, $ctx ) {
 		if ( $ctx['reason'] ) $out .= "Reason: {$ctx['reason']}\n\n";
 	}
 	foreach ( $ctx['orders'] as $o ) $out .= "Order #{$o['number']} ({$o['total']}): " . ( $approved ? 'released for fulfillment' : 'canceled and refunded' ) . "\n";
-	$out .= "\nQuestions? Reply to this email, call (630) 442-4938, or email info@j5rescue.com.\nJ5 Rescue Supply LLC\n";
+	$out .= "\nFor your privacy, the ID you uploaded was deleted as soon as we finished reviewing it.\n\nQuestions? Reply to this email, call (630) 442-4938, or email info@j5rescue.com.\nJ5 Rescue Supply LLC\n";
 	return $out;
 }
 

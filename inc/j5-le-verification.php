@@ -328,5 +328,7 @@ add_filter( 'j5v_portal_record', function ( $record, $claim_id ) {
 			'ship_to'     => trim( $o->get_shipping_city() . ', ' . $o->get_shipping_state() ),
 		);
 	}
+	// Plain list too: the DP review card reads order_numbers for the "Order hold" banner.
+	$record['order_numbers'] = array_values( wp_list_pluck( $record['orders'], 'number' ) );
 	return $record;
 }, 10, 2 );
