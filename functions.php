@@ -24,6 +24,8 @@ require_once get_stylesheet_directory() . '/inc/j5-theme-setup.php';
 // Self-hosted brand fonts (Bebas Neue, Barlow, Barlow Condensed, JetBrains Mono,
 // Chakra Petch) loaded site-wide. Replaces all Google Fonts requests.
 require_once get_stylesheet_directory() . '/inc/j5-fonts.php';
+// Front-end performance: inline fonts, skip unused WC/MXM CSS, defer non-critical JS.
+require_once get_stylesheet_directory() . '/inc/j5-perf.php';
 
 // Free shipping threshold + body armor exclusion (reads WooCommerce setting).
 require_once get_stylesheet_directory() . '/inc/j5-free-shipping.php';

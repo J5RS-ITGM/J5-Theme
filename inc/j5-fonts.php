@@ -62,6 +62,7 @@ add_action( 'wp_head', function () {
 	$preload = array(
 		'bebas-neue-400.woff2',
 		'barlow-400.woff2',
+		'barlow-condensed-600.woff2', // trust strip + nav labels
 	);
 	foreach ( $preload as $file ) {
 		printf(

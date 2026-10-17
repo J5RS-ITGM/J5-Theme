@@ -493,8 +493,20 @@ body.j5-home-template::before {
     letter-spacing: 0.2em;
     text-transform: uppercase;
     font-size: 13px;
-    flex-wrap: wrap;
+    /* One row, fixed height: the font swap can't re-wrap it and shove the page down (CLS). */
+    flex-wrap: nowrap;
     justify-content: center;
+    min-height: 28px;
+}
+@media (max-width: 1100px) {
+    .j5-trust-inner {
+        justify-content: flex-start;
+        gap: 36px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .j5-trust-inner::-webkit-scrollbar { display: none; }
 }
 .j5-trust-item {
     display: inline-flex; align-items: center; gap: 12px;
