@@ -32,6 +32,8 @@ require_once get_stylesheet_directory() . '/inc/j5-free-shipping.php';
 require_once get_stylesheet_directory() . '/inc/j5-le-verification.php';
 // Branded ID approved / rejected emails (WooCommerce > Settings > Emails).
 require_once get_stylesheet_directory() . '/inc/j5-id-emails.php';
+// Order status view (order received + My Account > View order) and the email link to it.
+require_once get_stylesheet_directory() . '/inc/j5-order-view.php';
 
 // Per-product Request a Quote button / quote-only mode (DP _j5_quote_mode or tags).
 require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
