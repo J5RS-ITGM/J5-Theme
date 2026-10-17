@@ -2632,3 +2632,35 @@ body.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper .form-row.
     }
 }
 /* === J5-FIELD-FLEX-1-END === */
+
+/* === J5-LOGIN-WIDTH: returning-customer login + notices sit inside the checkout column === */
+/* (No display rules on the form itself: WooCommerce shows/hides it with an inline style.) */
+body.woocommerce-checkout .woocommerce-form-login-toggle,
+body.woocommerce-checkout form.woocommerce-form-login,
+body.woocommerce-checkout .woocommerce-notices-wrapper,
+body.woocommerce-checkout .woocommerce-NoticeGroup {
+    max-width: 1160px !important;
+    width: calc(100% - 40px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+body.woocommerce-checkout form.woocommerce-form-login { margin-top: 16px !important; margin-bottom: 24px !important; }
+body.woocommerce-checkout form.woocommerce-form-login .form-row-first,
+body.woocommerce-checkout form.woocommerce-form-login .form-row-last {
+    width: calc(50% - 8px) !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+    float: none !important;
+}
+body.woocommerce-checkout form.woocommerce-form-login .form-row-first { margin-right: 12px !important; }
+body.woocommerce-checkout form.woocommerce-form-login .woocommerce-form-login__rememberme { margin-left: 14px !important; }
+@media (max-width: 640px) {
+    body.woocommerce-checkout .woocommerce-form-login-toggle,
+    body.woocommerce-checkout form.woocommerce-form-login,
+    body.woocommerce-checkout .woocommerce-notices-wrapper,
+    body.woocommerce-checkout .woocommerce-NoticeGroup { width: calc(100% - 24px) !important; }
+    body.woocommerce-checkout form.woocommerce-form-login .form-row-first,
+    body.woocommerce-checkout form.woocommerce-form-login .form-row-last { width: 100% !important; display: block !important; margin-right: 0 !important; }
+}
+/* === J5-LOGIN-WIDTH-END === */

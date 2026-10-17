@@ -78,7 +78,14 @@ function j5le_user_state( $user_id ) {
 /* ── Checkout: force an account when LE-only items are in the cart ───────── */
 
 add_filter( 'woocommerce_checkout_registration_required', function ( $required ) {
-	return j5le_cart_has_le_only() ? true : $required;
+	if ( ! j5le_cart_has_le_only() || is_user_logged_in() ) return $required;
+	// The email already has an account: don't make them log in. The order is
+	// linked to that account after it's placed (see order_processed below) and
+	// they upload an ID like anyone else. Guests never inherit the account's
+	// verified status, since we can't confirm who's typing the email.
+	$email = isset( $_POST['billing_email'] ) ? sanitize_email( wp_unslash( $_POST['billing_email'] ) ) : '';
+	if ( $email && email_exists( $email ) ) return $required;
+	return true;
 } );
 add_filter( 'woocommerce_checkout_registration_enabled', function ( $enabled ) {
 	return j5le_cart_has_le_only() ? true : $enabled;
@@ -102,6 +109,9 @@ add_action( 'woocommerce_checkout_after_customer_details', function () {
 			<p class="j5le-panel__msg">Your ID is already under review. You can place this order now; it will be held and released as soon as your verification is approved (typically 1–2 business days).</p>
 		<?php else : ?>
 			<p class="j5le-panel__hint">Your cart includes items sold only to law enforcement and licensed security professionals. Upload a photo of your agency ID or security license. You can place your order right away; it will be held until we verify your ID, typically within 1–2 business days. Your document is stored securely and deleted after review.</p>
+			<?php if ( ! is_user_logged_in() ) : ?>
+				<p class="j5le-panel__hint">Already verified with us? <a href="#" class="showlogin">Log in</a> and you won't need to upload again.</p>
+			<?php endif; ?>
 			<div class="j5le-panel__row">
 				<select id="j5le-type" aria-label="I am">
 					<?php foreach ( J5LE_ALLOWED_TYPES as $t ) : ?>
@@ -159,7 +169,16 @@ add_action( 'woocommerce_after_checkout_validation', function ( $data, $errors )
 add_action( 'woocommerce_checkout_order_processed', function ( $order_id, $posted, $order ) {
 	if ( ! j5le_order_has_le_only( $order ) || ! j5le_available() ) return;
 	$uid = (int) $order->get_customer_id();
-	$st  = j5le_user_state( $uid );
+	$guest = ! is_user_logged_in();
+	if ( ! $uid && ( $u = get_user_by( 'email', $order->get_billing_email() ) ) ) {
+		// Guest checkout with an email that has an account: file the order (and the ID claim) under it.
+		$uid = (int) $u->ID;
+		$order->set_customer_id( $uid );
+		$order->add_order_note( 'Placed as a guest with the email of account #' . $uid . '; order linked to that account.' );
+		$order->save();
+	}
+	// A guest never inherits the account's verified/pending status: they upload an ID.
+	$st = $guest ? array( 'state' => 'none', 'claim' => 0 ) : j5le_user_state( $uid );
 
 	if ( 'verified' === $st['state'] ) {
 		$order->update_meta_data( '_j5le_status', 'verified' );
