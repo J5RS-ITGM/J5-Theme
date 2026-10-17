@@ -33,6 +33,9 @@ require_once get_stylesheet_directory() . '/inc/j5-le-verification.php';
 
 // Per-product Request a Quote button / quote-only mode (DP _j5_quote_mode or tags).
 require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
+
+// Our thankyou.php renders its own order summary; drop WC's default details table so it doesn't print twice.
+add_action( 'init', function () { remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 ); } );
 // === J5-THEME-SETUP-REQUIRES-END ===
 
 /**

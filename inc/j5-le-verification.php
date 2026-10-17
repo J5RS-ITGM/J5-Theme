@@ -266,11 +266,7 @@ add_action( 'woocommerce_email_before_order_table', function ( $order, $sent_to_
 	echo $plain ? "\n" . $msg . "\n\n" : '<p style="margin:0 0 16px;padding:12px 14px;border-left:4px solid #C41E24;background:#f6f6f6">' . esc_html( $msg ) . '</p>';
 }, 5, 4 );
 
-add_action( 'woocommerce_thankyou', function ( $order_id ) {
-	$order = wc_get_order( $order_id );
-	if ( ! $order || 'pending' !== $order->get_meta( '_j5le_status' ) ) return;
-	echo '<div class="j5le-panel"><div class="j5le-panel__title">Verification in progress</div><p class="j5le-panel__msg">Your order is on hold while we verify your ID, typically within 1–2 business days. We\'ll email you when it ships.</p></div>';
-}, 5 );
+// Thank-you page status for held LE orders is rendered by woocommerce/checkout/thankyou.php.
 
 add_filter( 'j5_le_only_body', function ( $body ) {
 	return 'Sold to law enforcement and licensed security professionals only. ID verification is required at checkout. <a href="' . esc_url( home_url( '/contact-us/' ) ) . '">Questions?</a>';
