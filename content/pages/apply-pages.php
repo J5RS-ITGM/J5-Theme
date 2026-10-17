@@ -13,7 +13,7 @@ $pages = [
 	6183 => [
 		'file'    => 'j5-about-us-6183.html',
 		'eyebrow' => 'Our Story · Est. 2017',
-		'intro'   => 'Veteran and first-responder owned. We sell what we use and pack what we carry.',
+		'intro'   => 'Built by working responders. Trusted by agencies.',
 		'cta'     => ['Contact Us', '/contact-us/'],
 	],
 	9041 => [

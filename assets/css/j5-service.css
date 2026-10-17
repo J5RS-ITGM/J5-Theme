@@ -28,8 +28,8 @@
 
 .j5-service-hero {
 	position: relative;
-	min-height: 360px;
-	padding: 80px 0 64px;
+	min-height: 0;
+	padding: 64px 0 48px;
 	background-color: var(--j5-svc-dark-2);
 	background-size: cover;
 	background-position: center;
@@ -96,7 +96,11 @@
 
 .j5-service-body {
 	background: var(--j5-svc-dark);
-	padding: 64px 0 96px;
+	padding: 48px 0 96px;
+}
+
+.j5-service-content > :first-child {
+	margin-top: 0 !important;
 }
 
 .j5-service-body .j5-container {
@@ -354,11 +358,11 @@
 
 @media (max-width: 900px) {
 	.j5-service-hero {
-		padding: 56px 0 48px;
-		min-height: 280px;
+		padding: 44px 0 36px;
+		min-height: 0;
 	}
 	.j5-service-body {
-		padding: 48px 0 64px;
+		padding: 36px 0 64px;
 	}
 	.j5-service-content {
 		font-size: 16px;
