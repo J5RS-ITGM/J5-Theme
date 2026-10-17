@@ -383,30 +383,8 @@ function j5_home_hero_rotator_script() {
  *  FREE-SHIP THRESHOLD — editable via Appearance > Customize > J5 Home
  *  Added 2026-04-18
  * ========================================================================== */
-function j5_free_ship_label() {
-    $default = '$99+';
-    $val = get_theme_mod( 'j5_free_ship_threshold', $default );
-    $val = trim( $val );
-    return $val === '' ? $default : $val;
-}
-add_action( 'customize_register', 'j5_home_customize_free_ship' );
-function j5_home_customize_free_ship( $wp_customize ) {
-    $wp_customize->add_section( 'j5_home_section', array(
-        'title'    => __( 'J5 Home Settings', 'astra-child' ),
-        'priority' => 40,
-    ) );
-    $wp_customize->add_setting( 'j5_free_ship_threshold', array(
-        'default'           => '$99+',
-        'sanitize_callback' => 'sanitize_text_field',
-        'transport'         => 'refresh',
-    ) );
-    $wp_customize->add_control( 'j5_free_ship_threshold', array(
-        'label'       => __( 'Free-Shipping Threshold Label', 'astra-child' ),
-        'description' => __( 'Shown in the trust bar after "Free Shipping". Examples: $99+, $75+, Over $100, On Orders $99+', 'astra-child' ),
-        'section'     => 'j5_home_section',
-        'type'        => 'text',
-    ) );
-}
+// Free-ship label now comes from inc/j5-free-shipping.php (reads the WooCommerce
+// free shipping minimum), so it can't drift from checkout.
 
 /* ============================================================================
  *  Hero Search Typeahead (batch 3B 2026-04-19)

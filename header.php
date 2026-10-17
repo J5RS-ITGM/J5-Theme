@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 $j5_phone       = apply_filters( 'j5_header_phone', '(630) 442-4938' );
 $j5_phone_tel   = apply_filters( 'j5_header_phone_tel', 'tel:+16304424938' );
-$j5_promo       = apply_filters( 'j5_shipping_promo', 'Free shipping on orders over $99' );
+$j5_promo       = apply_filters( 'j5_shipping_promo', '' ); // set in inc/j5-free-shipping.php
 $j5_cart_count  = ( function_exists( 'WC' ) && WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 $j5_account_url = function_exists( 'wc_get_account_endpoint_url' ) ? wc_get_account_endpoint_url( 'dashboard' ) : wp_login_url();
 $j5_orders_url  = function_exists( 'wc_get_account_endpoint_url' ) ? wc_get_account_endpoint_url( 'orders' ) : $j5_account_url;

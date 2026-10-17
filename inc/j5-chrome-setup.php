@@ -33,7 +33,6 @@ add_action( 'customize_register', function ( $wp_customize ) {
 	$wp_customize->add_section( 'j5_header', array( 'title' => 'J5 Header', 'priority' => 30 ) );
 
 	$controls = array(
-		'j5_shipping_promo'   => array( 'default' => 'Free shipping on orders over $99', 'label' => 'Shipping promo message' ),
 		'j5_header_phone'     => array( 'default' => '(630) 442-4938',                    'label' => 'Header phone (display)' ),
 		'j5_header_phone_tel' => array( 'default' => 'tel:+16304424938',                  'label' => 'Header phone (tel: link)' ),
 	);
@@ -51,7 +50,7 @@ add_action( 'customize_register', function ( $wp_customize ) {
 	}
 } );
 
-foreach ( array( 'j5_shipping_promo', 'j5_header_phone', 'j5_header_phone_tel' ) as $f ) {
+foreach ( array( 'j5_header_phone', 'j5_header_phone_tel' ) as $f ) {
 	add_filter( $f, function ( $default ) use ( $f ) {
 		$val = get_theme_mod( $f, $default );
 		return $val ?: $default;
