@@ -6,7 +6,7 @@
 # Google Fonts and drops them in the theme's assets/fonts/ directory with the
 # filenames the CSS expects ({family-slug}-{weight}.woff2).
 #
-# Run ON THE VULTR BOX as the site user. It asks Google's CSS API (with a
+# Run from the theme root (Git Bash on Windows works). It asks Google's CSS API (with a
 # modern-browser UA so it returns WOFF2) for each family/weight, extracts the
 # gstatic.com WOFF2 URL, and downloads it to the target filename.
 #
@@ -14,7 +14,7 @@
 # ============================================================================
 set -euo pipefail
 
-DEST="/home/j5rescue/htdocs/j5rescue.com/wp-content/themes/astra-child/assets/fonts"
+DEST="${1:-$(cd "$(dirname "$0")" && pwd)/assets/fonts}"
 UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 API="https://fonts.googleapis.com/css2"
 
@@ -55,7 +55,7 @@ echo "Chakra Petch:"
 for w in 400 500 600 700; do fetch "Chakra+Petch" "$w" "chakra-petch-${w}.woff2"; done
 
 echo
-echo "Done. Verifying files are real WOFF2 (should all say: Web Open Font Format):"
-file "${DEST}"/*.woff2 | sed 's|.*/||'
+echo "Done. Files (each should be several KB or more):"
+ls -l "${DEST}"/*.woff2 | awk '{printf "  %8d bytes  %s\n", $5, $NF}' | sed 's|/.*/||'
 echo
 echo "Count: $(ls -1 "${DEST}"/*.woff2 | wc -l) files (expected 19)"
