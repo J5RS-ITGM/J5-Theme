@@ -17,7 +17,7 @@
  * Calls go browser -> DP (not through WordPress) so the DP's per-IP rate
  * limits apply per visitor. The DP must list this site in CORS_ORIGINS.
  *
- * Prefill: ?sku=&name=&qty=&from= (product page "Request a Quote" button).
+ * Prefill: ?sku=&item=&qty=&from= (product page "Request a Quote" button).
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -33,7 +33,8 @@ add_shortcode( 'j5_rfq', function () {
 	wp_enqueue_script( 'j5-rfq', get_stylesheet_directory_uri() . '/assets/js/j5-rfq.js', array(), file_exists( $js ) ? (string) filemtime( $js ) : null, true );
 
 	$sku  = isset( $_GET['sku'] ) ? sanitize_text_field( wp_unslash( $_GET['sku'] ) ) : '';
-	$name = isset( $_GET['name'] ) ? sanitize_text_field( wp_unslash( $_GET['name'] ) ) : '';
+	// Product name comes in as ?item= (?name= is a reserved WP query var that redirects to the product).
+	$name = isset( $_GET['item'] ) ? sanitize_text_field( wp_unslash( $_GET['item'] ) ) : '';
 	$qty  = isset( $_GET['qty'] ) ? max( 1, absint( $_GET['qty'] ) ) : 1;
 	$from = isset( $_GET['from'] ) ? esc_url_raw( wp_unslash( $_GET['from'] ) ) : '';
 	// Only accept "from" links that point back at this site.

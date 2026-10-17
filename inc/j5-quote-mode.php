@@ -33,7 +33,7 @@ function j5_quote_mode( $product ) {
 /**
  * Quote requests go to the native RFQ page (inc/j5-rfq.php): whichever
  * published page holds the [j5_rfq] shortcode, wherever its slug points.
- * It reads ?sku=&name=&qty=&from= to pre-fill the line. Never the portal.
+ * It reads ?sku=&item=&qty=&from= to pre-fill the line. Never the portal.
  */
 function j5_rfq_page_id() {
 	static $id = null;
@@ -54,7 +54,7 @@ function j5_quote_base() {
 function j5_quote_url( $product, $qty = 1 ) {
 	$args = array_filter( array(
 		'sku'  => $product->get_sku(),
-		'name' => $product->get_name(),
+		'item' => $product->get_name(), // not 'name': that's a reserved WP query var (post slug) and redirects back to the product
 		'qty'  => max( 1, (int) $qty ),
 		'from' => get_permalink( $product->get_parent_id() ?: $product->get_id() ),
 	) );
@@ -127,7 +127,7 @@ add_action( 'wp_footer', function () {
 	  function update() {
 	    var p = new URLSearchParams();
 	    if (sku) p.set('sku', sku);
-	    p.set('name', $b.data('name')); p.set('qty', qty()); p.set('from', $b.data('from'));
+	    p.set('item', $b.data('name')); p.set('qty', qty()); p.set('from', $b.data('from'));
 	    $b.attr('href', base + '?' + p.toString());
 	  }
 	  $('form.variations_form')
