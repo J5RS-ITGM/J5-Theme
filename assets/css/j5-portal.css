@@ -48,6 +48,12 @@
 .j5qm-mock__meter span{display:block;height:100%;background:linear-gradient(90deg,var(--q-red),var(--q-gold))}
 .j5qm-mock__foot{display:flex;justify-content:space-between;font-size:12px;color:var(--q-dim)}
 
+/* who it's for */
+.j5qm-for{background:#0e0e0e;border-bottom:1px solid var(--q-line);padding:18px 0}
+.j5qm-for__row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
+.j5qm-for__label{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.18em;color:var(--q-dim);font-size:16px;margin-right:6px}
+.j5qm-for__chip{font-family:'Bebas Neue',Impact,sans-serif;letter-spacing:.08em;font-size:19px;color:#fff;padding:7px 16px;border:1px solid var(--q-line);border-left:3px solid var(--q-gold);background:var(--q-card);border-radius:2px}
+
 /* guarantee band */
 .j5qm-promise{background:linear-gradient(180deg,#160d0d,#0f0f0f);border-bottom:1px solid var(--q-line);padding:64px 0}
 .j5qm-promise__head{display:flex;gap:18px;align-items:flex-start;margin-bottom:34px}

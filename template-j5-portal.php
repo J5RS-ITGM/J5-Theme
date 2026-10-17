@@ -53,9 +53,9 @@ get_header();
 	<section class="j5qm-hero">
 		<div class="j5qm-wrap j5qm-hero__grid">
 			<div class="j5qm-hero__copy">
-				<p class="j5qm-eyebrow">For agencies &middot; Client Portal + QuarterMaster</p>
+				<p class="j5qm-eyebrow">For agencies &amp; organizations &middot; Client Portal + QuarterMaster</p>
 				<h1 class="j5qm-h1">Your agency's gear.<span>One portal.</span></h1>
-				<p class="j5qm-lead">The J5 Client Portal gives your department one place to order, track and issue uniforms and equipment. QuarterMaster builds the workflow around the way your agency already runs, from sizing day to the officer who signs for it.</p>
+				<p class="j5qm-lead">The J5 Client Portal gives your agency or organization one place to order, track and issue uniforms and equipment. QuarterMaster builds the workflow around the way your agency already runs, from sizing day to the person who signs for it.</p>
 				<div class="j5qm-ctas">
 					<a class="j5qm-btn j5qm-btn--red" href="<?php echo esc_url( $j5p['setup'] ); ?>">Set up your agency</a>
 					<a class="j5qm-btn j5qm-btn--ghost" href="<?php echo esc_url( $j5p['signin'] ); ?>">Portal sign in &rarr;</a>
@@ -63,7 +63,7 @@ get_header();
 				<ul class="j5qm-ticks">
 					<li>No software to install</li>
 					<li>Works on phones and tablets</li>
-					<li>Law enforcement, fire &amp; EMS</li>
+					<li>Built for public safety and private teams</li>
 				</ul>
 			</div>
 
@@ -75,16 +75,28 @@ get_header();
 					</div>
 					<div class="j5qm-mock__main">
 						<div class="j5qm-mock__head"><span>Open tracker &middot; Patrol vests 2026</span><em>14 officers</em></div>
-						<div class="j5qm-mock__row"><span>Ofc. Reyes</span><span class="j5qm-pill is-ok">Delivered</span></div>
-						<div class="j5qm-mock__row"><span>Ofc. Patel</span><span class="j5qm-pill is-go">Shipped</span></div>
-						<div class="j5qm-mock__row"><span>Sgt. Morgan</span><span class="j5qm-pill is-go">In production</span></div>
-						<div class="j5qm-mock__row"><span>Ofc. Bauer</span><span class="j5qm-pill is-warn">Sizing</span></div>
-						<div class="j5qm-mock__row"><span>Ofc. Lindqvist</span><span class="j5qm-pill">Intent</span></div>
+						<div class="j5qm-mock__row"><span>Ofc. Smith</span><span class="j5qm-pill is-ok">Delivered</span></div>
+						<div class="j5qm-mock__row"><span>Ofc. Johnson</span><span class="j5qm-pill is-go">Shipped</span></div>
+						<div class="j5qm-mock__row"><span>Sgt. Williams</span><span class="j5qm-pill is-go">In production</span></div>
+						<div class="j5qm-mock__row"><span>Ofc. Brown</span><span class="j5qm-pill is-warn">Sizing</span></div>
+						<div class="j5qm-mock__row"><span>Ofc. Davis</span><span class="j5qm-pill">Intent</span></div>
 						<div class="j5qm-mock__meter"><span style="width:64%"></span></div>
 						<div class="j5qm-mock__foot"><span>9 of 14 sized</span><span>Payee: Department</span></div>
 					</div>
 				</div>
 			</div>
+		</div>
+	</section>
+
+	<!-- WHO IT'S FOR -->
+	<section class="j5qm-for" aria-label="Who it's for">
+		<div class="j5qm-wrap j5qm-for__row">
+			<span class="j5qm-for__label">Built for</span>
+			<span class="j5qm-for__chip">Law Enforcement</span>
+			<span class="j5qm-for__chip">Fire &amp; EMS</span>
+			<span class="j5qm-for__chip">Corrections</span>
+			<span class="j5qm-for__chip">Private Security</span>
+			<span class="j5qm-for__chip">Businesses</span>
 		</div>
 	</section>
 
@@ -154,7 +166,7 @@ get_header();
 				<div class="j5qm-role"><span class="j5qm-role__tag">Purchasing</span><p>Places orders that go straight through, with order history, invoices and documents at hand.</p></div>
 				<div class="j5qm-role"><span class="j5qm-role__tag">Officer</span><p>Sizes themselves, sees their own armor and gear, and requests what they need. Requests can require approval.</p></div>
 			</div>
-			<p class="j5qm-note">Fire and EMS agencies see fire service titles: Chief / Admin, Quartermaster / Logistics, General Purchasing and Line Personnel.</p>
+			<p class="j5qm-note">Titles match your world. Fire and EMS see Chief / Admin, Quartermaster / Logistics, General Purchasing and Line Personnel. Businesses and private security teams get Admin and Purchaser accounts.</p>
 		</div>
 	</section>
 
