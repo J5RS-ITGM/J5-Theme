@@ -41,6 +41,8 @@ require_once get_stylesheet_directory() . '/inc/j5-service-discount.php';
 
 // Per-product Request a Quote button / quote-only mode (DP _j5_quote_mode or tags).
 require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
+// Retired products (closeout / discontinued): No longer carried panel + in-stock alternatives.
+require_once get_stylesheet_directory() . '/inc/j5-closeout.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';

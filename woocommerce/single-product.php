@@ -192,6 +192,13 @@ get_header();
                 $j5_not_buyable = function_exists( 'j5_fulfillment_blocks_cart' ) ? j5_fulfillment_blocks_cart( $j5_fulfillment ) : false;
                 ?>
                 <div class="j5-product-price<?php echo $j5_not_buyable ? ' j5-price-unavailable' : ''; ?>"><?php echo wp_kses_post( $price_html ); ?></div>
+                <?php
+                // Retired (closeout / discontinued): "No longer carried" panel instead of price, stock and cart (hidden via body.j5-retired). See inc/j5-closeout.php.
+                $j5_retired = function_exists( 'j5_is_retired' ) && j5_is_retired( $j5_fulfillment );
+                if ( $j5_retired ) {
+                    j5_render_closeout_panel( $product, $j5_fulfillment );
+                }
+                ?>
 
                 <!-- STOCK INDICATOR -->
                 <?php
@@ -421,6 +428,13 @@ get_header();
 
             </div>
         </div>
+
+        <?php
+        // Retired products: in-stock alternatives from the same category. See inc/j5-closeout.php.
+        if ( ! empty( $j5_retired ) && function_exists( 'j5_render_closeout_recs' ) ) {
+            j5_render_closeout_recs( $product );
+        }
+        ?>
 
         <!-- TABS: Description / Specs / Reviews / Shipping -->
         <section class="j5-product-tabs">
