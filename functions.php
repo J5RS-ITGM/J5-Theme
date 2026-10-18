@@ -209,6 +209,12 @@ if ( is_admin() ) {
 }
 // === J5-SHIPPING-RESTRICTIONS-REQUIRES-END ===
 
+// === J5-PRODUCT-SCHEMA-REQUIRES-START ===
+// Completes Rank Math's Product JSON-LD from DP data: brand, GTIN, MPN,
+// availability, per-product return policy, ProductGroup for variable products.
+require_once get_stylesheet_directory() . '/inc/j5-product-schema.php';
+// === J5-PRODUCT-SCHEMA-REQUIRES-END ===
+
 /* === J5-MOBILE-INLINE-START === */
 /**
  * J5 Mobile CSS — inlined via wp_head priority 999
