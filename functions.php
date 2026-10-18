@@ -43,6 +43,8 @@ require_once get_stylesheet_directory() . '/inc/j5-service-discount.php';
 require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
 // Retired products (closeout / discontinued): No longer carried panel + in-stock alternatives.
 require_once get_stylesheet_directory() . '/inc/j5-closeout.php';
+// [j5_threat_matrix]: DP armor spec (_j5_armor_spec) on product pages (Specifications tab).
+require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';

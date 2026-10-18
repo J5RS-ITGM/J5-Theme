@@ -454,6 +454,10 @@ get_header();
 
                 <div class="j5-tab-panel" data-panel="specs">
                     <?php
+                    // DP-verified armor spec (_j5_armor_spec): certification, sizes, threat matrix. Renders nothing if absent. See inc/j5-threat-matrix.php.
+                    if ( function_exists( 'j5tm_render' ) ) {
+                        echo j5tm_render( $product ); // escaped inside
+                    }
                     $j5_specs_extra = function_exists( 'j5_render_product_specs' ) ? j5_render_product_specs( $product ) : '';
                     if ( ! empty( $attr_display ) ) :
                     ?>
