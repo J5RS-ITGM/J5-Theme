@@ -165,8 +165,14 @@
         var fulfillmentLocked = !!( banner && banner.getAttribute( 'data-j5-fulfillment-lock' ) );
 
         function setBanner( state, label, qty ) {
-            if ( ! banner ) { return; }
             if ( fulfillmentLocked ) { return; }
+            writeBanner( state, label, qty );
+        }
+
+        /* Unconditional write. Used for a variation's own DP status and for
+         * restoring the server-rendered banner (J5-VAR-FULFILLMENT-1). */
+        function writeBanner( state, label, qty ) {
+            if ( ! banner ) { return; }
             banner.setAttribute( 'data-state', state );
             var dot = banner.querySelector( '.dot' );
             if ( dot ) { dot.className = 'dot ' + state; }
@@ -176,8 +182,23 @@
             if ( q ) { q.textContent = qty; }
         }
 
+        /* J5-VAR-FULFILLMENT-1: the server-rendered banner is the "nothing
+         * selected" state: DP's mixed summary ("2 of 6 ready to ship"), a
+         * parent status, SELECT OPTIONS, or OUT OF STOCK. Snapshot it once
+         * and put it back on reset, instead of always forcing SELECT OPTIONS. */
+        function bannerText( sel ) {
+            var el = banner ? banner.querySelector( sel ) : null;
+            return el ? el.textContent : '';
+        }
+        var initialBanner = banner ? {
+            state: banner.getAttribute( 'data-state' ) || 'select',
+            label: bannerText( '.label' ),
+            qty:   bannerText( '.qty' )
+        } : null;
+
         function bannerSelectState() {
-            setBanner( 'select', 'SELECT OPTIONS', 'availability shown per configuration' );
+            if ( ! initialBanner ) { return; }
+            writeBanner( initialBanner.state, initialBanner.label, initialBanner.qty );
         }
 
         /* Admin-configured banner copy (J5 Apps -> Fulfillment), with
@@ -439,8 +460,14 @@
 
             $form.on( 'found_variation', function ( event, v ) {
                 if ( ! v ) { return; }
+                var vf = v.j5_fulfillment;
                 var vState = v.j5_stock_state || ( v.is_in_stock ? 'in' : 'out' );
-                if ( vState === 'special' ) {
+                /* J5-VAR-FULFILLMENT-1: the variation's own DP status wins,
+                 * even over a parent lock (it is the more specific truth).
+                 * Variations without one yet use the stock_status path below. */
+                if ( vf && vf.state && vf.label ) {
+                    writeBanner( vf.state, vf.label, vf.note || '' );
+                } else if ( vState === 'special' ) {
                     var cS = bannerCopy( 'special', 'SPECIAL ORDER', 'made to order \u00b7 extended lead time' );
                     setBanner( 'special', cS.label, cS.note );
                 } else if ( vState === 'in' ) {

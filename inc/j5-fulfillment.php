@@ -21,6 +21,12 @@
  *                                      Custom slugs may be added via
  *                                      Settings → J5 Fulfillment.
  *   _j5_fulfillment_note       string  optional sublabel override
+ *   _j5_fulfillment_eta        string  optional ISO date (on_order)
+ *                                      The three keys above also arrive on
+ *                                      each VARIATION (DP, Oct 2026); see
+ *                                      J5-VAR-FULFILLMENT-1 at the bottom.
+ *   _j5_fulfillment_mixed      string  parent only: 'yes' when options differ
+ *   _j5_fulfillment_summary    string  parent only: e.g. "2 of 6 ready to ship"
  *   _j5_fulfillment_replaces   string  optional comma/space list of product IDs
  *                                      that replace this item; rendered by any
  *                                      status with 'replacements' => true
@@ -449,3 +455,65 @@ function j5_render_discontinued_block( $f ) {
 
 	echo '</div>';
 }
+
+/* ============================================================================
+ *  J5-VAR-FULFILLMENT-1 (2026-10-18) — per-variation availability banner
+ *
+ *  The dealer portal (DP) now publishes _j5_fulfillment / _note / _eta on each
+ *  VARIATION, plus two parent keys:
+ *    _j5_fulfillment_mixed    'yes' when sellable options differ, else ''
+ *    _j5_fulfillment_summary  plain text, e.g. "2 of 6 options ready to ship"
+ *
+ *  The banner is presentation only. Add to cart stays gated by each
+ *  variation's WC stock_status (instock / onbackorder buyable, outofstock
+ *  not), exactly as before.
+ * ========================================================================== */
+
+/**
+ * Parent-level "options differ" flag and summary line for a variable product.
+ *
+ * @param WC_Product $product
+ * @return array { mixed: bool, summary: string }
+ */
+function j5_fulfillment_mixed( $product ) {
+	if ( ! $product instanceof WC_Product || ! $product->is_type( 'variable' ) ) {
+		return array( 'mixed' => false, 'summary' => '' );
+	}
+
+	$mixed   = 'yes' === strtolower( trim( (string) $product->get_meta( '_j5_fulfillment_mixed', true ) ) );
+	$summary = trim( wp_strip_all_tags( (string) $product->get_meta( '_j5_fulfillment_summary', true ) ) );
+
+	return array( 'mixed' => $mixed, 'summary' => $summary );
+}
+
+/**
+ * Expose each variation's own fulfillment status to the variations JSON the
+ * front end reads (found_variation). Resolved through j5_get_fulfillment(), so
+ * labels come from J5 Apps -> Fulfillment and the note follows the usual
+ * precedence: variation note -> relative ETA -> status default.
+ *
+ * A variation with no _j5_fulfillment yet (published before DP's per-variation
+ * sweep) gets no key, and j5-shop.js falls back to the stock_status-derived
+ * banner it has always used. That is deliberately NOT the parent status: the
+ * parent carries the BEST status across options, so falling back to it would
+ * show IN STOCK on an option that is out.
+ */
+add_filter( 'woocommerce_available_variation', function ( $data, $product, $variation ) {
+	if ( ! $variation instanceof WC_Product_Variation ) {
+		return $data;
+	}
+
+	$f = j5_get_fulfillment( $variation );
+	if ( ! is_array( $f ) ) {
+		return $data;
+	}
+
+	$data['j5_fulfillment'] = array(
+		'type'  => $f['type'],
+		'state' => $f['state'],
+		'label' => $f['label'],
+		'note'  => $f['note'],
+	);
+
+	return $data;
+}, 20, 3 );

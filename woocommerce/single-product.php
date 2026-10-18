@@ -226,14 +226,33 @@ get_header();
                      */
                     $j5_banner_lock = $j5_fulfillment && ! empty( $j5_fulfillment['banner_lock'] );
 
-                    if ( $j5_banner_lock ) {
+                    /*
+                     * J5-VAR-FULFILLMENT-1: when DP flags the options as
+                     * differing, the parent status (the BEST across options)
+                     * would overstate things. Show the DP summary instead,
+                     * unlocked, so each variation's own status takes over on
+                     * select. Not mixed: parent banner exactly as before.
+                     */
+                    $j5_mix   = function_exists( 'j5_fulfillment_mixed' ) ? j5_fulfillment_mixed( $product ) : array( 'mixed' => false, 'summary' => '' );
+                    $j5_mixed = $j5_mix['mixed'] && $product->is_in_stock();
+                    if ( $j5_mixed ) {
+                        $j5_banner_lock = false;
+                    }
+
+                    if ( $j5_mixed ) {
+                        $j5_banner_state = 'select';
+                    } elseif ( $j5_banner_lock ) {
                         $j5_banner_state = $j5_fulfillment['state'];
                     } else {
                         $j5_banner_state = $product->is_in_stock() ? 'select' : 'out';
                     }
                     ?>
                     <div class="j5-product-stock j5-stock-variable" id="j5StockBanner" data-state="<?php echo esc_attr( $j5_banner_state ); ?>"<?php echo $j5_fulfillment ? ' data-j5-fulfillment="' . esc_attr( $j5_fulfillment['type'] ) . '"' : ''; ?><?php echo $j5_banner_lock ? ' data-j5-fulfillment-lock="1"' : ''; ?>>
-                        <?php if ( $j5_banner_lock ) : ?>
+                        <?php if ( $j5_mixed ) : ?>
+                            <span class="dot select"></span>
+                            <span class="label">SELECT OPTIONS</span>
+                            <span class="qty"><?php echo esc_html( '' !== $j5_mix['summary'] ? $j5_mix['summary'] : 'availability shown per configuration' ); ?></span>
+                        <?php elseif ( $j5_banner_lock ) : ?>
                             <span class="dot <?php echo esc_attr( $j5_fulfillment['state'] ); ?>"></span>
                             <span class="label"><?php echo esc_html( $j5_fulfillment['label'] ); ?></span>
                             <span class="qty"><?php echo esc_html( $j5_fulfillment['note'] ); ?></span>
