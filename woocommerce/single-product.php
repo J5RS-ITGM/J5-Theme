@@ -352,7 +352,7 @@ get_header();
                         j5_render_variation_groups( $product, $attributes, $available_variations );
                         ?>
 
-                        <?php if ( count( $attributes ) > 1 ) : ?>
+                        <?php if ( count( array_filter( $attributes, function ( $o ) { return count( array_filter( (array) $o, 'strlen' ) ) > 1; } ) ) > 1 ) : // reset only when 2+ visible rows (J5-VAR-SINGLE-1) ?>
                             <a href="#" class="reset_variations" style="display:none;">Reset</a>
                         <?php endif; ?>
 

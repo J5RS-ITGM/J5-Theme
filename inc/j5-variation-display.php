@@ -155,6 +155,37 @@ function j5_variation_option_labels( $product, $attribute_name, $options ) {
  * variations JSON is unavailable, e.g. above the AJAX threshold).
  */
 function j5_render_variation_groups( $product, $attributes, $available_variations ) {
+	/*
+	 * J5-VAR-SINGLE-1: an attribute with exactly one option (Curve = MC,
+	 * Configuration = Set) is not a choice. It gets no visible row: a hidden,
+	 * pre-selected select inside a .variations wrapper so Woo's variation JS
+	 * still reads it and the variation resolves. It is not a .j5-variant-group,
+	 * so the cascade in j5-shop.js never hides or clears it; j5-shop.js puts
+	 * the value back if Woo's Reset blanks it (data-j5-single).
+	 */
+	$singles = array();
+	foreach ( $attributes as $attribute_name => $options ) {
+		$options = array_values( array_filter( (array) $options, 'strlen' ) );
+		if ( 1 === count( $options ) ) {
+			$singles[ $attribute_name ] = $options[0];
+		}
+	}
+	if ( $singles ) {
+		echo '<div class="variations j5-vg-singles" hidden>';
+		foreach ( $singles as $attribute_name => $value ) {
+			$field_name = 'attribute_' . sanitize_title( $attribute_name );
+			printf(
+				'<select name="%1$s" data-attribute_name="%1$s" data-j5-single="%2$s" aria-hidden="true" tabindex="-1"><option value="">%3$s</option><option value="%2$s" selected="selected">%4$s</option></select>',
+				esc_attr( $field_name ),
+				esc_attr( $value ),
+				esc_html__( 'Choose', 'woocommerce' ),
+				esc_html( $value )
+			);
+		}
+		echo '</div>';
+		$attributes = array_diff_key( $attributes, $singles );
+	}
+
 	$index        = 0;
 	$total_groups = count( $attributes );
 	foreach ( $attributes as $attribute_name => $options ) {

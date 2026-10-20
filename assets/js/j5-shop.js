@@ -518,6 +518,30 @@
                 if ( priceEl ) { priceEl.innerHTML = parentPriceHTML; }
             } );
 
+            /* J5-VAR-SINGLE-1: single-option attributes are hidden and
+             * pre-selected server-side. Woo's Reset (and some incomplete
+             * checks) blank every attribute select; put them back and let
+             * Woo re-check. Only fires when a value actually changed. */
+            function fillSingles() {
+                var changed = null;
+                $$( 'select[data-j5-single]', form ).forEach( function ( s ) {
+                    var v = s.getAttribute( 'data-j5-single' );
+                    if ( s.value === v ) { return; }
+                    if ( ! s.querySelector( 'option[value="' + CSS.escape( v ) + '"]' ) ) {
+                        var o = document.createElement( 'option' );
+                        o.value = v; o.textContent = v;
+                        s.appendChild( o );
+                    }
+                    s.value = v;
+                    changed = s;
+                } );
+                if ( changed ) { window.jQuery( changed ).trigger( 'change' ); }
+            }
+
+            $form.on( 'reset_data', function () {
+                setTimeout( fillSingles, 0 );
+            } );
+
             $form.on( 'reset_data', function () {
                 bannerSelectState();
                 if ( priceEl ) { priceEl.innerHTML = parentPriceHTML; }
