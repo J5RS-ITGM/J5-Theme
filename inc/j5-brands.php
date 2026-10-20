@@ -15,8 +15,9 @@
  *   - j5_brands_sync_from_attribute(): one-time WP-CLI helper that creates
  *     Brands from the existing "Product Brands" attribute (pa_product-brands)
  *     and assigns each product to its brand.
- *   - Starter content for HESCO, United Shield International, HighCom and
- *     Pavashot brand pages.
+ *   - j5_brands_assign_by_title(): fills in missing brands from product titles.
+ *   - j5_brands_seed_all(): loads starter content (inc/j5-brand-seeds.php).
+ *   - j5_brands_index_page(): builds the /brands/ page from [j5_brands].
  *
  * @package Astra Child
  */
@@ -24,6 +25,8 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 const J5_BRAND_TAX = 'product_brand';
+
+require_once __DIR__ . '/j5-brand-seeds.php';
 
 /* =========================================================================
  * 1. TAXONOMY — fallback only. WooCommerce 9.6+ registers product_brand
@@ -139,13 +142,14 @@ function j5_brand_logo_url( $term_id, $size = 'medium' ) {
  * 3. [j5_brands] — brand grid for a /brands/ page
  *    [j5_brands]                      all brands with products
  *    [j5_brands only="hesco,highcom"] just these, in this order
+ *    [j5_brands exclude="a,b"]        all except these (default: test)
  * ========================================================================= */
 
 add_shortcode( 'j5_brands', function ( $atts ) {
 	if ( ! taxonomy_exists( J5_BRAND_TAX ) ) {
 		return '';
 	}
-	$atts = shortcode_atts( array( 'only' => '' ), $atts, 'j5_brands' );
+	$atts = shortcode_atts( array( 'only' => '', 'exclude' => 'test' ), $atts, 'j5_brands' );
 	$args = array( 'taxonomy' => J5_BRAND_TAX, 'hide_empty' => true, 'orderby' => 'name' );
 	if ( '' !== trim( $atts['only'] ) ) {
 		$args['slug']    = array_map( 'sanitize_title', array_map( 'trim', explode( ',', $atts['only'] ) ) );
@@ -153,6 +157,13 @@ add_shortcode( 'j5_brands', function ( $atts ) {
 	}
 	$terms = get_terms( $args );
 	if ( empty( $terms ) || is_wp_error( $terms ) ) {
+		return '';
+	}
+	$skip  = array_filter( array_map( 'sanitize_title', array_map( 'trim', explode( ',', (string) $atts['exclude'] ) ) ) );
+	$terms = array_values( array_filter( $terms, function ( $t ) use ( $skip ) {
+		return ! in_array( $t->slug, $skip, true );
+	} ) );
+	if ( empty( $terms ) ) {
 		return '';
 	}
 	$abs = get_stylesheet_directory() . '/assets/css/j5-rich-category.css';
@@ -258,195 +269,251 @@ function j5_brands_sync_from_attribute( $apply = false, $attribute = 'pa_product
 	$out( "Done. $total product assignments " . ( $apply ? 'made.' : 'would be made.' ) );
 }
 
+
+/** Line output for the WP-CLI helpers below. */
+function j5_brands_out( $line ) {
+	if ( defined( 'WP_CLI' ) && WP_CLI ) {
+		WP_CLI::log( $line );
+	} else {
+		echo $line . PHP_EOL;
+	}
+}
+
 /* =========================================================================
- * 5. STARTER CONTENT — load one brand at a time:
- *        wp eval 'echo j5rc_seed_category( "hesco", false, "product_brand" ) . PHP_EOL;'
- *    Brand slugs must match the brands in Products -> Brands.
- *    Product links point at existing product URLs; check them after loading.
+ * 5. ASSIGN BRANDS FROM PRODUCT TITLES
+ *
+ *    Preview (changes nothing):
+ *        wp eval 'j5_brands_assign_by_title();'
+ *    Apply:
+ *        wp eval 'j5_brands_assign_by_title( true );'
+ *
+ *    Only touches products that have NO brand yet. A title must match
+ *    exactly one rule below; titles matching two rules are listed and
+ *    skipped. Brands that don't exist yet are created on apply. Products
+ *    left without a brand are listed at the end so gaps are visible.
+ *    Brand is catalog data: the dealer portal should own it going forward,
+ *    this backfills what WooCommerce is missing today.
  * ========================================================================= */
 
-add_filter( 'j5rc_brand_seeds', function ( $seeds ) {
-	$common_related = array( 'body-armor', 'shields', 'helmets', 'plate-carriers' );
+function j5_brand_title_rules() {
+	return apply_filters( 'j5_brand_title_rules', array(
+		// slug                            => array( name, title regex )
+		'hesco-armor'                   => array( 'Hesco Armor', '/\bhesco\b/i' ),
+		'highcom-armor'                 => array( 'HighCom Armor', '/\bhighcom\b/i' ),
+		'united-shield-international'   => array( 'United Shield International', '/\b(usi|united shield)\b/i' ),
+		'surefire'                      => array( 'Surefire', '/\bsurefire\b/i' ),
+		'eotech'                        => array( 'EOTECH', '/\beotech\b/i' ),
+		'leupold'                       => array( 'Leupold', '/\b(leupold|deltapoint)\b/i' ),
+		'ops-core'                      => array( 'Ops-Core', '/\bops-?core\b/i' ),
+		'byrna'                         => array( 'Byrna', '/\bbyrna\b/i' ),
+		'pavashot'                      => array( 'PavaShot', '/\bpavashot\b/i' ),
+		'north-american-rescue'         => array( 'North American Rescue', '/\b(nar|north american rescue|hyfin|combat application tourniquet)\b/i' ),
+		'sam-medical'                   => array( 'SAM Medical', '/\b(sam|chitosam)\b/i' ),
+		'celox'                         => array( 'Celox', '/\bcelox\b/i' ),
+		'quikclot'                      => array( 'QuikClot', '/\bquikclot\b/i' ),
+		'tacmed-solutions'              => array( 'TacMed Solutions', '/\b(tacmed|sof tourniquet|olaes)\b/i' ),
+		'tekto'                         => array( 'Tekto', '/\btekto\b/i' ),
+		'tasmanian-tiger'               => array( 'Tasmanian Tiger', '/\b(tasmanian tiger|tt)\b/i' ),
+		'magpul'                        => array( 'Magpul', '/\bmagpul\b/i' ),
+		'ess'                           => array( 'ESS', '/\b(ess|crossbow)\b/i' ),
+		'scalarworks'                   => array( 'Scalarworks', '/\bscalarworks\b/i' ),
+		// Brands not in Products -> Brands yet; created on apply if a title matches.
+		'lbt'                           => array( 'LBT', '/\b(lbt|london bridge trading)\b/i' ),
+		'agilite'                       => array( 'Agilite', '/\bagilite\b/i' ),
+		'condor'                        => array( 'Condor', '/\bcondor\b/i' ),
+		'benchmade'                     => array( 'Benchmade', '/\bbenchmade\b/i' ),
+		'blade-tech'                    => array( 'Blade-Tech', '/\bblade-?tech\b/i' ),
+		'dji'                           => array( 'DJI', '/\bdji\b/i' ),
+		'mckesson'                      => array( 'McKesson', '/\bmckesson\b/i' ),
+	) );
+}
 
-	$seeds['hesco'] = array(
-		'enabled'      => 1,
-		'title'        => 'HESCO',
-		'title_accent' => 'Armor',
-		'eyebrow'      => 'Hard Armor Plates · Level IV & Special Threat',
-		'chips'        => 'Level IV, Special Threat, Plate Sets, NIJ Certified',
-		'_description' => 'HESCO hard armor plates for patrol, tactical, and active threat response. Level IV and Special Threat plate sets, including the <strong>L210, M210, U210, 4400, 4601 and 4800</strong> lines. New to plate ratings? Our <a href="/just-another-useful-guide-to-body-armor-hesco-plates/">guide to body armor and HESCO plates</a> explains the differences.',
+function j5_brands_assign_by_title( $apply = false ) {
+	if ( ! taxonomy_exists( J5_BRAND_TAX ) ) {
+		j5_brands_out( 'Brands taxonomy not registered.' );
+		return;
+	}
+	$rules = j5_brand_title_rules();
+	$ids   = get_posts( array(
+		'post_type'      => 'product',
+		'post_status'    => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+		'fields'         => 'ids',
+		'posts_per_page' => -1,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	) );
+	j5_brands_out( $apply ? 'APPLYING' : 'PREVIEW (run with true to apply)' );
 
-		'tiles_label'  => 'Popular HESCO plates',
-		'tiles_title'  => 'Shop by plate line',
-		'tiles'        => array(
-			array( 'url' => '/hesco-l210-special-threat-plate-set-2/', 'kicker' => '01 — Special Threat', 'title' => 'HESCO L210', 'text' => 'Special threat plate set and our most popular HESCO plate.', 'chips' => 'Special Threat, Plate Set', 'cta' => 'View the L210' ),
-			array( 'url' => '/hesco-m210-special-threat-plate-set/', 'kicker' => '02 — Special Threat', 'title' => 'HESCO M210', 'text' => 'Special threat plate set in the 210 family.', 'chips' => 'Special Threat', 'cta' => 'View the M210' ),
-			array( 'url' => '/hesco-4400-level-iv-plate-set/', 'kicker' => '03 — Level IV', 'title' => 'HESCO 4400', 'text' => 'Level IV plate set for armor-piercing rifle threats.', 'chips' => 'Level IV', 'cta' => 'View the 4400' ),
-			array( 'url' => '/hesco-4800-level-iv-plate-set/', 'kicker' => '04 — Level IV', 'title' => 'HESCO 4800', 'text' => 'Level IV plate set in the 4800 line.', 'chips' => 'Level IV', 'cta' => 'View the 4800' ),
-		),
+	$assign = array();
+	$ambig  = array();
+	$none   = array();
+	$had    = 0;
+	foreach ( $ids as $pid ) {
+		$current = wp_get_object_terms( $pid, J5_BRAND_TAX, array( 'fields' => 'ids' ) );
+		if ( ! empty( $current ) && ! is_wp_error( $current ) ) {
+			$had++;
+			continue;
+		}
+		$title = wp_specialchars_decode( get_the_title( $pid ) );
+		$hits  = array();
+		foreach ( $rules as $slug => $rule ) {
+			if ( preg_match( $rule[1], $title ) ) {
+				$hits[] = $slug;
+			}
+		}
+		if ( 1 === count( $hits ) ) {
+			$assign[ $pid ] = array( $hits[0], $title );
+		} elseif ( count( $hits ) > 1 ) {
+			$ambig[ $pid ] = array( implode( ' + ', $hits ), $title );
+		} else {
+			$none[ $pid ] = $title;
+		}
+	}
 
-		'cmp_label'    => 'Special Threat vs Level IV',
-		'cmp_title'    => 'Which HESCO plate do you need?',
-		'cmp_intro'    => 'HESCO builds plates for two kinds of threat. Match the plate to what you expect to face rather than defaulting to the heaviest option.',
-		'cmp_col_a'    => 'Special Threat (L210, M210, U210)',
-		'cmp_col_b'    => 'Level IV (4400, 4601, 4800)',
-		'cmp_rows'     => array(
-			array( 'label' => 'Built for', 'a' => 'Common patrol rifle threats, tested against specific rounds listed on each spec sheet', 'b' => 'Armor-piercing rifle rounds under the NIJ Level IV rating' ),
-			array( 'label' => 'Weight', 'a' => 'Lighter. Easier to wear for a full shift', 'b' => 'Heavier. Plan for longer-wear comfort' ),
-			array( 'label' => 'Best for', 'a' => 'Patrol officers and daily-wear rifle protection', 'b' => 'Tactical teams and high-threat callouts' ),
-			array( 'label' => 'Check', 'a' => 'The threat list on the product page', 'b' => 'Plate size and cut for your carrier' ),
-		),
+	j5_brands_out( sprintf( '%d products scanned, %d already have a brand.', count( $ids ), $had ) );
+	j5_brands_out( '' );
+	j5_brands_out( sprintf( 'ASSIGN (%d)', count( $assign ) ) );
+	$made = array();
+	foreach ( $assign as $pid => $row ) {
+		list( $slug, $title ) = $row;
+		$term = get_term_by( 'slug', $slug, J5_BRAND_TAX );
+		$flag = $term ? '' : '  (new brand)';
+		j5_brands_out( sprintf( '  %6d  %-28s %s%s', $pid, $slug, $title, $flag ) );
+		if ( ! $apply ) {
+			continue;
+		}
+		if ( ! $term ) {
+			if ( ! isset( $made[ $slug ] ) ) {
+				$res = wp_insert_term( $rules[ $slug ][0], J5_BRAND_TAX, array( 'slug' => $slug ) );
+				if ( is_wp_error( $res ) ) {
+					j5_brands_out( '          ! ' . $res->get_error_message() );
+					continue;
+				}
+				$made[ $slug ] = (int) $res['term_id'];
+			}
+			$term_id = $made[ $slug ];
+		} else {
+			$term_id = (int) $term->term_id;
+		}
+		wp_set_object_terms( $pid, array( $term_id ), J5_BRAND_TAX, false );
+	}
+	j5_brands_out( '' );
+	j5_brands_out( sprintf( 'SKIPPED, matches two brands (%d)', count( $ambig ) ) );
+	foreach ( $ambig as $pid => $row ) {
+		j5_brands_out( sprintf( '  %6d  %-28s %s', $pid, $row[0], $row[1] ) );
+	}
+	j5_brands_out( '' );
+	j5_brands_out( sprintf( 'STILL NO BRAND (%d)', count( $none ) ) );
+	foreach ( $none as $pid => $title ) {
+		j5_brands_out( sprintf( '  %6d  %s', $pid, $title ) );
+	}
+	j5_brands_out( '' );
+	j5_brands_out( $apply ? sprintf( 'Done. %d products assigned.', count( $assign ) ) : sprintf( 'Done. %d products would be assigned.', count( $assign ) ) );
+}
 
-		'faq_title'    => 'HESCO plate questions',
-		'faqs'         => array(
-			array( 'q' => 'What is the difference between HESCO Special Threat and Level IV plates?', 'a' => 'Special Threat plates are tested against specific rifle rounds and are usually lighter. Level IV plates are rated to stop armor-piercing rifle rounds and weigh more. Each product page lists the exact threats.' ),
-			array( 'q' => 'Are HESCO plates NIJ certified?', 'a' => 'Many HESCO plates carry NIJ certification. Certification status is listed on each product page; check the model you are buying.' ),
-			array( 'q' => 'Will HESCO plates fit my plate carrier?', 'a' => 'Match the plate size and cut to your carrier\'s plate pocket. Sizes and cuts are listed on each product page, and you can <a href="/contact-us/">contact us</a> if you are unsure.' ),
-			array( 'q' => 'Do you sell HESCO plates to agencies?', 'a' => 'Yes. We accept agency purchase orders and quote multi-unit plate orders. <a href="/contact-us/">Contact us</a> for a quote.' ),
-		),
+/* =========================================================================
+ * 6. LOAD STARTER CONTENT FOR EVERY BRAND (inc/j5-brand-seeds.php)
+ *
+ *    Preview:                 wp eval 'j5_brands_seed_all();'
+ *    Apply (skip filled-in):  wp eval 'j5_brands_seed_all( true );'
+ *    Apply + overwrite some:  wp eval 'j5_brands_seed_all( true, array( "pavashot" ) );'
+ *
+ *    Brands that already have Brand Page content are skipped unless listed
+ *    in the second argument; overwriting replaces any wp-admin edits.
+ * ========================================================================= */
 
-		'art_label'    => 'From the J5 blog',
-		'art_title'    => 'HESCO and body armor guides',
-		'art_pinned'   => 'just-another-useful-guide-to-body-armor-hesco-plates',
-		'art_tag'      => 'hesco',
-		'art_count'    => 3,
+function j5_brands_seed_all( $apply = false, $force = array() ) {
+	if ( ! taxonomy_exists( J5_BRAND_TAX ) || ! function_exists( 'j5rc_seed_category' ) ) {
+		j5_brands_out( 'Brands taxonomy or rich category module not loaded.' );
+		return;
+	}
+	$force = (array) $force;
+	$seeds = apply_filters( 'j5rc_brand_seeds', array() );
+	j5_brands_out( $apply ? 'APPLYING' : 'PREVIEW (run with true to apply)' );
+	foreach ( $seeds as $slug => $seed ) {
+		$term = get_term_by( 'slug', $slug, J5_BRAND_TAX );
+		if ( ! $term ) {
+			j5_brands_out( sprintf( '  %-30s brand not found, skipped', $slug ) );
+			continue;
+		}
+		$has   = ! empty( get_term_meta( $term->term_id, J5RC_META, true ) );
+		$force_this = in_array( $slug, $force, true );
+		if ( $has && ! $force_this ) {
+			j5_brands_out( sprintf( '  %-30s has content already, skipped', $slug ) );
+			continue;
+		}
+		if ( ! $apply ) {
+			j5_brands_out( sprintf( '  %-30s would load (%d products)%s', $slug, (int) $term->count, $has ? ', OVERWRITES existing' : '' ) );
+			continue;
+		}
+		j5_brands_out( '  ' . j5rc_seed_category( $slug, $force_this, J5_BRAND_TAX ) );
+	}
+	$all = get_terms( array( 'taxonomy' => J5_BRAND_TAX, 'hide_empty' => false ) );
+	if ( ! is_wp_error( $all ) ) {
+		foreach ( $all as $t ) {
+			if ( ! isset( $seeds[ $t->slug ] ) ) {
+				j5_brands_out( sprintf( '  %-30s no starter content (%d products)', $t->slug, (int) $t->count ) );
+			}
+		}
+	}
+}
 
-		'agency_on'    => 1,
-		'agency_title' => 'Outfitting a department?',
-		'agency_text'  => 'Purchase orders accepted and quotes on multi-unit HESCO plate orders.',
-		'agency_btn'   => 'Request a quote',
-		'agency_url'   => '/contact-us/',
+/* =========================================================================
+ * 7. /brands/ INDEX PAGE
+ *
+ *    Preview:  wp eval 'j5_brands_index_page();'
+ *    Apply:    wp eval 'j5_brands_index_page( true );'
+ *
+ *    Creates the "Brands" page (slug brands) or rewrites the existing one
+ *    with an intro and the [j5_brands] logo grid. The old content is kept
+ *    in post meta _j5_pre_brands_content. On an Elementor-built page the
+ *    Elementor data is left in place but switched off, so WordPress renders
+ *    the new content.
+ * ========================================================================= */
 
-		'related_title' => 'Shop related',
-		'related_slugs' => array( 'body-armor', 'plate-carriers', 'shields', 'helmets' ),
-	);
+function j5_brands_index_content() {
+	return "<!-- wp:paragraph -->\n<p>Every manufacturer we carry, from HESCO and HighCom armor to SureFire weapon lights and North American Rescue medical gear. Pick a brand to see its full lineup.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:shortcode -->\n[j5_brands]\n<!-- /wp:shortcode -->";
+}
 
-	$seeds['united-shield-international'] = array(
-		'enabled'      => 1,
-		'title'        => 'United Shield',
-		'title_accent' => 'International',
-		'eyebrow'      => 'Ballistic Shields · Soft Armor · Carriers',
-		'chips'        => 'Phantom EVO, Rifle Rated Shields, Training Shields, Soft Armor',
-		'_description' => 'United Shield International (USI) ballistic shields, soft armor, and carriers. Handgun rated and rifle rated shields including the <strong>Phantom EVO</strong> and <strong>Lightweight Level III</strong>, matching training shields, and the <strong>Spec Ops Delta</strong>. Compare shield ratings on our <a href="/shields/">ballistic shields</a> page.',
-
-		'tiles_label'  => 'Shop USI',
-		'tiles_title'  => 'Shields and armor',
-		'tiles'        => array(
-			array( 'url' => '/usi-phantom-evo-ballistic-shield/', 'kicker' => '01 — Ballistic Shield', 'title' => 'Phantom EVO Shield', 'text' => 'USI\'s ballistic shield, with handle and viewport options.', 'chips' => 'Shield, Viewport Option', 'cta' => 'View the Phantom EVO' ),
-			array( 'url' => '/usi-lightweight-level-iii-rrs-rifle-rated/', 'kicker' => '02 — Rifle Rated', 'title' => 'Lightweight Level III', 'text' => 'Rifle rated shield in multiple sizes, with or without viewport.', 'chips' => 'Level III, Rifle Rated', 'cta' => 'View the Level III' ),
-			array( 'url' => '/usi-phantom-evo-training-shield/', 'kicker' => '03 — Training', 'title' => 'Phantom EVO Training Shield', 'text' => 'Non-rated training shield so teams can train without wearing out duty shields.', 'chips' => 'Training', 'cta' => 'View the trainer' ),
-			array( 'url' => '/usi-spec-ops-delta-gen-ii/', 'kicker' => '04 — Armor', 'title' => 'Spec Ops Delta Gen II', 'text' => 'USI tactical armor system.', 'chips' => 'Armor', 'cta' => 'View the Delta' ),
-		),
-
-		'faq_title'    => 'United Shield International questions',
-		'faqs'         => array(
-			array( 'q' => 'What is the difference between USI handgun rated and rifle rated shields?', 'a' => 'Handgun rated (Level IIIA) shields are lighter and built for handgun threats. Rifle rated (Level III) shields stop common rifle rounds and weigh more. See our <a href="/shields/">ballistic shields</a> page for a side-by-side comparison.' ),
-			array( 'q' => 'Do you carry USI training shields?', 'a' => 'Yes. The Phantom EVO training shield matches the size and feel of the duty shield, so teams can train without wearing out rated equipment.' ),
-			array( 'q' => 'Do you sell USI products to agencies?', 'a' => 'Yes. We accept agency purchase orders and quote multi-unit orders. <a href="/contact-us/">Contact us</a> for a quote.' ),
-		),
-
-		'art_label'    => 'From the J5 blog',
-		'art_title'    => 'United Shield articles',
-		'art_pinned'   => 'united-shield-international-the-modern-officers-armor-carrier,ballistic-shields-the-complete-buyers-guide',
-		'art_tag'      => 'united-shield',
-		'art_count'    => 3,
-
-		'agency_on'    => 1,
-		'agency_title' => 'Outfitting a team?',
-		'agency_text'  => 'Purchase orders accepted and quotes on multi-unit USI shield and armor orders.',
-		'agency_btn'   => 'Request a quote',
-		'agency_url'   => '/contact-us/',
-
-		'related_title' => 'Shop related',
-		'related_slugs' => array( 'shields', 'rifle-rated-shields', 'shield-accessories', 'body-armor' ),
-	);
-
-	$seeds['highcom'] = array(
-		'enabled'      => 1,
-		'title'        => 'HighCom',
-		'title_accent' => 'Armor',
-		'eyebrow'      => 'Ballistic Shields · Hard Armor Plates',
-		'chips'        => 'Bellfire Shields, Titan III, Multi-Curve Plates, Rifle Rated',
-		'_description' => 'HighCom ballistic shields and hard armor plates. The <strong>Bellfire</strong> shield family in handgun and rifle rated versions, the lightweight <strong>Titan III</strong> shield, and multi-curve plates such as the <strong>4SAS7</strong>. Compare shield ratings on our <a href="/shields/">ballistic shields</a> page.',
-
-		'tiles_label'  => 'Shop HighCom',
-		'tiles_title'  => 'Shields and plates',
-		'tiles'        => array(
-			array( 'url' => '/highcom-bellfire-b3-ballistic-shield-rifle-rated/', 'kicker' => '01 — Rifle Rated', 'title' => 'Bellfire B3', 'text' => 'Rifle rated Bellfire shield, flat or single curve, with viewport options.', 'chips' => 'Rifle Rated, Viewport Option', 'cta' => 'View the B3' ),
-			array( 'url' => '/highcom-bellfire-b3a-ballistic-shield-handgun-rated/', 'kicker' => '02 — Handgun Rated', 'title' => 'Bellfire B3A', 'text' => 'Handgun rated version of the Bellfire, lighter for patrol carry.', 'chips' => 'Level IIIA, Patrol', 'cta' => 'View the B3A' ),
-			array( 'url' => '/highcom-titan-iii-lightweight-ballistic-shield-rifle-rated/', 'kicker' => '03 — Lightweight', 'title' => 'Titan III', 'text' => 'Lightweight rifle rated shield.', 'chips' => 'Rifle Rated, Lightweight', 'cta' => 'View the Titan III' ),
-			array( 'url' => '/highcom-4sas7-multi-curve-level-iv-plate-set/', 'kicker' => '04 — Plates', 'title' => '4SAS7 Plate Set', 'text' => 'Multi-curve Level IV hard armor plate set.', 'chips' => 'Level IV, Multi-Curve', 'cta' => 'View the 4SAS7' ),
-		),
-
-		'faq_title'    => 'HighCom questions',
-		'faqs'         => array(
-			array( 'q' => 'What is the difference between the HighCom Bellfire B3 and B3A?', 'a' => 'The B3 is rifle rated and the B3A is handgun rated. The B3A is lighter; the B3 stops common rifle threats. Both come in several sizes and shapes.' ),
-			array( 'q' => 'Which HighCom shield is the lightest?', 'a' => 'Handgun rated shields and HighCom\'s lightweight lines (LTS and Titan) are the lightest. Exact weights for each size are on the product pages.' ),
-			array( 'q' => 'Does HighCom make body armor plates?', 'a' => 'Yes. HighCom makes hard armor plates, including multi-curve Level IV plate sets like the 4SAS7.' ),
-			array( 'q' => 'Do you sell HighCom to agencies?', 'a' => 'Yes. We accept agency purchase orders and quote multi-unit shield and plate orders. <a href="/contact-us/">Contact us</a> for a quote.' ),
-		),
-
-		'art_label'    => 'From the J5 blog',
-		'art_title'    => 'Shield and armor guides',
-		'art_pinned'   => 'ballistic-shields-the-complete-buyers-guide',
-		'art_tag'      => 'highcom',
-		'art_count'    => 3,
-
-		'agency_on'    => 1,
-		'agency_title' => 'Outfitting a team?',
-		'agency_text'  => 'Purchase orders accepted and quotes on multi-unit HighCom shield and plate orders.',
-		'agency_btn'   => 'Request a quote',
-		'agency_url'   => '/contact-us/',
-
-		'related_title' => 'Shop related',
-		'related_slugs' => $common_related,
-	);
-
-	$seeds['pavashot'] = array(
-		'enabled'      => 1,
-		'title'        => 'Pavashot',
-		'title_accent' => '',
-		'eyebrow'      => 'Less Lethal · PAVA / OC Launchers',
-		'chips'        => 'StickShot, NPDD, PavaBall Projectiles, Reloads',
-		'_description' => 'Pavashot less lethal launchers and projectiles. Pavashot devices deliver PAVA, a synthetic pepper compound, to stop a threat at a distance without a firearm. Shop the <strong>StickShot</strong>, the <strong>NPDD</strong> non-pyrotechnic diversionary device, and <strong>PavaBall</strong> projectiles and reloads.',
-
-		'tiles_label'  => 'Shop Pavashot',
-		'tiles_title'  => 'Launchers and reloads',
-		'tiles'        => array(
-			array( 'url' => '/?s=stickshot&post_type=product', 'kicker' => '01 — Launcher', 'title' => 'StickShot', 'text' => 'Handheld reloadable PAVA launcher.', 'chips' => 'Handheld, Reloadable', 'cta' => 'View the StickShot' ),
-			array( 'url' => '/?s=npdd&post_type=product', 'kicker' => '02 — Diversionary', 'title' => 'NPDD', 'text' => 'Non-pyrotechnic diversionary device and reload kits.', 'chips' => 'Diversionary, Reload Kits', 'cta' => 'View the NPDD' ),
-			array( 'url' => '/?s=pavaball&post_type=product', 'kicker' => '03 — Projectiles', 'title' => 'PavaBall Projectiles', 'text' => 'Capsaicin projectiles and reloads for Pavashot launchers.', 'chips' => 'Projectiles, Reloads', 'cta' => 'View projectiles' ),
-		),
-
-		'cmp_label'    => 'Pavashot vs Byrna',
-		'cmp_title'    => 'Pavashot or Byrna?',
-		'cmp_intro'    => 'We carry both. They stop a threat at a distance in different ways.',
-		'cmp_col_a'    => 'Pavashot',
-		'cmp_col_b'    => 'Byrna',
-		'cmp_rows'     => array(
-			array( 'label' => 'Agent', 'a' => 'PAVA (synthetic capsaicin)', 'b' => 'OC / PAVA pepper projectiles, plus kinetic rounds' ),
-			array( 'label' => 'Format', 'a' => 'Handheld launchers and diversionary devices', 'b' => 'CO2 launchers, pistol and rifle style' ),
-			array( 'label' => 'Shop', 'a' => '<a href="/brand/pavashot/">Pavashot &rarr;</a>', 'b' => '<a href="/brand/byrna/">Byrna &rarr;</a>' ),
-		),
-
-		'faq_title'    => 'Pavashot questions',
-		'faqs'         => array(
-			array( 'q' => 'What is PAVA?', 'a' => 'PAVA (pelargonic acid vanillylamide) is a synthetic form of capsaicin, the compound that makes pepper spray work. It causes intense eye and skin irritation that stops a threat without lasting injury in most cases.' ),
-			array( 'q' => 'Is Pavashot legal where I live?', 'a' => 'Laws on pepper-based devices vary by state and city. Check your local laws before ordering. Checkout will tell you if we cannot ship a product to your address.' ),
-			array( 'q' => 'Where can I buy Pavashot reloads?', 'a' => 'Right here. We stock PavaBall projectiles and reload kits alongside the launchers.' ),
-		),
-
-		'art_label'    => 'From the J5 blog',
-		'art_title'    => 'Less lethal guides',
-		'art_pinned'   => '',
-		'art_tag'      => 'pavashot',
-		'art_count'    => 3,
-
-		'agency_on'    => 0,
-
-		'related_title' => 'Shop related',
-		'related_slugs' => array( 'less-lethal' ),
-	);
-
-	return $seeds;
-} );
+function j5_brands_index_page( $apply = false ) {
+	j5_brands_out( $apply ? 'APPLYING' : 'PREVIEW (run with true to apply)' );
+	$page = get_page_by_path( 'brands' );
+	if ( $page ) {
+		$elementor = 'builder' === get_post_meta( $page->ID, '_elementor_edit_mode', true );
+		j5_brands_out( sprintf( '  Existing page %d "%s" (%s)%s, content %d chars', $page->ID, $page->post_title, $page->post_status, $elementor ? ', Elementor-built' : '', strlen( $page->post_content ) ) );
+	} else {
+		j5_brands_out( '  No page at /brands/; one will be created.' );
+	}
+	$others = get_posts( array(
+		'post_type'      => 'page',
+		'post_status'    => array( 'publish', 'draft', 'private' ),
+		'posts_per_page' => -1,
+		'exclude'        => $page ? array( $page->ID ) : array(),
+	) );
+	foreach ( $others as $o ) {
+		if ( false !== strpos( $o->post_name, 'brand' ) ) {
+			j5_brands_out( sprintf( '  Other brand page: %d "%s" /%s/ (%s), 301 it to /brands/', $o->ID, $o->post_title, $o->post_name, $o->post_status ) );
+		}
+	}
+	if ( ! $apply ) {
+		return;
+	}
+	if ( $page ) {
+		update_post_meta( $page->ID, '_j5_pre_brands_content', $page->post_content );
+		delete_post_meta( $page->ID, '_elementor_edit_mode' );
+		$id = wp_update_post( array(
+			'ID'           => $page->ID,
+			'post_content' => j5_brands_index_content(),
+			'post_status'  => 'publish',
+		), true );
+	} else {
+		$id = wp_insert_post( array(
+			'post_type'    => 'page',
+			'post_name'    => 'brands',
+			'post_title'   => 'Brands',
+			'post_content' => j5_brands_index_content(),
+			'post_status'  => 'publish',
+		), true );
+	}
+	j5_brands_out( is_wp_error( $id ) ? '  ! ' . $id->get_error_message() : '  Brands page ready: ' . get_permalink( $id ) );
+}
