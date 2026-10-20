@@ -483,8 +483,16 @@ body.j5-product-template::before {
 @media (max-width: 700px) {
     .j5-sticky-cart { display: block; }
     .j5-product-tabs { margin-top: 32px; }
-    .j5-tabs-nav { overflow-x: auto; flex-wrap: nowrap; }
-    .j5-tab-btn { flex-shrink: 0; }
+    /* Product tabs stack vertically on phones: no sideways scrolling (J5-TABS-STACK) */
+    .j5-tabs-nav { flex-direction: column; flex-wrap: nowrap; gap: 0; overflow: visible; margin-bottom: 28px; border-top: 1px solid var(--j5-border); }
+    .j5-tab-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 15px 16px 15px 18px; text-align: left; border-bottom: 1px solid var(--j5-border); letter-spacing: 0.14em; }
+    .j5-tabs-nav .j5-tab-btn:last-child { border-bottom: 0; }
+    .j5-tab-btn::before { content: "\203A"; order: 2; font-size: 20px; line-height: 1; color: var(--j5-ink-mute); transition: transform 0.2s, color 0.2s; }
+    .j5-tab-btn.active::before { color: var(--j5-gold); }
+    .j5-tab-btn::after { left: 0; top: 0; bottom: 0; width: 3px; height: auto; transform: none; background: var(--j5-red); opacity: 0; transition: opacity 0.2s; }
+    .j5-tab-btn.active::after { width: 3px; opacity: 1; }
+    .j5-tab-btn.active { background: var(--j5-bg-card, #15181d); }
+    .j5-tab-btn .count { margin-left: 6px; margin-right: auto; }
     body.j5-product-template .j5-product-main { padding-bottom: 100px; }
 }
 @media (max-width: 640px) {
