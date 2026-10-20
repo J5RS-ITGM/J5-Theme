@@ -279,6 +279,27 @@
                             o.classList.toggle( 'j5-opt-special', st === 'special' );
                             o.classList.toggle( 'j5-opt-oos', st === 'out' );
 
+                            /* J5-FACTORY-ORDER-1: a special option whose
+                             * matching variations all carry the same factory
+                             * lead time is labeled with it ("Ships in 4 to 6
+                             * weeks") instead of "Special order". */
+                            var lead = '';
+                            if ( st === 'special' ) {
+                                var leads = matching
+                                    .filter( function ( v ) { return v.j5_stock_state === 'special'; } )
+                                    .map( function ( v ) { return v.j5_lead_text || ''; } );
+                                if ( leads.length && leads[ 0 ] && leads.every( function ( t ) { return t === leads[ 0 ]; } ) ) {
+                                    lead = leads[ 0 ];
+                                }
+                            }
+                            o.classList.toggle( 'j5-opt-factory', !! lead );
+                            if ( lead ) { o.setAttribute( 'data-j5-lead', lead ); } else { o.removeAttribute( 'data-j5-lead' ); }
+                            var spSpan = o.querySelector( '.j5-vc-special' );
+                            if ( spSpan ) {
+                                if ( ! spSpan.hasAttribute( 'data-j5-orig' ) ) { spSpan.setAttribute( 'data-j5-orig', spSpan.textContent ); }
+                                spSpan.textContent = lead || spSpan.getAttribute( 'data-j5-orig' );
+                            }
+
                             /* Per-option pricing is suppressed by default
                              * (J5-VAR-PRICE-1). The server emits .j5-vc-price
                              * empty but keeps data-min for this engine. Only
@@ -300,7 +321,8 @@
                                 }
                             }
                         } else {
-                            o.classList.remove( 'j5-opt-in', 'j5-opt-special', 'j5-opt-oos' );
+                            o.classList.remove( 'j5-opt-in', 'j5-opt-special', 'j5-opt-oos', 'j5-opt-factory' );
+                            o.removeAttribute( 'data-j5-lead' );
                         }
                     } );
 
@@ -382,6 +404,7 @@
                     var suffix = '';
                     if ( last && ! gone ) {
                         if ( pill.classList.contains( 'j5-opt-oos' ) ) { suffix = ' \u00b7 Out of stock'; }
+                        else if ( pill.getAttribute( 'data-j5-lead' ) ) { suffix = ' \u00b7 ' + pill.getAttribute( 'data-j5-lead' ); }
                         else if ( pill.classList.contains( 'j5-opt-special' ) ) { suffix = ' \u00b7 Special order'; }
                     }
                     opt.textContent = opt.getAttribute( 'data-j5-label' ) + suffix;
@@ -467,6 +490,9 @@
                  * Variations without one yet use the stock_status path below. */
                 if ( vf && vf.state && vf.label ) {
                     writeBanner( vf.state, vf.label, vf.note || '' );
+                } else if ( vState === 'special' && v.j5_lead_text ) {
+                    /* J5-FACTORY-ORDER-1 fallback; normally vf above covers it. */
+                    writeBanner( 'special', 'FACTORY ORDER', v.j5_lead_text );
                 } else if ( vState === 'special' ) {
                     var cS = bannerCopy( 'special', 'SPECIAL ORDER', 'made to order \u00b7 extended lead time' );
                     setBanner( 'special', cS.label, cS.note );

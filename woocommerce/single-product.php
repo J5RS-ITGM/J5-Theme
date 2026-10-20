@@ -259,7 +259,8 @@ get_header();
                         <?php elseif ( $product->is_in_stock() ) : ?>
                             <span class="dot select"></span>
                             <span class="label">SELECT OPTIONS</span>
-                            <span class="qty">availability shown per configuration</span>
+                            <?php /* J5-FACTORY-ORDER-1: DP's summary also applies when options DON'T differ, e.g. every option "Ships in 4 to 6 weeks". */ ?>
+                            <span class="qty"><?php echo esc_html( '' !== $j5_mix['summary'] ? $j5_mix['summary'] : 'availability shown per configuration' ); ?></span>
                         <?php else : ?>
                             <span class="dot out"></span>
                             <span class="label">OUT OF STOCK</span>

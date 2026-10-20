@@ -318,6 +318,14 @@ function j5_get_fulfillment( $product ) {
 	$type = sanitize_key( (string) $product->get_meta( '_j5_fulfillment', true ) );
 
 	$types = j5_fulfillment_types();
+
+	// J5-FACTORY-ORDER-1: a factory order with no status yet still resolves,
+	// as a special order, so the lead time is never silently dropped.
+	$lead = j5_product_lead_weeks( $product );
+	if ( ( '' === $type || ! isset( $types[ $type ] ) ) && null !== $lead && isset( $types['special'] ) ) {
+		$type = 'special';
+	}
+
 	if ( '' === $type || ! isset( $types[ $type ] ) ) {
 		return null;
 	}
@@ -355,11 +363,21 @@ function j5_get_fulfillment( $product ) {
 		$resolved_note = $def['note'];
 	}
 
+	// J5-FACTORY-ORDER-1: a lead time is the more specific promise, so it
+	// replaces the label and note. State, buyability and ack stay those of
+	// the status (special), so the banner color, cart and schema don't change.
+	$label = $def['label'];
+	if ( null !== $lead ) {
+		$label         = j5_factory_label();
+		$resolved_note = $lead['text'];
+	}
+
 	return array(
 		'type'         => $type,
 		'state'        => $def['state'],
-		'label'        => $def['label'],
+		'label'        => $label,
 		'note'         => $resolved_note,
+		'lead'         => $lead,
 		'eta'          => $eta_raw,
 		'buyable'      => (bool) $def['buyable'],
 		'replacements' => ! empty( $def['replacements'] ),
@@ -517,3 +535,107 @@ add_filter( 'woocommerce_available_variation', function ( $data, $product, $vari
 
 	return $data;
 }, 20, 3 );
+
+/* ============================================================================
+ *  J5-FACTORY-ORDER-1 (2026-10-20) — factory order with a lead time
+ *
+ *  DP's third no-stock policy. Per variation (or simple product), DP pushes:
+ *    stock_status        onbackorder           (buyable, same as special)
+ *    _j5_fulfillment     special
+ *    _j5_fulfillment_note "Ships in 4 to 6 weeks"
+ *    _j5_lead_weeks      "4-6" | "4" | ""      ("" = not a factory order)
+ *
+ *  Factory = onbackorder AND _j5_lead_weeks parses. Anything else falls back
+ *  to plain special order, so a variation leaving factory order (DP sends "")
+ *  reverts on its own. The visual state stays 'special' (gold), the cart and
+ *  the special_order acknowledgment are unchanged, and the schema stays
+ *  BackOrder (inc/j5-product-schema.php reads the state, not the label).
+ * ========================================================================== */
+
+/**
+ * Parse a lead-time value: "4", "4-6", "4 - 6", "4–6", "4 to 6".
+ *
+ * @param string $raw
+ * @return array|null { min: int, max: int } or null when empty/invalid.
+ */
+function j5_parse_lead_weeks( $raw ) {
+	$raw = trim( (string) $raw );
+	if ( '' === $raw ) {
+		return null;
+	}
+	if ( ! preg_match( '/^(\d{1,3})(?:\s*(?:-|\x{2013}|\x{2014}|to)\s*(\d{1,3}))?$/iu', $raw, $m ) ) {
+		return null;
+	}
+	$min = (int) $m[1];
+	$max = isset( $m[2] ) && '' !== $m[2] ? (int) $m[2] : $min;
+	if ( $min < 1 ) {
+		return null;
+	}
+	if ( $max < $min ) {
+		list( $min, $max ) = array( $max, $min );
+		if ( $min < 1 ) {
+			return null;
+		}
+	}
+	return array( 'min' => $min, 'max' => $max );
+}
+
+/**
+ * Shopper-facing lead-time line: "Ships in 4 to 6 weeks" / "Ships in 4 weeks".
+ *
+ * @param int $min
+ * @param int $max
+ * @return string
+ */
+function j5_lead_weeks_text( $min, $max ) {
+	if ( $min === $max ) {
+		$text = sprintf( 'Ships in %d %s', $min, 1 === $min ? 'week' : 'weeks' );
+	} else {
+		$text = sprintf( 'Ships in %d to %d weeks', $min, $max );
+	}
+	return apply_filters( 'j5_lead_weeks_text', $text, $min, $max );
+}
+
+/**
+ * Banner headline for a factory order. Filterable.
+ *
+ * @return string
+ */
+function j5_factory_label() {
+	return (string) apply_filters( 'j5_factory_label', 'FACTORY ORDER' );
+}
+
+/**
+ * The factory lead time for a product or variation, or null when it is not a
+ * factory order (not on backorder, or no usable _j5_lead_weeks).
+ *
+ * @param WC_Product $product
+ * @return array|null { min, max, text }
+ */
+function j5_product_lead_weeks( $product ) {
+	if ( ! $product instanceof WC_Product || 'onbackorder' !== $product->get_stock_status() ) {
+		return null;
+	}
+	$lead = j5_parse_lead_weeks( $product->get_meta( '_j5_lead_weeks', true ) );
+	if ( null === $lead ) {
+		return null;
+	}
+	$lead['text'] = j5_lead_weeks_text( $lead['min'], $lead['max'] );
+	return $lead;
+}
+
+/**
+ * Expose the lead time to the variations JSON. j5_stock_state stays
+ * 'special' so every existing consumer keeps working; j5-shop.js reads
+ * j5_lead_text to label the option and the banner.
+ */
+add_filter( 'woocommerce_available_variation', function ( $data, $product, $variation ) {
+	if ( ! $variation instanceof WC_Product_Variation ) {
+		return $data;
+	}
+	$lead = j5_product_lead_weeks( $variation );
+	if ( null !== $lead ) {
+		$data['j5_lead_text'] = $lead['text'];
+	}
+	return $data;
+}, 21, 3 );
