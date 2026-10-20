@@ -597,6 +597,22 @@ function j5_lead_weeks_text( $min, $max ) {
 }
 
 /**
+ * Compact lead time for option labels: "4-6 weeks" / "4 weeks" / "1 week".
+ *
+ * @param int $min
+ * @param int $max
+ * @return string
+ */
+function j5_lead_weeks_short( $min, $max ) {
+	if ( $min === $max ) {
+		$text = sprintf( '%d %s', $min, 1 === $min ? 'week' : 'weeks' );
+	} else {
+		$text = sprintf( '%d-%d weeks', $min, $max );
+	}
+	return apply_filters( 'j5_lead_weeks_short', $text, $min, $max );
+}
+
+/**
  * Banner headline for a factory order. Filterable.
  *
  * @return string
@@ -635,7 +651,9 @@ add_filter( 'woocommerce_available_variation', function ( $data, $product, $vari
 	}
 	$lead = j5_product_lead_weeks( $variation );
 	if ( null !== $lead ) {
-		$data['j5_lead_text'] = $lead['text'];
+		$data['j5_lead_text']  = $lead['text'];
+		// Compact form for pills and dropdown options: "4-6 weeks".
+		$data['j5_lead_short'] = j5_lead_weeks_short( $lead['min'], $lead['max'] );
 	}
 	return $data;
 }, 21, 3 );

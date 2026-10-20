@@ -284,16 +284,23 @@
                              * lead time is labeled with it ("Ships in 4 to 6
                              * weeks") instead of "Special order". */
                             var lead = '';
+                            var leadShort = '';
                             if ( st === 'special' ) {
-                                var leads = matching
-                                    .filter( function ( v ) { return v.j5_stock_state === 'special'; } )
-                                    .map( function ( v ) { return v.j5_lead_text || ''; } );
+                                var specials = matching.filter( function ( v ) { return v.j5_stock_state === 'special'; } );
+                                var leads = specials.map( function ( v ) { return v.j5_lead_text || ''; } );
                                 if ( leads.length && leads[ 0 ] && leads.every( function ( t ) { return t === leads[ 0 ]; } ) ) {
                                     lead = leads[ 0 ];
+                                    leadShort = specials[ 0 ].j5_lead_short || lead;
                                 }
                             }
                             o.classList.toggle( 'j5-opt-factory', !! lead );
-                            if ( lead ) { o.setAttribute( 'data-j5-lead', lead ); } else { o.removeAttribute( 'data-j5-lead' ); }
+                            if ( lead ) {
+                                o.setAttribute( 'data-j5-lead', lead );
+                                o.setAttribute( 'data-j5-lead-short', leadShort );
+                            } else {
+                                o.removeAttribute( 'data-j5-lead' );
+                                o.removeAttribute( 'data-j5-lead-short' );
+                            }
                             var spSpan = o.querySelector( '.j5-vc-special' );
                             if ( spSpan ) {
                                 if ( ! spSpan.hasAttribute( 'data-j5-orig' ) ) { spSpan.setAttribute( 'data-j5-orig', spSpan.textContent ); }
@@ -323,6 +330,7 @@
                         } else {
                             o.classList.remove( 'j5-opt-in', 'j5-opt-special', 'j5-opt-oos', 'j5-opt-factory' );
                             o.removeAttribute( 'data-j5-lead' );
+                            o.removeAttribute( 'data-j5-lead-short' );
                         }
                     } );
 
@@ -377,11 +385,22 @@
             }
         }
 
+        /* J5-VAR-FIT-2: decide pills vs dropdown on the attribute's WHOLE
+         * option pool, not just the options the earlier selection leaves
+         * visible. Otherwise SAPI Cut's sizes wrap into a dropdown while
+         * Shooters Cut's fewer sizes stay pills, and the same group flips
+         * style as the buyer changes cut. .j5-fit-measure (CSS) briefly shows
+         * filtered-out options invisibly and gives every last-group pill the
+         * longest status suffix, so the result is the worst case for any
+         * selection and stays the same whichever cut is picked. */
         function fitGroup( group ) {
             var wrap = group.querySelector( '[data-j5-fit]' );
             if ( ! wrap || group.offsetParent === null ) { return; }
             setDropdownMode( group, false );          /* measure as pills */
-            if ( pillsWrap( wrap ) ) { setDropdownMode( group, true ); }
+            wrap.classList.add( 'j5-fit-measure' );
+            var wraps = pillsWrap( wrap );
+            wrap.classList.remove( 'j5-fit-measure' );
+            if ( wraps ) { setDropdownMode( group, true ); }
         }
 
         /* Mirror pill availability onto the dropdown's options: hide
@@ -404,7 +423,7 @@
                     var suffix = '';
                     if ( last && ! gone ) {
                         if ( pill.classList.contains( 'j5-opt-oos' ) ) { suffix = ' \u00b7 Out of stock'; }
-                        else if ( pill.getAttribute( 'data-j5-lead' ) ) { suffix = ' \u00b7 ' + pill.getAttribute( 'data-j5-lead' ); }
+                        else if ( pill.getAttribute( 'data-j5-lead-short' ) ) { suffix = ' \u00b7 ' + pill.getAttribute( 'data-j5-lead-short' ); }
                         else if ( pill.classList.contains( 'j5-opt-special' ) ) { suffix = ' \u00b7 Special order'; }
                     }
                     opt.textContent = opt.getAttribute( 'data-j5-label' ) + suffix;

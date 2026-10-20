@@ -1443,3 +1443,18 @@ body.j5-shop-template .j5-container {
     .j5-spec-sheet { flex-wrap: wrap; }
     .j5-spec-sheet__open { width: 100%; justify-content: center; }
 }
+
+
+/* ============================================================================
+ * J5-FACTORY-ORDER-1 + J5-VAR-FIT-2 (2026-10-20)
+ *   Factory-order pills show their lead time ("4-6 WEEKS") instead of
+ *   SPECIAL ORDER. The three-class selector outranks the older two-class
+ *   SPECIAL ORDER rules regardless of source order or media query. Stays
+ *   gold: it is a special order with a known lead time.
+ *   .j5-fit-measure is set by j5-shop.js only while measuring pill fit.
+ * ========================================================================== */
+.j5-variant-pill.j5-opt-special.j5-opt-factory::after { content: " \00b7 " attr(data-j5-lead-short); text-transform: uppercase; }
+
+.j5-variant-pills.j5-fit-measure .j5-variant-pill.j5-opt-none { display: inline-block !important; visibility: hidden; }
+.j5-vg-last .j5-variant-pills.j5-fit-measure .j5-variant-pill::after { content: " \00b7 SPECIAL ORDER" !important; font-size: 11px; letter-spacing: 0.1em; }
+/* === J5-FACTORY-ORDER-1 + J5-VAR-FIT-2 END === */
