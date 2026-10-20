@@ -317,14 +317,29 @@ function j5_brand_title_rules() {
 		'magpul'                        => array( 'Magpul', '/\bmagpul\b/i' ),
 		'ess'                           => array( 'ESS', '/\b(ess|crossbow)\b/i' ),
 		'scalarworks'                   => array( 'Scalarworks', '/\bscalarworks\b/i' ),
-		// Brands not in Products -> Brands yet; created on apply if a title matches.
-		'lbt'                           => array( 'LBT', '/\b(lbt|london bridge trading)\b/i' ),
+		// Brands that may not exist yet; created on apply if a title matches.
+		// Existing slugs (london-bridge-trading, 5-11, zoll-medical) are reused.
+		'london-bridge-trading'         => array( 'London Bridge Trading', '/\b(lbt|london bridge trading)\b/i' ),
+		'5-11'                          => array( '5.11 Tactical', '/\b5\.11\b/' ),
+		'zoll-medical'                  => array( 'Zoll Medical', '/\bzoll\b/i' ),
 		'agilite'                       => array( 'Agilite', '/\bagilite\b/i' ),
 		'condor'                        => array( 'Condor', '/\bcondor\b/i' ),
 		'benchmade'                     => array( 'Benchmade', '/\bbenchmade\b/i' ),
 		'blade-tech'                    => array( 'Blade-Tech', '/\bblade-?tech\b/i' ),
 		'dji'                           => array( 'DJI', '/\bdji\b/i' ),
 		'mckesson'                      => array( 'McKesson', '/\bmckesson\b/i' ),
+		'spyderco'                      => array( 'Spyderco', '/\bspyderco\b/i' ),
+		'skb'                           => array( 'SKB', '/\bskb\b/i' ),
+		'streamlight'                   => array( 'Streamlight', '/\bstreamlight\b/i' ),
+		'esstac'                        => array( 'Esstac', '/\besstac\b/i' ),
+		'foxfury'                       => array( 'FoxFury', '/\bfoxfury\b/i' ),
+		'gerber'                        => array( 'Gerber', '/\bgerber\b/i' ),
+		'sog'                           => array( 'SOG', '/\bsog\b/i' ),
+		'sordin'                        => array( 'Sordin', '/\bsordin\b/i' ),
+		'water-jel'                     => array( 'Water-Jel', '/\bwater-jel\b/i' ),
+		'breachpen'                     => array( 'Breachpen', '/\bbreachpen\b/i' ),
+		'xshear'                        => array( 'XShear', '/\bxshears?\b/i' ),
+		'3m'                            => array( '3M', '/\b3m\b/i' ),
 	) );
 }
 
@@ -516,4 +531,67 @@ function j5_brands_index_page( $apply = false ) {
 		), true );
 	}
 	j5_brands_out( is_wp_error( $id ) ? '  ! ' . $id->get_error_message() : '  Brands page ready: ' . get_permalink( $id ) );
+}
+
+/* =========================================================================
+ * 8. FOOTER "BRANDS" COLUMN (called from footer.php)
+ *
+ *    Lists featured brands, then "All brands" when the /brands/ page exists.
+ *    Featured list is filterable (j5_footer_brand_slugs); brands that don't
+ *    exist or have no products are skipped, and the column tops up from the
+ *    brands with the most products.
+ * ========================================================================= */
+
+function j5_render_footer_brands() {
+	if ( ! taxonomy_exists( J5_BRAND_TAX ) ) {
+		return;
+	}
+	$max   = 6;
+	$slugs = apply_filters( 'j5_footer_brand_slugs', array( 'hesco-armor', 'highcom-armor', 'united-shield-international', 'surefire', 'eotech', 'north-american-rescue' ) );
+	$skip  = array( 'test', 'j5-rescue-supply' );
+	$picked = array();
+	foreach ( $slugs as $slug ) {
+		$t = get_term_by( 'slug', $slug, J5_BRAND_TAX );
+		if ( $t && ! is_wp_error( $t ) && $t->count > 0 ) {
+			$picked[ $t->term_id ] = $t;
+		}
+		if ( count( $picked ) >= $max ) {
+			break;
+		}
+	}
+	if ( count( $picked ) < $max ) {
+		$top = get_terms( array( 'taxonomy' => J5_BRAND_TAX, 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC', 'number' => 20 ) );
+		if ( ! is_wp_error( $top ) ) {
+			foreach ( $top as $t ) {
+				if ( count( $picked ) >= $max ) {
+					break;
+				}
+				if ( ! isset( $picked[ $t->term_id ] ) && ! in_array( $t->slug, $skip, true ) ) {
+					$picked[ $t->term_id ] = $t;
+				}
+			}
+		}
+	}
+	if ( empty( $picked ) ) {
+		return;
+	}
+	$page = get_page_by_path( 'brands' );
+	?>
+	<div class="j5-footer-col j5-footer-col--brands">
+		<h2 class="j5-footer-col__title">Brands</h2>
+		<ul class="j5-footer-links">
+			<?php foreach ( $picked as $t ) :
+				$link = get_term_link( $t );
+				if ( is_wp_error( $link ) ) {
+					continue;
+				}
+			?>
+				<li><a href="<?php echo esc_url( $link ); ?>"><?php echo esc_html( wp_specialchars_decode( $t->name ) ); ?></a></li>
+			<?php endforeach; ?>
+			<?php if ( $page && 'publish' === $page->post_status ) : ?>
+				<li class="j5-footer-links__all"><a href="<?php echo esc_url( get_permalink( $page ) ); ?>">All brands &rarr;</a></li>
+			<?php endif; ?>
+		</ul>
+	</div>
+	<?php
 }

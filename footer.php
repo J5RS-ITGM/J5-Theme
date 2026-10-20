@@ -38,6 +38,8 @@ $j5_year      = date_i18n( 'Y' );
 				<?php if ( function_exists( 'j5_render_footer_shop_menu' ) ) { j5_render_footer_shop_menu(); } ?>
 			</div>
 
+			<?php if ( function_exists( 'j5_render_footer_brands' ) ) { j5_render_footer_brands(); } ?>
+
 			<?php if ( function_exists( 'j5_render_footer_menu_groups' ) ) { j5_render_footer_menu_groups(); } ?>
 
 			<div class="j5-footer-col j5-footer-col--account">

@@ -147,7 +147,7 @@ body.j5-custom-chrome .j5-site-content { min-height: 200px; background: var(--j5
 
 /* ---- Footer ---- */
 body.j5-custom-chrome .j5-site-footer { background: var(--j5c-bg); border-top: 1px solid var(--j5c-border); margin-top: 40px; }
-body.j5-custom-chrome .j5-footer-main__inner { max-width: 1400px; margin: 0 auto; padding: 48px 24px 32px; display: grid; grid-template-columns: 1.25fr repeat(4, 1fr); gap: 28px; }
+body.j5-custom-chrome .j5-footer-main__inner { max-width: 1400px; margin: 0 auto; padding: 48px 24px 32px; display: grid; grid-template-columns: 1.25fr repeat(5, 1fr); gap: 28px; }
 body.j5-custom-chrome .j5-footer-col__title { font-family: var(--j5c-cond); font-size: 14px; letter-spacing: 0.22em; color: var(--j5c-gold); margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--j5c-border); text-transform: uppercase; font-weight: 500; }
 body.j5-custom-chrome .j5-footer-col--brand .j5-logo--footer { text-decoration: none; margin-bottom: 16px; display: inline-flex; }
 body.j5-custom-chrome .j5-footer-col--brand .j5-logo__mark { width: 36px; height: 36px; font-size: 18px; }
