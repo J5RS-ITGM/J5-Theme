@@ -126,12 +126,12 @@ add_filter( 'j5rc_brand_seeds', function ( $seeds ) {
 		'title_accent' => 'International',
 		'eyebrow'      => 'Ballistic Shields · Training Shields · Helmets',
 		'chips'        => 'Phantom EVO, Lightweight Level III+, Training Shields, Spec Ops Delta',
-		'_description' => 'United Shield International (USI) ballistic shields and helmets. The <strong>Phantom EVO</strong> shield and its matching training shield, the rifle rated <strong>Lightweight Level III+</strong> shields, and the <strong>Spec Ops Delta Gen II</strong> ballistic helmet. Compare shield ratings on our <a href="/shields/">ballistic shields</a> page.',
+		'_description' => 'United Shield International (USI) ballistic shields and helmets. The <strong>Phantom EVO</strong>, USI\'s lightest rifle rated shield, and its matching training shield, the rifle rated <strong>Lightweight Level III+</strong> shields, and the <strong>Spec Ops Delta Gen II</strong> ballistic helmet. Compare shield ratings on our <a href="/shields/">ballistic shields</a> page.',
 
 		'tiles_label'  => 'Shop USI',
 		'tiles_title'  => 'Shields and helmets',
 		'tiles'        => array(
-			array( 'url' => '/usi-phantom-evo-ballistic-shield/', 'kicker' => '01 · Ballistic Shield', 'title' => 'Phantom EVO Shield', 'text' => 'USI\'s Phantom EVO ballistic shield.', 'chips' => 'Shield', 'cta' => 'View the Phantom EVO' ),
+			array( 'url' => '/usi-phantom-evo-ballistic-shield/', 'kicker' => '01 · Ballistic Shield', 'title' => 'Phantom EVO Shield', 'text' => 'USI\'s lightest rifle rated shield.', 'chips' => 'Rifle Rated, Lightest', 'cta' => 'View the Phantom EVO' ),
 			array( 'url' => '/usi-lightweight-level-iii-rrs-rifle-rated/', 'kicker' => '02 · Rifle Rated', 'title' => 'Lightweight Level III+', 'text' => 'Rifle rated lightweight shield.', 'chips' => 'Level III+, Rifle Rated', 'cta' => 'View the Level III+' ),
 			array( 'url' => '/usi-phantom-evo-training-shield/', 'kicker' => '03 · Training', 'title' => 'Phantom EVO Training Shield', 'text' => 'Non-rated trainer so teams can practice without wearing out duty shields.', 'chips' => 'Training', 'cta' => 'View the trainer' ),
 			array( 'url' => '/usi-spec-ops-delta-gen-ii/', 'kicker' => '04 · Helmet', 'title' => 'Spec Ops Delta Gen II', 'text' => 'USI ballistic helmet.', 'chips' => 'Ballistic Helmet', 'cta' => 'View the Delta' ),
@@ -139,6 +139,8 @@ add_filter( 'j5rc_brand_seeds', function ( $seeds ) {
 
 		'faq_title'    => 'United Shield International questions',
 		'faqs'         => array(
+			array( 'q' => 'What is the most popular ballistic shield?', 'a' => 'The USI Lightweight Level IIIA MXV. MXV stands for Maximum View Port: it has the largest viewport known to be on the commercial market, giving officers a wider view from behind the shield. <a href="/contact-us/">Contact us</a> for pricing and lead times.' ),
+			array( 'q' => 'What is the lightest rifle shield offered by USI?', 'a' => 'The Phantom shield line. It is USI\'s lightest rifle rated shield. See the <a href="/usi-phantom-evo-ballistic-shield/">Phantom EVO</a> for sizes and options.' ),
 			array( 'q' => 'What is the difference between handgun rated and rifle rated shields?', 'a' => 'Handgun rated (Level IIIA) shields are lighter and built for handgun threats. Rifle rated shields stop common rifle rounds and weigh more. See our <a href="/shields/">ballistic shields</a> page for a side-by-side comparison.' ),
 			array( 'q' => 'Do you carry USI training shields?', 'a' => 'Yes. The Phantom EVO training shield matches the duty shield, so teams can train without wearing out rated equipment.' ),
 			array( 'q' => 'Do you sell USI products to agencies?', 'a' => 'Yes. We accept agency purchase orders and quote multi-unit orders. <a href="/contact-us/">Contact us</a> for a quote.' ),
