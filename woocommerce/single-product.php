@@ -356,6 +356,11 @@ get_header();
                         <?php endif; ?>
 
                         <?php
+                        // DP product options (_j5_options): after the selectors, before the ack gate. See inc/j5-product-options.php.
+                        if ( function_exists( 'j5_render_product_options' ) ) {
+                            j5_render_product_options( $product );
+                        }
+
                         /*
                          * Acknowledgment gate (placement = 'product'). MUST be
                          * inside the form so the checkboxes post with the
@@ -387,6 +392,10 @@ get_header();
                 <?php elseif ( $product->is_type( 'simple' ) ) : ?>
                     <form class="cart j5-simple-form" action="<?php echo esc_url( $product->add_to_cart_url() ); ?>" method="post">
                         <?php
+                        // DP product options (_j5_options). See inc/j5-product-options.php.
+                        if ( function_exists( 'j5_render_product_options' ) ) {
+                            j5_render_product_options( $product );
+                        }
                         // See note above — must be inside the form to post.
                         if ( function_exists( 'j5_render_ack_gate' ) ) {
                             j5_render_ack_gate( $product );

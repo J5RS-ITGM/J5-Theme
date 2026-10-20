@@ -1,0 +1,25 @@
+/* J5 Product Options (DP add-ons). Markup: inc/j5-product-options.php */
+.j5-opts { margin: 4px 0 20px; display: flex; flex-direction: column; gap: 18px; }
+.j5-opts__group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.j5-opts__name { padding: 0; margin: 0 0 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--j5-gold); }
+.j5-opts__req { color: var(--j5-red); }
+.j5-opts__help { margin: 0 0 10px; font-size: 14px; line-height: 1.45; color: var(--j5-ink-dim); }
+.j5-opts__name + .j5-opts__choices, .j5-opts__name + .j5-opts__select { margin-top: 10px; }
+.j5-opts__choices { display: flex; flex-direction: column; gap: 6px; }
+.j5-opts__choice { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--j5-bg-card); border: 1px solid var(--j5-border-hi); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.j5-opts__choice:hover { border-color: var(--j5-gold); }
+.j5-opts__choice:has(input:checked) { border-color: var(--j5-gold); background: var(--j5-bg-card-hi); }
+.j5-opts__choice input { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; accent-color: var(--j5-gold); cursor: pointer; }
+.j5-opts__choice input:focus-visible { outline: 2px solid var(--j5-gold); outline-offset: 2px; }
+.j5-opts__img { flex: 0 0 40px; width: 40px; height: 40px; object-fit: cover; border: 1px solid var(--j5-border); background: #fff; }
+.j5-opts__text { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.j5-opts__label { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 15px; color: var(--j5-bone); }
+.j5-opts__desc { font-size: 13px; line-height: 1.4; color: var(--j5-ink-dim); }
+.j5-opts__adj { flex: 0 0 auto; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--j5-gold); white-space: nowrap; }
+.j5-opts__choice--none .j5-opts__label { font-weight: 500; color: var(--j5-ink-dim); }
+.j5-opts__select { width: 100%; padding: 12px 36px 12px 14px; background: var(--j5-bg-card); border: 1px solid var(--j5-border-hi); color: var(--j5-ink); font-family: 'Barlow', sans-serif; font-size: 15px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23d4a044' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+.j5-opts__select:focus-visible { outline: 2px solid var(--j5-gold); outline-offset: 2px; }
+.j5-opts__err { margin: 8px 0 0; font-size: 14px; color: #ff6b6b; }
+.j5-opts__group.is-invalid .j5-opts__choice, .j5-opts__group.is-invalid .j5-opts__select { border-color: var(--j5-red); }
+.j5-product-price .j5-opts-price-note { display: block; margin-top: 2px; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--j5-ink-dim); }
+.j5-opts .screen-reader-text { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }

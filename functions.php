@@ -45,6 +45,8 @@ require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
 require_once get_stylesheet_directory() . '/inc/j5-closeout.php';
 // [j5_threat_matrix]: DP armor spec (_j5_armor_spec) on product pages (Specifications tab).
 require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
+// DP product options / add-ons (_j5_options): product page, cart price, order line meta for the DP.
+require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';
