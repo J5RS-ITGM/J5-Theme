@@ -47,6 +47,8 @@ require_once get_stylesheet_directory() . '/inc/j5-closeout.php';
 require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
 // DP product options / add-ons (_j5_options): product page, cart price, order line meta for the DP.
 require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
+// Factory order savings: page line (no number) + auto-applied virtual coupon in cart (DP _j5_factory_discount).
+require_once get_stylesheet_directory() . '/inc/j5-factory-savings.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';

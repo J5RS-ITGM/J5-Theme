@@ -266,6 +266,7 @@ get_header();
                             <span class="label">OUT OF STOCK</span>
                             <span class="qty">contact us for ETA</span>
                         <?php endif; ?>
+                        <?php if ( function_exists( 'j5fs_render_line' ) ) { j5fs_render_line( $product ); } /* J5 factory order savings, no number (inc/j5-factory-savings.php) */ ?>
                     </div>
                 <?php else : ?>
                     <div class="j5-product-stock"<?php echo $j5_fulfillment ? ' data-j5-fulfillment="' . esc_attr( $j5_fulfillment['type'] ) . '"' : ''; ?>>
@@ -294,6 +295,7 @@ get_header();
                             <span class="label">OUT OF STOCK</span>
                             <span class="qty">contact us for ETA</span>
                         <?php endif; ?>
+                        <?php if ( function_exists( 'j5fs_render_line' ) ) { j5fs_render_line( $product ); } /* J5 factory order savings, no number (inc/j5-factory-savings.php) */ ?>
                     </div>
                 <?php endif; ?>
 

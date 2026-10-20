@@ -1458,3 +1458,9 @@ body.j5-shop-template .j5-container {
 .j5-variant-pills.j5-fit-measure .j5-variant-pill.j5-opt-none { display: inline-block !important; visibility: hidden; }
 .j5-vg-last .j5-variant-pills.j5-fit-measure .j5-variant-pill::after { content: " \00b7 SPECIAL ORDER" !important; font-size: 11px; letter-spacing: 0.1em; }
 /* === J5-FACTORY-ORDER-1 + J5-VAR-FIT-2 END === */
+
+/* Factory order savings line inside the stock banner (inc/j5-factory-savings.php) */
+.j5-product-stock:has(.j5-fs-line:not([hidden])) { flex-wrap: wrap; row-gap: 6px; }
+.j5-product-stock .j5-fs-line { flex: 0 0 100%; text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--j5-gold); }
+.j5-product-stock .j5-fs-line[hidden] { display: none; }
+@media (max-width: 480px) { .j5-product-stock .j5-fs-line { text-align: left; padding-left: 20px; } }
