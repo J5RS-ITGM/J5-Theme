@@ -51,42 +51,54 @@ function j5_opts_groups( $product ) {
 	}
 	$raw = get_post_meta( $pid, J5_OPTS_META, true );
 	$out = array();
+	// JSON string per the brief; an array/object is also accepted (the WC REST
+	// API stores a JSON object sent as meta_data value as a serialized array).
 	if ( is_string( $raw ) && '' !== trim( $raw ) ) {
 		$decoded = json_decode( $raw, true );
-		if ( is_array( $decoded ) ) {
-			foreach ( $decoded as $g ) {
-				if ( ! is_array( $g ) || ! isset( $g['code'] ) || '' === (string) $g['code'] || empty( $g['choices'] ) || ! is_array( $g['choices'] ) ) {
+		if ( is_string( $decoded ) ) { // double-encoded
+			$decoded = json_decode( $decoded, true );
+		}
+	} elseif ( is_array( $raw ) || is_object( $raw ) ) {
+		$decoded = json_decode( wp_json_encode( $raw ), true );
+	} else {
+		$decoded = null;
+	}
+	if ( isset( $decoded['groups'] ) && is_array( $decoded['groups'] ) ) { // tolerate a { "groups": [...] } wrapper
+		$decoded = $decoded['groups'];
+	}
+	if ( is_array( $decoded ) ) {
+		foreach ( $decoded as $g ) {
+			if ( ! is_array( $g ) || ! isset( $g['code'] ) || '' === (string) $g['code'] || empty( $g['choices'] ) || ! is_array( $g['choices'] ) ) {
+				continue;
+			}
+			$choices = array();
+			foreach ( $g['choices'] as $c ) {
+				if ( ! is_array( $c ) || ! isset( $c['code'] ) || '' === (string) $c['code'] ) {
 					continue;
 				}
-				$choices = array();
-				foreach ( $g['choices'] as $c ) {
-					if ( ! is_array( $c ) || ! isset( $c['code'] ) || '' === (string) $c['code'] ) {
-						continue;
-					}
-					$choices[ (string) $c['code'] ] = array(
-						'code'         => (string) $c['code'],
-						'label'        => isset( $c['label'] ) && '' !== (string) $c['label'] ? (string) $c['label'] : (string) $c['code'],
-						'description'  => isset( $c['description'] ) ? (string) $c['description'] : '',
-						'sku_code'     => isset( $c['sku_code'] ) && null !== $c['sku_code'] ? trim( (string) $c['sku_code'] ) : '',
-						'price_adjust' => j5_opts_dec( isset( $c['price_adjust'] ) ? $c['price_adjust'] : 0 ),
-						'image_url'    => isset( $c['image_url'] ) && is_string( $c['image_url'] ) ? $c['image_url'] : '',
-						'is_default'   => ! empty( $c['is_default'] ),
-					);
-				}
-				if ( ! $choices ) {
-					continue;
-				}
-				$mode = isset( $g['sku_mode'] ) ? (string) $g['sku_mode'] : 'none';
-				$out[ (string) $g['code'] ] = array(
-					'code'        => (string) $g['code'],
-					'name'        => isset( $g['name'] ) && '' !== (string) $g['name'] ? (string) $g['name'] : (string) $g['code'],
-					'description' => isset( $g['description'] ) ? (string) $g['description'] : '',
-					'selection'   => ( isset( $g['selection'] ) && 'multi' === $g['selection'] ) ? 'multi' : 'single',
-					'required'    => ! empty( $g['required'] ),
-					'sku_mode'    => in_array( $mode, array( 'none', 'suffix', 'yoke' ), true ) ? $mode : 'none',
-					'choices'     => $choices,
+				$choices[ (string) $c['code'] ] = array(
+					'code'         => (string) $c['code'],
+					'label'        => isset( $c['label'] ) && '' !== (string) $c['label'] ? (string) $c['label'] : (string) $c['code'],
+					'description'  => isset( $c['description'] ) ? (string) $c['description'] : '',
+					'sku_code'     => isset( $c['sku_code'] ) && null !== $c['sku_code'] ? trim( (string) $c['sku_code'] ) : '',
+					'price_adjust' => j5_opts_dec( isset( $c['price_adjust'] ) ? $c['price_adjust'] : 0 ),
+					'image_url'    => isset( $c['image_url'] ) && is_string( $c['image_url'] ) ? $c['image_url'] : '',
+					'is_default'   => ! empty( $c['is_default'] ),
 				);
 			}
+			if ( ! $choices ) {
+				continue;
+			}
+			$mode = isset( $g['sku_mode'] ) ? (string) $g['sku_mode'] : 'none';
+			$out[ (string) $g['code'] ] = array(
+				'code'        => (string) $g['code'],
+				'name'        => isset( $g['name'] ) && '' !== (string) $g['name'] ? (string) $g['name'] : (string) $g['code'],
+				'description' => isset( $g['description'] ) ? (string) $g['description'] : '',
+				'selection'   => ( isset( $g['selection'] ) && 'multi' === $g['selection'] ) ? 'multi' : 'single',
+				'required'    => ! empty( $g['required'] ),
+				'sku_mode'    => in_array( $mode, array( 'none', 'suffix', 'yoke' ), true ) ? $mode : 'none',
+				'choices'     => $choices,
+			);
 		}
 	}
 	$cache[ $pid ] = $out;
