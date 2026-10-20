@@ -459,6 +459,8 @@ get_header();
         <section class="j5-product-tabs">
             <div class="j5-tabs-nav">
                 <button class="j5-tab-btn active" data-tab="description">Description</button>
+                <?php $j5_ballistics_html = function_exists( 'j5tm_render_ballistics' ) ? j5tm_render_ballistics( $product ) : ''; /* J5-BALLISTICS */ ?>
+                <?php if ( '' !== $j5_ballistics_html ) : ?><button class="j5-tab-btn" data-tab="ballistics">Ballistics</button><?php endif; ?>
                 <button class="j5-tab-btn" data-tab="specs">Specifications</button>
                 <?php if ( function_exists( 'j5_render_spec_sheets_tab_button' ) ) { j5_render_spec_sheets_tab_button( $product ); } /* J5-SPECSHEETS */ ?>
                 <button class="j5-tab-btn" data-tab="reviews">Reviews <?php if ( $review_cnt > 0 ) echo '<span class="count">(' . esc_html( $review_cnt ) . ')</span>'; ?></button>
@@ -471,12 +473,17 @@ get_header();
                     <?php echo j5_render_product_description( $description ); ?>
                 </div>
 
+                <?php if ( '' !== $j5_ballistics_html ) : ?>
+                <div class="j5-tab-panel" data-panel="ballistics">
+                    <?php echo $j5_ballistics_html; // escaped inside (inc/j5-threat-matrix.php) ?>
+                </div>
+                <?php endif; ?>
+
                 <div class="j5-tab-panel" data-panel="specs">
                     <?php
-                    // DP-verified armor spec (_j5_armor_spec): certification, sizes, threat matrix. Renders nothing if absent. See inc/j5-threat-matrix.php.
-                    if ( function_exists( 'j5tm_render' ) ) {
-                        echo j5tm_render( $product ); // escaped inside
-                    }
+                    // DP armor spec sizes table ("What Sizes Does the X Come In?"). Renders nothing if absent. See inc/j5-threat-matrix.php.
+                    $j5_sizes_html = function_exists( 'j5tm_render_sizes' ) ? j5tm_render_sizes( $product ) : '';
+                    echo $j5_sizes_html; // escaped inside
                     $j5_specs_extra = function_exists( 'j5_render_product_specs' ) ? j5_render_product_specs( $product ) : '';
                     if ( ! empty( $attr_display ) ) :
                     ?>
@@ -507,7 +514,7 @@ get_header();
                                 </tr>
                             <?php endif; ?>
                         </table>
-                    <?php elseif ( $j5_specs_extra === '' ) : ?>
+                    <?php elseif ( $j5_specs_extra === '' && $j5_sizes_html === '' ) : ?>
                         <p class="j5-tab-empty">No additional specifications listed.</p>
                     <?php endif; ?>
                     <?php if ( $j5_specs_extra !== '' ) { echo $j5_specs_extra; } // already wp_kses_post()'d in renderer ?>
