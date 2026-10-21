@@ -385,8 +385,8 @@
 
 	function floatingBar(root, panels) {
 		var bar = el('div', 'j5ac-float');
-		var top = el('button', 'j5ac-float-btn', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
-		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
+		var top = el('button', 'j5ac-float-btn j5ac-float-btn--top', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
+		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset all'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
 		bar.appendChild(top); bar.appendChild(reset);
 		root.appendChild(bar);
 		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
