@@ -117,7 +117,8 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": "https://j5rescue.com/product/usi-kent-shield/"
+      "wc_product_url": "https://j5rescue.com/product/usi-kent-shield/",
+      "family": "KENT"
     },
     {
       "slug": "usi-kent-2436-iii",
@@ -138,7 +139,8 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": "https://j5rescue.com/product/usi-kent-shield-iii/"
+      "wc_product_url": "https://j5rescue.com/product/usi-kent-shield-iii/",
+      "family": "KENT"
     },
     {
       "slug": "protech-intruder-iiia",
@@ -158,7 +160,8 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": null
+      "wc_product_url": null,
+      "carried": true
     },
     {
       "slug": "protech-rifle-rf2",
@@ -239,7 +242,8 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": "https://j5rescue.com/product/usi-kent-1830/"
+      "wc_product_url": "https://j5rescue.com/product/usi-kent-1830/",
+      "family": "KENT"
     }
   ]
 }

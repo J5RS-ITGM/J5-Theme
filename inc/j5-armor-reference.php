@@ -119,14 +119,18 @@ function j5_armor_ref_normalize( $category, $body ) {
 		}
 
 		$wc = isset( $m['wc_product_url'] ) && $m['wc_product_url'] ? esc_url_raw( (string) $m['wc_product_url'] ) : '';
+		// `carried`: the model is linked to a DP product (we sell it), whether or not it has a store page yet.
+		$carried = ! empty( $m['carried'] ) || ! empty( $m['product_id'] ) || '' !== $wc;
 
 		$models[] = array(
 			'slug'           => $slug,
 			'manufacturer'   => isset( $m['manufacturer'] ) ? sanitize_text_field( (string) $m['manufacturer'] ) : '',
 			'model'          => isset( $m['model'] ) ? sanitize_text_field( (string) $m['model'] ) : $slug,
+			'family'         => isset( $m['family'] ) ? sanitize_text_field( (string) $m['family'] ) : ( isset( $specs['family'] ) ? (string) $specs['family'] : '' ),
 			'specs'          => $specs,
 			'spec_sheet'     => $sheet,
 			'wc_product_url' => $wc ? $wc : null,
+			'carried'        => $carried,
 		);
 	}
 
@@ -297,6 +301,31 @@ function j5_armor_ref_derived( array $specs ) {
 	return $out;
 }
 
+/**
+ * How many sizes a model is offered in, and the list.
+ * Source, in order: a `sizes` spec ("S, M, L, XL" or "20x30 / 24x36"); otherwise
+ * sibling models in the same feed that share manufacturer + family (one record
+ * per size, which keeps per-size weights honest).
+ */
+function j5_armor_ref_sizes( array $m, array $all ) {
+	if ( ! empty( $m['specs']['sizes'] ) && is_string( $m['specs']['sizes'] ) ) {
+		$list = array_values( array_filter( array_map( 'trim', preg_split( '/[,\/;|]+/', $m['specs']['sizes'] ) ) ) );
+		if ( $list ) return array( 'count' => count( $list ), 'list' => $list );
+	}
+	if ( ! empty( $m['family'] ) ) {
+		$list = array();
+		foreach ( $all as $o ) {
+			if ( ! empty( $o['family'] ) && strcasecmp( $o['family'], $m['family'] ) === 0 && strcasecmp( $o['manufacturer'], $m['manufacturer'] ) === 0 ) {
+				$dims = j5_armor_ref_dims( $o['specs'] );
+				$list[] = $dims ? j5_armor_ref_fmt( $dims[0] ) . 'x' . j5_armor_ref_fmt( $dims[1] ) : ( isset( $o['specs']['size'] ) ? (string) $o['specs']['size'] : $o['model'] );
+			}
+		}
+		$list = array_values( array_unique( $list ) );
+		if ( count( $list ) > 1 ) return array( 'count' => count( $list ), 'list' => $list );
+	}
+	return null;
+}
+
 /** Display string for a spec value. */
 function j5_armor_ref_fmt( $v, $field = null ) {
 	if ( is_bool( $v ) ) return $v ? 'Yes' : 'No';
@@ -383,21 +412,24 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	$cols = array();
 	foreach ( $fields as $f ) if ( $f['required'] ) $cols[] = $f;
 
-	$any_eff = false;
-	foreach ( $models as $m ) { $d = j5_armor_ref_derived( $m['specs'] ); if ( isset( $d['oz_per_sqin'] ) ) $any_eff = true; }
+	$any_eff = false; $any_sizes = false;
+	foreach ( $models as $m ) { $d = j5_armor_ref_derived( $m['specs'] ); if ( isset( $d['oz_per_sqin'] ) ) $any_eff = true; if ( j5_armor_ref_sizes( $m, $models ) ) $any_sizes = true; }
 	if ( 'helmet' === $cat ) $any_eff = false;
 
 	$dates = array_filter( array_map( function ( $m ) { return $m['spec_sheet']['pulled_at']; }, $models ) );
 	sort( $dates );
 	$pulled = $dates ? ( count( array_unique( $dates ) ) > 1 ? j5_armor_ref_date( reset( $dates ) ) . ' to ' . j5_armor_ref_date( end( $dates ) ) : j5_armor_ref_date( reset( $dates ) ) ) : '';
 
-	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff );
+	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes );
 
 	// Sort options: the efficiency metric first where it exists, then every numeric field, then name.
 	$sorts = array();
 	if ( $any_eff ) $sorts['oz_per_sqin'] = 'Lightest per sq in';
 	foreach ( $fields as $f ) if ( 'number' === $f['type'] ) $sorts[ $f['key'] ] = $f['label'];
-	$sorts['model'] = 'Name';
+	if ( $any_eff ) $sorts['area_sqin'] = 'Coverage';
+	if ( $any_sizes ) $sorts['size_count'] = 'Sizes';
+	$sorts['maker'] = 'Manufacturer';
+	$sorts['model'] = 'Model name';
 	?>
 	<section class="j5ac-panel" id="j5ac-<?php echo esc_attr( $cat ); ?>" data-cat="<?php echo esc_attr( $cat ); ?>" <?php echo $open ? '' : 'hidden'; ?>>
 		<script type="application/json" class="j5ac-config"><?php echo wp_json_encode( $config, JSON_UNESCAPED_SLASHES ); ?></script>
@@ -421,6 +453,20 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				<?php endif;
 			endforeach; ?>
 
+			<?php
+			$makers = array();
+			foreach ( $models as $m ) if ( $m['manufacturer'] ) $makers[ $m['manufacturer'] ] = true;
+			$makers = array_keys( $makers ); natcasesort( $makers );
+			?>
+			<div class="j5ac-row j5ac-row--find">
+				<label class="j5ac-search"><span class="screen-reader-text">Search <?php echo esc_html( strtolower( $feed['label'] ) ); ?></span><input type="search" name="q" placeholder="Search model or manufacturer" autocomplete="off"></label>
+				<?php if ( count( $makers ) > 1 ) : ?>
+				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Manufacturer</span>
+					<select name="maker" class="j5ac-sort"><option value="">All</option><?php foreach ( $makers as $mk ) : ?><option value="<?php echo esc_attr( $mk ); ?>"><?php echo esc_html( $mk ); ?></option><?php endforeach; ?></select>
+				</label>
+				<?php endif; ?>
+				<label class="j5ac-check"><input type="checkbox" name="carried" value="1"> <span>J5 carries only</span></label>
+			</div>
 			<div class="j5ac-row">
 			<?php foreach ( $fields as $f ) :
 				if ( 'number' === $f['type'] ) :
@@ -443,6 +489,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				<?php if ( 'plate' === $cat ) : ?><label class="j5ac-check"><input type="checkbox" name="only:standalone" value="1"> <span>Standalone only</span></label><?php endif; ?>
 				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Sort</span>
 					<select name="sort" class="j5ac-sort"><?php foreach ( $sorts as $k => $l ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $l ); ?></option><?php endforeach; ?></select>
+					<button type="button" class="j5ac-dir" data-j5ac-dir aria-label="Reverse sort order" title="Reverse sort order">&#9650;</button>
 				</label>
 				<span class="j5ac-count" data-j5ac-count><?php echo count( $models ); ?> of <?php echo count( $models ); ?></span>
 				<button type="reset" class="j5ac-reset">Clear</button>
@@ -457,6 +504,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 						<th scope="col">Model</th>
 						<?php foreach ( $cols as $f ) : ?><th scope="col"<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?>><?php echo esc_html( $f['label'] ); ?></th><?php endforeach; ?>
 						<?php if ( $any_eff ) : ?><th scope="col" class="is-num">Oz / sq in</th><?php endif; ?>
+						<?php if ( $any_sizes ) : ?><th scope="col" class="is-num">Sizes</th><?php endif; ?>
 						<th scope="col" class="j5ac-th--sheet">Sheet</th>
 					</tr>
 				</thead>
@@ -471,20 +519,24 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 						return strcasecmp( $a['manufacturer'] . ' ' . $a['model'], $b['manufacturer'] . ' ' . $b['model'] );
 					} );
 					foreach ( $models as $m ) :
-						$d = j5_armor_ref_derived( $m['specs'] );
-						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'] );
+						$d  = j5_armor_ref_derived( $m['specs'] );
+						$sz = j5_armor_ref_sizes( $m, $models );
+						if ( $sz ) { $d['size_count'] = $sz['count']; $d['size_list'] = implode( ', ', $sz['list'] ); }
+						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'], 'carried' => $m['carried'], 'family' => $m['family'] );
 						?>
-						<tr data-slug="<?php echo esc_attr( $m['slug'] ); ?>" data-row="<?php echo esc_attr( wp_json_encode( $row, JSON_UNESCAPED_SLASHES ) ); ?>">
+						<tr data-slug="<?php echo esc_attr( $m['slug'] ); ?>" data-row="<?php echo esc_attr( wp_json_encode( $row, JSON_UNESCAPED_SLASHES ) ); ?>"<?php echo $m['carried'] ? ' class="is-carried"' : ''; ?>>
 							<td class="j5ac-td--pick"><input type="checkbox" class="j5ac-pick" value="<?php echo esc_attr( $m['slug'] ); ?>" aria-label="Compare <?php echo esc_attr( $m['manufacturer'] . ' ' . $m['model'] ); ?>"></td>
 							<th scope="row" class="j5ac-td--model">
 								<span class="j5ac-model"><?php echo esc_html( $m['model'] ); ?></span>
-								<span class="j5ac-maker"><?php echo esc_html( $m['manufacturer'] ); ?><?php if ( $m['wc_product_url'] ) : ?> <span class="j5ac-stock">In stock at J5</span><?php endif; ?></span>
+								<span class="j5ac-maker"><?php echo esc_html( $m['manufacturer'] ); ?><?php if ( $m['carried'] ) : ?> <span class="j5ac-stock"><?php echo $m['wc_product_url'] ? 'Sold by J5' : 'Quote from J5'; ?></span><?php endif; ?></span>
+								<button type="button" class="j5ac-rowhelp" data-j5ac-rowhelp="<?php echo esc_attr( $m['slug'] ); ?>">Help me compare</button>
 							</th>
 							<?php foreach ( $cols as $f ) :
 								$v = isset( $m['specs'][ $f['key'] ] ) ? $m['specs'][ $f['key'] ] : null; ?>
 								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php echo null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ); ?></td>
 							<?php endforeach; ?>
 							<?php if ( $any_eff ) : ?><td class="is-num j5ac-td--eff" data-label="Oz / sq in"><?php echo isset( $d['oz_per_sqin'] ) ? esc_html( number_format( $d['oz_per_sqin'], 3 ) ) : '<span class="j5ac-na">not listed</span>'; ?></td><?php endif; ?>
+							<?php if ( $any_sizes ) : ?><td class="is-num" data-label="Sizes"><?php echo $sz ? '<span title="' . esc_attr( $d['size_list'] ) . '">' . (int) $sz['count'] . '</span>' : '1'; ?></td><?php endif; ?>
 							<td class="j5ac-td--sheet"><?php if ( $m['spec_sheet']['url'] ) : ?><a href="<?php echo esc_url( $m['spec_sheet']['url'] ); ?>" target="_blank" rel="noopener">PDF</a><?php endif; ?></td>
 						</tr>
 					<?php endforeach; ?>
@@ -493,7 +545,8 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 			<p class="j5ac-none" data-j5ac-none hidden>No <?php echo esc_html( strtolower( $feed['label'] ) ); ?> match. Widen the filters.</p>
 		</div>
 
-		<p class="j5ac-hint" data-j5ac-hint>Check up to 3 to compare side by side.</p>
+		<p class="j5ac-hint"><span data-j5ac-hint>Check up to 6 to compare side by side, or check one and use Help me compare.</span> <button type="button" class="j5ac-help" data-j5ac-help hidden>Help me compare</button> <button type="button" class="j5ac-clear" data-j5ac-clear hidden>Clear selection</button></p>
+		<p class="j5ac-helpnote" data-j5ac-helpnote hidden></p>
 		<div class="j5ac-compare" data-j5ac-compare-out hidden tabindex="-1"></div>
 
 		<p class="j5ac-foot">Specs as published by each manufacturer<?php echo $pulled ? ', sheets pulled ' . esc_html( $pulled ) : ''; ?>. Ounces per square inch is calculated from the listed size and weight. Confirm current specs with the manufacturer or with us before you buy.</p>

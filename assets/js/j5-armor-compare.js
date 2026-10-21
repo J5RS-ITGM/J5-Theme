@@ -3,9 +3,9 @@
 (function () {
 	'use strict';
 
-	var MAX_PICK = 3;
+	var MAX_PICK = 6;
 	var LOWER_BETTER  = /weight|oz_per_sqin/;
-	var HIGHER_BETTER = /^area_sqin$/;
+	var HIGHER_BETTER = /^(area_sqin|size_count)$/;
 
 	function num(v) {
 		if (typeof v === 'number') return v;
@@ -52,25 +52,37 @@
 		this.count = section.querySelector('[data-j5ac-count]');
 		this.none = section.querySelector('[data-j5ac-none]');
 		this.hint = section.querySelector('[data-j5ac-hint]');
+		this.clearBtn = section.querySelector('[data-j5ac-clear]');
+		this.helpBtn = section.querySelector('[data-j5ac-help]');
+		this.helpNote = section.querySelector('[data-j5ac-helpnote]');
 		this.out = section.querySelector('[data-j5ac-compare-out]');
 		this.picked = [];
 		this.bind();
 	}
 
 	Panel.prototype.value = function (row, key) {
-		if (key === 'model') return (row.data.manufacturer + ' ' + row.data.model).toLowerCase();
+		if (key === 'model') return row.data.model.toLowerCase();
+		if (key === 'maker') return (row.data.manufacturer + ' ' + row.data.model).toLowerCase();
 		if (row.data.derived && key in row.data.derived) return row.data.derived[key];
 		return row.data.specs ? row.data.specs[key] : undefined;
 	};
 
 	Panel.prototype.bind = function () {
 		var self = this;
+		this.desc = false;
+		this.dirBtn = this.form.querySelector('[data-j5ac-dir]');
 		this.form.addEventListener('input', function (e) {
 			if (e.target.type === 'range') self.syncOutput(e.target);
 			if (e.target.name === 'sort') self.sort(e.target.value); else self.filter();
 		});
+		this.form.addEventListener('submit', function (e) { e.preventDefault(); });
+		this.dirBtn.addEventListener('click', function () {
+			self.desc = !self.desc;
+			self.dirBtn.innerHTML = self.desc ? '&#9660;' : '&#9650;';
+			self.sort(self.form.elements.sort.value);
+		});
 		this.form.addEventListener('reset', function () {
-			setTimeout(function () { self.syncOutputs(); self.filter(); self.sort(self.form.elements.sort.value); }, 0);
+			setTimeout(function () { self.desc = false; self.dirBtn.innerHTML = '&#9650;'; self.syncOutputs(); self.filter(); self.sort(self.form.elements.sort.value); }, 0);
 		});
 		this.syncOutputs();
 
@@ -78,6 +90,75 @@
 			if (!e.target.classList.contains('j5ac-pick')) return;
 			self.pick(e.target.value, e.target.checked, e.target);
 		});
+		this.clearBtn.addEventListener('click', function () { self.clearPicks(); });
+		this.helpBtn.addEventListener('click', function () { if (self.picked.length) self.helpCompare(self.picked[0]); });
+		this.tbody.addEventListener('click', function (e) {
+			var b = e.target.closest('[data-j5ac-rowhelp]');
+			if (b) self.helpCompare(b.getAttribute('data-j5ac-rowhelp'));
+		});
+	};
+
+	/**
+	 * Help me compare: start from one model and pull in the closest matches from
+	 * other manufacturers. Same protection level first, same standard preferred,
+	 * then nearest by coverage and weight, one per manufacturer before doubling up.
+	 */
+	Panel.prototype.helpCompare = function (slug) {
+		var anchor = this.rowBySlug(slug);
+		if (!anchor) return;
+		var a = anchor.data, aLevel = a.specs.level, aStd = a.specs.standard;
+		var aArea = num(a.derived.area_sqin), aWt = num(a.specs.weight_lb);
+		var want = MAX_PICK - 1;
+
+		var pool = this.rows.filter(function (r) { return r !== anchor && r.data.manufacturer !== a.manufacturer; });
+		var tiers = [
+			function (r) { return r.data.specs.level === aLevel && r.data.specs.standard === aStd; },
+			function (r) { return r.data.specs.level === aLevel; },
+			function (r) { return tier(r.data.specs.level) === tier(aLevel); }
+		];
+		function closeness(r) {
+			var d = 0, area = num(r.data.derived.area_sqin), wt = num(r.data.specs.weight_lb);
+			if (aArea && area) d += Math.abs(area - aArea) / aArea;
+			if (aWt && wt) d += Math.abs(wt - aWt) / aWt;
+			if (r.data.carried) d -= 0.05;
+			return d;
+		}
+		var chosen = [], makers = {}, usedTier = -1;
+		for (var t = 0; t < tiers.length && chosen.length < want; t++) {
+			var cands = pool.filter(tiers[t]).filter(function (r) { return chosen.indexOf(r) === -1; }).sort(function (x, y) { return closeness(x) - closeness(y); });
+			// one per manufacturer first
+			cands.forEach(function (r) { if (chosen.length < want && !makers[r.data.manufacturer]) { chosen.push(r); makers[r.data.manufacturer] = 1; if (usedTier < t) usedTier = t; } });
+			cands.forEach(function (r) { if (chosen.length < want && chosen.indexOf(r) === -1) { chosen.push(r); if (usedTier < t) usedTier = t; } });
+		}
+
+		this.clearPicks();
+		this.picked = [anchor].concat(chosen).map(function (r) { return r.data.slug; });
+		this.picked.forEach(function (sl) { var row = this.rowBySlug(sl); row.tr.classList.add('is-picked'); row.tr.querySelector('.j5ac-pick').checked = true; }, this);
+		this.anchorSlug = slug;
+		this.hint.textContent = 'Comparing ' + this.picked.length + '.';
+		this.clearBtn.hidden = false;
+		this.helpBtn.hidden = true;
+
+		var how = chosen.length ? (usedTier === 0 ? 'the same protection level and test standard' : usedTier === 1 ? 'the same protection level' : 'the same threat class') : '';
+		this.helpNote.textContent = chosen.length
+			? a.manufacturer + ' ' + a.model + ' against ' + chosen.length + ' from other manufacturers with ' + how + ', closest in size and weight first.'
+			: 'Nothing from another manufacturer is rated like the ' + a.model + ' in this list.';
+		this.helpNote.hidden = false;
+		this.compare(true);
+	};
+
+	Panel.prototype.clearPicks = function () {
+		this.picked.slice().forEach(function (slug) {
+			var row = this.rowBySlug(slug);
+			if (row) { row.tr.classList.remove('is-picked'); row.tr.querySelector('.j5ac-pick').checked = false; }
+		}, this);
+		this.picked = [];
+		this.anchorSlug = null;
+		this.hint.textContent = 'Check up to ' + MAX_PICK + ' to compare side by side, or check one and use Help me compare.';
+		this.clearBtn.hidden = true;
+		this.helpBtn.hidden = true;
+		this.helpNote.hidden = true;
+		this.compare(false);
 	};
 
 	Panel.prototype.syncOutputs = function () {
@@ -90,9 +171,12 @@
 	};
 
 	Panel.prototype.filter = function () {
-		var lists = {}, maxes = {}, onlys = [], has = [];
+		var lists = {}, maxes = {}, onlys = [], has = [], q = '', maker = '', carriedOnly = false;
 		Array.prototype.forEach.call(this.form.elements, function (inp) {
 			if (!inp.name || inp.name === 'sort') return;
+			if (inp.name === 'q') { q = inp.value.trim().toLowerCase(); return; }
+			if (inp.name === 'maker') { maker = inp.value; return; }
+			if (inp.name === 'carried') { carriedOnly = inp.checked; return; }
 			if (inp.type === 'checkbox' && inp.name.indexOf('only:') === 0) { if (inp.checked) onlys.push(inp.name.slice(5)); }
 			else if (inp.type === 'checkbox' && inp.name.indexOf('has:') === 0) { if (inp.checked) has.push(inp.name.slice(4)); }
 			else if (inp.type === 'checkbox') { if (inp.checked) (lists[inp.name] = lists[inp.name] || []).push(inp.value); }
@@ -101,7 +185,10 @@
 		var shown = 0;
 		this.rows.forEach(function (row) {
 			var ok = true, k, i, v;
-			for (k in lists) { if (lists[k].indexOf(String(this.value(row, k))) === -1) { ok = false; break; } }
+			if (q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
+			if (ok && maker && row.data.manufacturer !== maker) ok = false;
+			if (ok && carriedOnly && !row.data.carried) ok = false;
+			if (ok) for (k in lists) { if (lists[k].indexOf(String(this.value(row, k))) === -1) { ok = false; break; } }
 			if (ok) for (k in maxes) { var n = num(this.value(row, k)); if (n === null || n > maxes[k]) { ok = false; break; } }
 			if (ok) for (i = 0; i < onlys.length; i++) { v = this.value(row, onlys[i]); if (!v || v === 'No' || v === 'ICW') { ok = false; break; } }
 			if (ok) for (i = 0; i < has.length; i++) { v = this.value(row, has[i]); if (v === undefined || v === null || v === '' || v === false) { ok = false; break; } }
@@ -113,7 +200,7 @@
 	};
 
 	Panel.prototype.sort = function (key) {
-		var self = this, numeric = key !== 'model';
+		var self = this, numeric = key !== 'model' && key !== 'maker', sign = this.desc ? -1 : 1;
 		var sorted = this.rows.slice().sort(function (a, b) {
 			var va = self.value(a, key), vb = self.value(b, key);
 			if (numeric) {
@@ -121,9 +208,9 @@
 				if (na === null && nb === null) return 0;
 				if (na === null) return 1;
 				if (nb === null) return -1;
-				return na - nb;
+				return (na - nb) * sign;
 			}
-			return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' });
+			return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * sign;
 		});
 		sorted.forEach(function (row) { this.tbody.appendChild(row.tr); }, this);
 	};
@@ -147,7 +234,10 @@
 		}
 		var row = this.rowBySlug(slug);
 		if (row) row.tr.classList.toggle('is-picked', on);
-		this.hint.textContent = this.picked.length ? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.') : 'Check up to ' + MAX_PICK + ' to compare side by side.';
+		this.hint.textContent = this.picked.length ? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.') : 'Check up to ' + MAX_PICK + ' to compare side by side, or check one and use Help me compare.';
+		this.clearBtn.hidden = this.picked.length === 0;
+		this.helpBtn.hidden = this.picked.length !== 1;
+		if (this.anchorSlug && this.picked.indexOf(this.anchorSlug) === -1) { this.anchorSlug = null; this.helpNote.hidden = true; }
 		this.compare(on && this.picked.length === 1);
 	};
 
@@ -163,6 +253,27 @@
 		});
 		if (rows.some(function (r) { return r.data.derived && r.data.derived.area_sqin !== undefined; }) && cfg.category !== 'helmet') specRows.push({ key: 'area_sqin', label: 'Coverage', type: 'number', unit: 'sq in', derived: true });
 		if (cfg.eff) specRows.push({ key: 'oz_per_sqin', label: 'Oz / sq in', type: 'number', derived: true, places: 3 });
+		if (cfg.sizes) specRows.push({ key: 'size_count', label: 'Sizes offered', type: 'number', derived: true, sizes: true });
+
+		// Not the same thing: say so before the numbers get compared.
+		if (rows.length > 1) {
+			var levels = {}, standards = {}, types = {};
+			rows.forEach(function (r) {
+				if (r.data.specs.level) levels[r.data.specs.level] = 1;
+				if (r.data.specs.standard) standards[r.data.specs.standard] = 1;
+				if (r.data.specs.standalone) types[r.data.specs.standalone] = 1;
+			});
+			var parts = [];
+			if (Object.keys(levels).length > 1) parts.push('different protection levels (' + Object.keys(levels).join(', ') + ')');
+			if (Object.keys(standards).length > 1) parts.push('different test standards (' + Object.keys(standards).join(', ') + ')');
+			if (Object.keys(types).length > 1) parts.push('standalone and in-conjunction plates');
+			if (parts.length) {
+				var warn = el('p', 'j5ac-mixed');
+				warn.appendChild(el('strong', null, 'Not a like-for-like comparison. '));
+				warn.appendChild(document.createTextNode('These have ' + parts.join(' and ') + '. A higher rating usually costs weight, so judge weight and coverage against the threat each one is built to stop.'));
+				this.out.appendChild(warn);
+			}
+		}
 
 		// Best per numeric row, only when there is a real spread.
 		var best = {};
@@ -180,7 +291,10 @@
 		rows.forEach(function (r) {
 			var card = el('div', 'j5ac-card');
 			var hv = num(r.data.derived && r.data.derived[headlineKey] !== undefined ? r.data.derived[headlineKey] : r.data.specs[headlineKey]);
-			if (best[headlineKey] !== undefined && hv === best[headlineKey]) { card.classList.add('is-best'); card.appendChild(el('p', 'j5ac-card-best', headline)); }
+			var isAnchor = this.anchorSlug === r.data.slug;
+			if (isAnchor) card.classList.add('is-anchor');
+			if (best[headlineKey] !== undefined && hv === best[headlineKey]) { card.classList.add('is-best'); card.appendChild(el('p', 'j5ac-card-best', (isAnchor ? 'Your pick, ' : '') + headline.toLowerCase())); }
+			else if (isAnchor) card.appendChild(el('p', 'j5ac-card-best', 'Your pick'));
 			card.appendChild(el('span', 'j5ac-model', r.data.model));
 			card.appendChild(el('span', 'j5ac-maker', r.data.manufacturer));
 
@@ -191,8 +305,10 @@
 				tr.appendChild(el('td', null, sr.label));
 				var td = el('td');
 				var text = sr.places !== undefined && typeof v === 'number' ? v.toFixed(sr.places) : fmt(v, sr.field);
+				if (sr.sizes) { v = v || 1; text = String(v); }
 				if (text === null) td.appendChild(el('span', 'j5ac-na', 'not listed'));
 				else if (sr.key === 'level') td.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(v), text));
+				else if (sr.sizes) { td.textContent = text; if (r.data.derived.size_list) { td.appendChild(el('small', null, ' ' + r.data.derived.size_list)); } }
 				else td.textContent = sr.unit && typeof v === 'number' ? text + ' ' + sr.unit : text;
 				if (best[sr.key] !== undefined && num(v) === best[sr.key]) td.classList.add('is-best');
 				tr.appendChild(td);
@@ -211,15 +327,16 @@
 			} else src.textContent = 'Source: spec sheet not on file';
 			card.appendChild(src);
 
-			var btn;
-			if (r.data.wc) { btn = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); btn.href = r.data.wc; }
-			else {
-				btn = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote');
-				btn.href = quote + (quote.indexOf('?') === -1 ? '?' : '&') + 'item=' + encodeURIComponent(r.data.manufacturer + ' ' + r.data.model) + '&ref=armor-compare';
-			}
-			card.appendChild(btn);
+			// Only what we carry gets a button: a store page if it has one, otherwise a quote.
+			if (r.data.wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = r.data.wc; card.appendChild(buy); }
+			else if (r.data.carried) {
+				var q = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote');
+				q.href = quote + (quote.indexOf('?') === -1 ? '?' : '&') + 'item=' + encodeURIComponent(r.data.manufacturer + ' ' + r.data.model) + '&ref=armor-compare';
+				card.appendChild(q);
+			} else card.appendChild(el('p', 'j5ac-card-nocarry', 'Reference only. Not a J5 product.'));
+			if (r.data.carried) card.classList.add('is-carried');
 			grid.appendChild(card);
-		});
+		}, this);
 		this.out.appendChild(grid);
 		this.out.hidden = false;
 		if (scroll) this.out.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'nearest' });
