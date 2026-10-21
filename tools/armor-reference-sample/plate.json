@@ -1,0 +1,314 @@
+{
+  "category": "plate",
+  "label": "Plates",
+  "generated_at": "2026-10-21T04:10:00+00:00",
+  "fields": [
+    {
+      "key": "level",
+      "label": "Protection level",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "IIA",
+        "II",
+        "IIIA",
+        "III",
+        "III+",
+        "IV",
+        "RF1",
+        "RF2",
+        "RF3",
+        "HG1",
+        "HG2"
+      ]
+    },
+    {
+      "key": "standard",
+      "label": "Standard",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "NIJ 0101.06",
+        "NIJ 0101.07",
+        "NIJ 0108.01",
+        "NIJ 0106.01",
+        "DEA",
+        "FBI",
+        "Manufacturer tested"
+      ]
+    },
+    {
+      "key": "standalone",
+      "label": "Standalone or ICW",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "Standalone",
+        "ICW"
+      ]
+    },
+    {
+      "key": "cut",
+      "label": "Cut",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "Shooter's",
+        "SAPI",
+        "Swimmer's",
+        "Rectangle",
+        "Full"
+      ]
+    },
+    {
+      "key": "size",
+      "label": "Size",
+      "type": "text",
+      "unit": null,
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "weight_lb",
+      "label": "Weight",
+      "type": "number",
+      "unit": "lb",
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "special_threats",
+      "label": "Special threats",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "curve",
+      "label": "Curve",
+      "type": "list",
+      "unit": null,
+      "required": false,
+      "options": [
+        "Flat",
+        "Single curve",
+        "Multi-curve",
+        "Triple curve"
+      ]
+    },
+    {
+      "key": "thickness_in",
+      "label": "Thickness",
+      "type": "number",
+      "unit": "in",
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "material",
+      "label": "Material",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "multi_hit",
+      "label": "Multi-hit",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    }
+  ],
+  "models": [
+    {
+      "slug": "hesco-l211",
+      "manufacturer": "Hesco Armor",
+      "model": "L211",
+      "specs": {
+        "level": "IV",
+        "standard": "NIJ 0101.06",
+        "standalone": "Standalone",
+        "cut": "Shooter's",
+        "size": "10 x 12 in",
+        "weight_lb": 5.9,
+        "special_threats": "M2 AP",
+        "curve": "Multi-curve",
+        "thickness_in": 0.9,
+        "material": "Ceramic / polyethylene",
+        "multi_hit": "Yes"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-l211/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/hesco-l211-level-iv-plate/"
+    },
+    {
+      "slug": "hesco-3612",
+      "manufacturer": "Hesco Armor",
+      "model": "3612",
+      "specs": {
+        "level": "III+",
+        "standard": "NIJ 0101.06",
+        "standalone": "Standalone",
+        "cut": "Shooter's",
+        "size": "10 x 12 in",
+        "weight_lb": 3.4,
+        "special_threats": "M855, M193, 7.62x39 MSC",
+        "curve": "Multi-curve",
+        "thickness_in": 1.0,
+        "material": "Polyethylene",
+        "multi_hit": "Yes"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-3612/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/hesco-3612-plate/"
+    },
+    {
+      "slug": "hesco-4403mc",
+      "manufacturer": "Hesco Armor",
+      "model": "4403MC",
+      "specs": {
+        "level": "IV",
+        "standard": "NIJ 0101.06",
+        "standalone": "Standalone",
+        "cut": "SAPI",
+        "size": "10 x 12 in",
+        "weight_lb": 7.7,
+        "special_threats": "M2 AP",
+        "curve": "Multi-curve",
+        "thickness_in": 0.85,
+        "material": "Ceramic / polyethylene",
+        "multi_hit": "Yes"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-4403mc/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/hesco-4403mc/"
+    },
+    {
+      "slug": "highcom-ras-4s17m",
+      "manufacturer": "HighCom Armor",
+      "model": "RAS 4S17M",
+      "specs": {
+        "level": "IV",
+        "standard": "NIJ 0101.06",
+        "standalone": "Standalone",
+        "cut": "Shooter's",
+        "size": "10 x 12 in",
+        "weight_lb": 6.2,
+        "curve": "Multi-curve",
+        "thickness_in": 0.95,
+        "material": "Ceramic / polyethylene"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/highcom-armor/highcom-ras-4s17m/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "rts-rf1-1012",
+      "manufacturer": "RTS Tactical",
+      "model": "RF1 10x12",
+      "specs": {
+        "level": "RF1",
+        "standard": "NIJ 0101.07",
+        "standalone": "Standalone",
+        "cut": "SAPI",
+        "size": "10 x 12 in",
+        "weight_lb": 4.1,
+        "curve": "Single curve",
+        "thickness_in": 1.1,
+        "material": "Polyethylene"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/rts-tactical/rts-rf1-1012/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "protech-icw-iii",
+      "manufacturer": "Protech Tactical",
+      "model": "2113 ICW",
+      "specs": {
+        "level": "III",
+        "standard": "NIJ 0101.06",
+        "standalone": "ICW",
+        "cut": "Shooter's",
+        "size": "10 x 12 in",
+        "weight_lb": 2.9,
+        "curve": "Single curve",
+        "thickness_in": 0.5,
+        "material": "Ceramic"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/protech-tactical/protech-icw-iii/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "hesco-l210",
+      "manufacturer": "Hesco Armor",
+      "model": "L210",
+      "specs": {
+        "level": "IV",
+        "standard": "NIJ 0101.06",
+        "standalone": "Standalone",
+        "cut": "Shooter's",
+        "size": "10 x 12 in",
+        "weight_lb": 6.4,
+        "special_threats": "M2 AP",
+        "curve": "Multi-curve",
+        "thickness_in": 0.9,
+        "material": "Ceramic / polyethylene"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-l210/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "highcom-3s9m-1114",
+      "manufacturer": "HighCom Armor",
+      "model": "3S9M 11x14",
+      "specs": {
+        "level": "III",
+        "standard": "NIJ 0101.06",
+        "standalone": "Standalone",
+        "cut": "SAPI",
+        "size": "11 x 14 in",
+        "weight_lb": 4.9,
+        "curve": "Multi-curve",
+        "thickness_in": 1.0,
+        "material": "Polyethylene"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/plate/highcom-armor/highcom-3s9m-1114/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    }
+  ]
+}

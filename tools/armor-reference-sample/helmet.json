@@ -1,0 +1,197 @@
+{
+  "category": "helmet",
+  "label": "Helmets",
+  "generated_at": "2026-10-21T04:10:00+00:00",
+  "fields": [
+    {
+      "key": "level",
+      "label": "Protection level",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "IIA",
+        "II",
+        "IIIA",
+        "III",
+        "III+",
+        "IV",
+        "RF1",
+        "RF2",
+        "RF3",
+        "HG1",
+        "HG2"
+      ]
+    },
+    {
+      "key": "standard",
+      "label": "Standard",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "NIJ 0101.06",
+        "NIJ 0101.07",
+        "NIJ 0108.01",
+        "NIJ 0106.01",
+        "DEA",
+        "FBI",
+        "Manufacturer tested"
+      ]
+    },
+    {
+      "key": "cut",
+      "label": "Cut",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "High",
+        "Mid",
+        "Full"
+      ]
+    },
+    {
+      "key": "sizes",
+      "label": "Sizes",
+      "type": "text",
+      "unit": null,
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "weight_lb",
+      "label": "Weight",
+      "type": "number",
+      "unit": "lb",
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "shell",
+      "label": "Shell material",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "rails_shroud",
+      "label": "Rails and NVG shroud",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "rifle_rating",
+      "label": "Rifle rating",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    }
+  ],
+  "models": [
+    {
+      "slug": "team-wendy-exfil-ballistic",
+      "manufacturer": "Team Wendy",
+      "model": "EXFIL Ballistic",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0106.01",
+        "cut": "High",
+        "sizes": "M/L, XL",
+        "weight_lb": 3.3,
+        "shell": "Carbon / polyethylene hybrid",
+        "rails_shroud": "Rail 3.0, Wilcox shroud"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/helmet/team-wendy/team-wendy-exfil-ballistic/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/team-wendy-exfil-ballistic/"
+    },
+    {
+      "slug": "ops-core-fast-sf-high",
+      "manufacturer": "Ops-Core",
+      "model": "FAST SF High Cut",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0106.01",
+        "cut": "High",
+        "sizes": "M, L, XL",
+        "weight_lb": 2.9,
+        "shell": "Carbon / polyethylene hybrid",
+        "rails_shroud": "ARC rails, Skeleton shroud"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/helmet/ops-core/ops-core-fast-sf-high/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "usi-ach-mid",
+      "manufacturer": "United Shield International",
+      "model": "ACH Mid Cut",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0106.01",
+        "cut": "Mid",
+        "sizes": "M, L, XL",
+        "weight_lb": 3.4,
+        "shell": "Aramid",
+        "rails_shroud": "Optional rails, 3-hole shroud"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/helmet/united-shield-international/usi-ach-mid/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/usi-ach-helmet/"
+    },
+    {
+      "slug": "hesco-rifle-helmet",
+      "manufacturer": "Hesco Armor",
+      "model": "Rifle Rated High Cut",
+      "specs": {
+        "level": "RF1",
+        "standard": "Manufacturer tested",
+        "cut": "High",
+        "sizes": "M, L, XL",
+        "weight_lb": 4.2,
+        "shell": "Polyethylene",
+        "rails_shroud": "ARC-compatible rails, shroud",
+        "rifle_rating": "7.62x39 MSC, M80"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/helmet/hesco-armor/hesco-rifle-helmet/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "protech-delta-full",
+      "manufacturer": "Protech Tactical",
+      "model": "Delta 4 Full Cut",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0106.01",
+        "cut": "Full",
+        "sizes": "S, M, L, XL",
+        "weight_lb": 3.6,
+        "shell": "Aramid"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/helmet/protech-tactical/protech-delta-full/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    }
+  ]
+}

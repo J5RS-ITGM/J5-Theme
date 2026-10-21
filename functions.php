@@ -213,6 +213,12 @@ if ( is_admin() ) {
 }
 // === J5-SHIPPING-RESTRICTIONS-REQUIRES-END ===
 
+// === J5-ARMOR-REFERENCE-REQUIRES-START ===
+// Armor Comparison Tool: DP pushes per-category feeds to /wp-json/j5/v1/armor-reference/<category>;
+// [j5_armor_compare] renders the server-side table + compare UI from the stored feed. J5-ARMOR-REF
+require_once get_stylesheet_directory() . '/inc/j5-armor-reference.php';
+// === J5-ARMOR-REFERENCE-REQUIRES-END ===
+
 // === J5-PRODUCT-SCHEMA-REQUIRES-START ===
 // Completes Rank Math's Product JSON-LD from DP data: brand, GTIN, MPN,
 // availability, per-product return policy, ProductGroup for variable products.

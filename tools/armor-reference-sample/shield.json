@@ -1,0 +1,245 @@
+{
+  "category": "shield",
+  "label": "Shields",
+  "generated_at": "2026-10-21T04:10:00+00:00",
+  "fields": [
+    {
+      "key": "level",
+      "label": "Protection level",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "IIA",
+        "II",
+        "IIIA",
+        "III",
+        "III+",
+        "IV",
+        "RF1",
+        "RF2",
+        "RF3",
+        "HG1",
+        "HG2"
+      ]
+    },
+    {
+      "key": "standard",
+      "label": "Standard",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "NIJ 0101.06",
+        "NIJ 0101.07",
+        "NIJ 0108.01",
+        "NIJ 0106.01",
+        "DEA",
+        "FBI",
+        "Manufacturer tested"
+      ]
+    },
+    {
+      "key": "width_in",
+      "label": "Width",
+      "type": "number",
+      "unit": "in",
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "height_in",
+      "label": "Height",
+      "type": "number",
+      "unit": "in",
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "weight_lb",
+      "label": "Weight",
+      "type": "number",
+      "unit": "lb",
+      "required": true,
+      "options": null
+    },
+    {
+      "key": "viewport",
+      "label": "Viewport",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "handle",
+      "label": "Handle",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "light_mounts",
+      "label": "Light mounts",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    },
+    {
+      "key": "carry",
+      "label": "Carry options",
+      "type": "text",
+      "unit": null,
+      "required": false,
+      "options": null
+    }
+  ],
+  "models": [
+    {
+      "slug": "usi-kent-2034-iiia",
+      "manufacturer": "United Shield International",
+      "model": "KENT 20x34 IIIA",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0108.01",
+        "width_in": 20,
+        "height_in": 34,
+        "weight_lb": 17.8,
+        "viewport": "4 x 12 in",
+        "handle": "Single, ambidextrous",
+        "light_mounts": "Picatinny rail, top",
+        "carry": "Shoulder strap"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2034-iiia/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/usi-kent-shield/"
+    },
+    {
+      "slug": "usi-kent-2436-iii",
+      "manufacturer": "United Shield International",
+      "model": "KENT 24x36 III",
+      "specs": {
+        "level": "III",
+        "standard": "NIJ 0108.01",
+        "width_in": 24,
+        "height_in": 36,
+        "weight_lb": 33.5,
+        "viewport": "4 x 12 in",
+        "handle": "Double",
+        "light_mounts": "Picatinny rail, top"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2436-iii/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/usi-kent-shield-iii/"
+    },
+    {
+      "slug": "protech-intruder-iiia",
+      "manufacturer": "Protech Tactical",
+      "model": "Intruder 20x30 IIIA",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0108.01",
+        "width_in": 20,
+        "height_in": 30,
+        "weight_lb": 14.9,
+        "handle": "Single",
+        "carry": "Hand strap"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/protech-tactical/protech-intruder-iiia/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "protech-rifle-rf2",
+      "manufacturer": "Protech Tactical",
+      "model": "Rifle 24x36 RF2",
+      "specs": {
+        "level": "RF2",
+        "standard": "NIJ 0101.07",
+        "width_in": 24,
+        "height_in": 36,
+        "weight_lb": 38.2,
+        "viewport": "4 x 10 in",
+        "handle": "Double",
+        "light_mounts": "Integrated LED"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/protech-tactical/protech-rifle-rf2/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "highcom-patrol-rf1",
+      "manufacturer": "HighCom Armor",
+      "model": "Patrol 20x34 RF1",
+      "specs": {
+        "level": "RF1",
+        "standard": "NIJ 0101.07",
+        "width_in": 20,
+        "height_in": 34,
+        "weight_lb": 25.6,
+        "viewport": "4 x 12 in",
+        "handle": "Single, ambidextrous"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/highcom-armor/highcom-patrol-rf1/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "rts-entry-iii",
+      "manufacturer": "RTS Tactical",
+      "model": "Entry 24x40 III",
+      "specs": {
+        "level": "III",
+        "standard": "NIJ 0108.01",
+        "width_in": 24,
+        "height_in": 40,
+        "weight_lb": 41.0,
+        "viewport": "5 x 12 in",
+        "handle": "Double",
+        "light_mounts": "Picatinny rail, side"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/rts-tactical/rts-entry-iii/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "usi-kent-1830-iiia",
+      "manufacturer": "United Shield International",
+      "model": "KENT 18x30 IIIA",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0108.01",
+        "width_in": 18,
+        "height_in": 30,
+        "weight_lb": 12.6,
+        "handle": "Single"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-1830-iiia/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf"
+      },
+      "wc_product_url": "https://j5rescue.com/product/usi-kent-1830/"
+    }
+  ]
+}
