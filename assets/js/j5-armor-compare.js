@@ -22,6 +22,12 @@
 		}
 		return String(v);
 	}
+	function viewportArea(v) {
+		if (!v || typeof v !== 'string') return 0;
+		var m = v.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i);
+		if (m) return parseFloat(m[1]) * parseFloat(m[2]);
+		return /^(no|none|n\/a|without)/i.test(v.trim()) ? 0 : 1; // present, size unknown
+	}
 	function tier(l) {
 		l = String(l || '').toUpperCase().trim();
 		if (['IIA', 'II', 'IIIA', 'HG1', 'HG2'].indexOf(l) !== -1) return 'hg';
@@ -284,16 +290,50 @@
 			if (LOWER_BETTER.test(sr.key)) best[sr.key] = Math.min.apply(null, nums);
 			else if (HIGHER_BETTER.test(sr.key)) best[sr.key] = Math.max.apply(null, nums);
 		});
-		var headlineKey = cfg.eff ? 'oz_per_sqin' : 'weight_lb';
-		var headline = cfg.eff ? 'Lightest per sq in' : 'Lightest';
+		// Best all-around: ounces per sq in (lower), coverage (higher), viewport present, viewport size (higher).
+		// Handle, light mounts and carry options are not scored yet.
+		var scored = null;
+		if (rows.length > 1) {
+			var W = { eff: 0.40, area: 0.25, vp: 0.20, vparea: 0.15 };
+			var effs = rows.map(function (r) { return num(r.data.derived.oz_per_sqin); });
+			var areas = rows.map(function (r) { return num(r.data.derived.area_sqin); });
+			var vps = rows.map(function (r) { return viewportArea(r.data.specs.viewport); });
+			function span(arr) { var v = arr.filter(function (n) { return n !== null; }); return v.length ? [Math.min.apply(null, v), Math.max.apply(null, v)] : null; }
+			var sE = span(effs), sA = span(areas), sV = span(vps);
+			function hi(n, sp) { return n === null || !sp || sp[1] === sp[0] ? 0.5 : (n - sp[0]) / (sp[1] - sp[0]); }
+			scored = rows.map(function (r, i) {
+				var sc = 0;
+				if (cfg.category !== 'helmet') {
+					sc += W.eff * (effs[i] === null ? 0 : 1 - hi(effs[i], sE));
+					sc += W.area * hi(areas[i], sA);
+				} else {
+					var wts = rows.map(function (x) { return num(x.data.specs.weight_lb); }), sW = span(wts);
+					sc += (W.eff + W.area) * (1 - hi(wts[i], sW));
+				}
+				if (cfg.category === 'shield') {
+					sc += W.vp * (vps[i] > 0 ? 1 : 0);
+					sc += W.vparea * (vps[i] > 0 ? hi(vps[i], sV) : 0);
+				} else sc += W.vp + W.vparea > 0 ? 0 : 0;
+				return sc;
+			});
+		}
+		var bestScore = scored ? Math.max.apply(null, scored) : null;
+		if (cfg.category === 'shield') { best.viewport_sqin = Math.max.apply(null, rows.map(function (r) { return viewportArea(r.data.specs.viewport); })); if (!(best.viewport_sqin > 0)) delete best.viewport_sqin; }
 
+		if (scored) {
+			var how = el('p', 'j5ac-scorenote');
+			how.textContent = cfg.category === 'shield'
+				? 'Best all-around weighs ounces per square inch, coverage, and the viewport (whether there is one, and its size). Handle, lights and carry options are not scored.'
+				: 'Best all-around weighs ' + (cfg.category === 'helmet' ? 'weight.' : 'ounces per square inch and coverage.');
+			this.out.appendChild(how);
+		}
 		var grid = el('div', 'j5ac-cards');
-		rows.forEach(function (r) {
+		rows.forEach(function (r, idx) {
 			var card = el('div', 'j5ac-card');
-			var hv = num(r.data.derived && r.data.derived[headlineKey] !== undefined ? r.data.derived[headlineKey] : r.data.specs[headlineKey]);
 			var isAnchor = this.anchorSlug === r.data.slug;
+			var isTop = scored && scored[idx] === bestScore && scored.filter(function (x) { return x === bestScore; }).length === 1;
 			if (isAnchor) card.classList.add('is-anchor');
-			if (best[headlineKey] !== undefined && hv === best[headlineKey]) { card.classList.add('is-best'); card.appendChild(el('p', 'j5ac-card-best', (isAnchor ? 'Your pick, ' : '') + headline.toLowerCase())); }
+			if (isTop) { card.classList.add('is-best'); card.appendChild(el('p', 'j5ac-card-best', (isAnchor ? 'Your pick, ' : '') + 'best all-around')); }
 			else if (isAnchor) card.appendChild(el('p', 'j5ac-card-best', 'Your pick'));
 			card.appendChild(el('span', 'j5ac-model', r.data.model));
 			card.appendChild(el('span', 'j5ac-maker', r.data.manufacturer));
@@ -311,6 +351,7 @@
 				else if (sr.sizes) { td.textContent = text; if (r.data.derived.size_list) { td.appendChild(el('small', null, ' ' + r.data.derived.size_list)); } }
 				else td.textContent = sr.unit && typeof v === 'number' ? text + ' ' + sr.unit : text;
 				if (best[sr.key] !== undefined && num(v) === best[sr.key]) td.classList.add('is-best');
+				if (sr.key === 'viewport' && best.viewport_sqin !== undefined && viewportArea(v) === best.viewport_sqin) td.classList.add('is-best');
 				tr.appendChild(td);
 				tb.appendChild(tr);
 			});
@@ -342,6 +383,27 @@
 		if (scroll) this.out.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'nearest' });
 	};
 
+	function floatingBar(root, panels) {
+		var bar = el('div', 'j5ac-float');
+		var top = el('button', 'j5ac-float-btn', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
+		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
+		bar.appendChild(top); bar.appendChild(reset);
+		root.appendChild(bar);
+		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
+		reset.addEventListener('click', function () {
+			Object.keys(panels).forEach(function (k) { panels[k].clearPicks(); panels[k].form.reset(); });
+			root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+		});
+		function tick() {
+			var r = root.getBoundingClientRect();
+			var show = r.top < -240 && r.bottom > 160;
+			bar.classList.toggle('is-on', show);
+		}
+		window.addEventListener('scroll', tick, { passive: true });
+		window.addEventListener('resize', tick);
+		tick();
+	}
+
 	function init(root) {
 		var panels = {};
 		Array.prototype.forEach.call(root.querySelectorAll('.j5ac-panel'), function (s) { panels[s.getAttribute('data-cat')] = new Panel(s, root); });
@@ -364,6 +426,7 @@
 		});
 		var hash = (location.hash || '').replace('#j5ac-', '');
 		if (hash && panels[hash]) show(hash);
+		floatingBar(root, panels);
 	}
 
 	function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-j5ac]'), init); }
