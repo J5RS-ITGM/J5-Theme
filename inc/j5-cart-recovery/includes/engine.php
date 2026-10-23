@@ -25,7 +25,12 @@ function j5cr_run() {
 	$cut = gmdate( 'Y-m-d H:i:s', $now - 60 * (int) $s['abandon_after'] );
 	$wpdb->query( $wpdb->prepare( "UPDATE {$t} SET status = 'abandoned' WHERE status = 'active' AND source = 'cart' AND email <> '' AND updated < %s", $cut ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-	// b) Reminders that are due.
+	// b) One live cart per customer: older carts for the same email are retired.
+	$wpdb->query( "UPDATE {$t} a JOIN {$t} b ON a.email = b.email AND b.id > a.id AND b.source = 'cart' AND b.status IN ('active','abandoned') SET a.status = 'skipped', a.note = 'Replaced by a newer cart' WHERE a.source = 'cart' AND a.email <> '' AND a.status IN ('active','abandoned')" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+	// c) Reminders that are due.
+	$gap     = 3600 * (int) $s['email_gap'];
+	$emailed = array();
 	$rows = $wpdb->get_results( "SELECT * FROM {$t} WHERE status = 'abandoned' AND source = 'cart' ORDER BY updated ASC LIMIT 100", ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	foreach ( $rows as $row ) {
 		$row['cart'] = json_decode( $row['cart'], true ) ?: array();
@@ -42,15 +47,22 @@ function j5cr_run() {
 			j5cr_update( $row['id'], array( 'status' => 'skipped', 'note' => $why ) );
 			continue;
 		}
-		j5cr_send_step( $row, $next );
+		// Spacing: wait until this customer's last recovery email is old enough.
+		$key = strtolower( $row['email'] );
+		if ( isset( $emailed[ $key ] ) || ( $now - j5cr_last_emailed( $row['email'] ) ) < $gap ) {
+			continue;
+		}
+		if ( j5cr_send_step( $row, $next ) ) {
+			$emailed[ $key ] = 1;
+		}
 	}
 
-	// c) Failed / unpaid checkout orders.
+	// d) Failed / unpaid checkout orders.
 	if ( ! empty( $s['failed_enabled'] ) ) {
 		j5cr_run_failed( $s );
 	}
 
-	// d) Retention.
+	// e) Retention.
 	$old = gmdate( 'Y-m-d H:i:s', $now - DAY_IN_SECONDS * (int) $s['retention'] );
 	$wpdb->query( $wpdb->prepare( "DELETE FROM {$t} WHERE updated < %s", $old ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 }
@@ -75,7 +87,14 @@ function j5cr_skip_reason( $row, $s ) {
 		return 'No email';
 	}
 	if ( j5cr_is_unsubscribed( $row['email'] ) ) {
-		return 'Unsubscribed';
+		return 'On the do-not-remind list';
+	}
+	if ( ! empty( $s['stop_open_order'] ) ) {
+		$open = j5cr_open_order( $row['email'] );
+		if ( $open ) {
+			j5cr_update( $row['id'], array( 'order_id' => $open ) );
+			return 'Has an open order (#' . $open . ')';
+		}
 	}
 	if ( (float) $row['total'] < (float) $s['min_total'] ) {
 		return 'Below minimum cart value';
@@ -330,9 +349,19 @@ function j5cr_run_failed( $s ) {
 		'status'       => array( 'pending', 'failed', 'cancelled' ),
 		'date_created' => ( time() - 2 * DAY_IN_SECONDS ) . '...' . $before,
 		'limit'        => 50,
+		'orderby'      => 'date',
+		'order'        => 'DESC',
 		'meta_query'   => array( array( 'key' => '_j5cr_failed_done', 'compare' => 'NOT EXISTS' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery
 	) );
+	$seen = array();
 	foreach ( $orders as $order ) {
+		// Several failed attempts by one customer: only the newest gets a follow-up.
+		$key = strtolower( $order->get_billing_email() );
+		if ( isset( $seen[ $key ] ) ) {
+			$order->update_meta_data( '_j5cr_failed_done', 'superseded' );
+			$order->save();
+			continue;
+		}
 		if ( 'checkout' !== $order->get_created_via() || $order->get_date_paid() || '' !== (string) $order->get_transaction_id() || ! $order->get_payment_method() ) {
 			$order->update_meta_data( '_j5cr_failed_done', 'skip' );
 			$order->save();
@@ -357,6 +386,19 @@ function j5cr_run_failed( $s ) {
 			$order->save();
 			continue;
 		}
+		// Any newer order for this email (a new attempt, or a pay link staff created) takes over.
+		$newer = wc_get_orders( array(
+			'billing_email' => $order->get_billing_email(),
+			'date_created'  => '>' . $order->get_date_created()->getTimestamp(),
+			'limit'         => 1,
+			'return'        => 'ids',
+		) );
+		if ( $newer ) {
+			$order->update_meta_data( '_j5cr_failed_done', 'newer-order' );
+			$order->save();
+			continue;
+		}
+		$seen[ $key ] = 1;
 		j5cr_handle_failed( $order, $s );
 	}
 }
@@ -458,7 +500,12 @@ function j5cr_handle_failed( $order, $s ) {
 	// cancels it, the restore link rebuilds the cart instead.
 	$url = ( $order->has_status( 'pending' ) && $order->needs_payment() ) ? $order->get_checkout_payment_url() : j5cr_restore_url( $row );
 
-	if ( ! empty( $s['failed_customer'] ) && is_email( $order->get_billing_email() ) && ! j5cr_is_unsubscribed( $order->get_billing_email() ) ) {
+	$cust_ok = is_email( $order->get_billing_email() ) && ! j5cr_is_unsubscribed( $order->get_billing_email() )
+		&& ( time() - j5cr_last_emailed( $order->get_billing_email() ) ) >= 3600 * (int) $s['email_gap'];
+	if ( ! $cust_ok ) {
+		j5cr_update( $row['id'], array( 'status' => 'skipped', 'note' => j5cr_is_unsubscribed( $order->get_billing_email() ) ? 'On the do-not-remind list' : 'Customer emailed recently, follow-up not sent' ) );
+	}
+	if ( ! empty( $s['failed_customer'] ) && $cust_ok ) {
 		$sent = j5cr_mail( $order->get_billing_email(), $s['failed_subject'], array(
 			'kind'      => 'failed',
 			'heading'   => $s['failed_heading'],

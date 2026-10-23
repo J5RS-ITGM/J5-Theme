@@ -53,6 +53,58 @@ function j5cr_is_unsubscribed( $email ) {
 	return is_array( $list ) && in_array( strtolower( trim( $email ) ), $list, true );
 }
 
+/** Stop all recovery emails to a customer (cart reminders + payment follow-ups). */
+function j5cr_mute( $email, $why = 'Reminders stopped by staff' ) {
+	global $wpdb;
+	$email = strtolower( trim( (string) $email ) );
+	if ( ! is_email( $email ) ) {
+		return false;
+	}
+	$list   = get_option( J5CR_UNSUB, array() );
+	$list   = is_array( $list ) ? $list : array();
+	$list[] = $email;
+	update_option( J5CR_UNSUB, array_values( array_unique( $list ) ), false );
+	$t = j5cr_table();
+	$wpdb->query( $wpdb->prepare( "UPDATE {$t} SET status = 'skipped', note = %s WHERE email = %s AND status IN ('active','abandoned')", $why, $email ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	return true;
+}
+
+/** Allow recovery emails again (does not restart carts already stopped). */
+function j5cr_unmute( $email ) {
+	$email = strtolower( trim( (string) $email ) );
+	$list  = get_option( J5CR_UNSUB, array() );
+	$list  = is_array( $list ) ? array_values( array_diff( $list, array( $email ) ) ) : array();
+	update_option( J5CR_UNSUB, $list, false );
+}
+
+/** When this customer was last sent any recovery email (unix time, 0 = never). */
+function j5cr_last_emailed( $email ) {
+	global $wpdb;
+	$t    = j5cr_table();
+	$last = $wpdb->get_var( $wpdb->prepare( "SELECT MAX(last_sent) FROM {$t} WHERE email = %s", strtolower( trim( (string) $email ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	return $last ? (int) strtotime( $last . ' UTC' ) : 0;
+}
+
+/** An open (pending / on-hold) order for this email from the last 14 days, or 0. */
+function j5cr_open_order( $email, $exclude_id = 0 ) {
+	if ( ! function_exists( 'wc_get_orders' ) ) {
+		return 0;
+	}
+	$ids = wc_get_orders( array(
+		'billing_email' => $email,
+		'status'        => array( 'pending', 'on-hold' ),
+		'date_created'  => '>' . ( time() - 14 * DAY_IN_SECONDS ),
+		'limit'         => 5,
+		'return'        => 'ids',
+	) );
+	foreach ( (array) $ids as $id ) {
+		if ( (int) $id !== (int) $exclude_id ) {
+			return (int) $id;
+		}
+	}
+	return 0;
+}
+
 /** Snapshot the current WooCommerce cart. */
 function j5cr_snapshot() {
 	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {

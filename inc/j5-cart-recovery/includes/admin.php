@@ -58,6 +58,70 @@ add_action( 'admin_post_j5cr_send_now', function () {
 	exit;
 } );
 
+/* Stop / resume recovery emails for one customer (from the Carts list or an order). */
+add_action( 'admin_post_j5cr_mute', function () {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_die( 'Not allowed' );
+	}
+	check_admin_referer( 'j5cr_mute' );
+	$email = sanitize_email( wp_unslash( $_GET['email'] ?? '' ) );
+	$on    = ! empty( $_GET['on'] );
+	if ( $on ) {
+		j5cr_mute( $email, 'Reminders stopped by ' . wp_get_current_user()->display_name );
+	} else {
+		j5cr_unmute( $email );
+	}
+	$back = wp_get_referer();
+	wp_safe_redirect( add_query_arg( 'j5cr_msg', $on ? 'muted' : 'unmuted', $back ? $back : j5cr_admin_url() ) );
+	exit;
+} );
+
+function j5cr_mute_url( $email, $on ) {
+	return j5cr_action_url( 'j5cr_mute', array( 'email' => rawurlencode( $email ), 'on' => $on ? 1 : 0 ) );
+}
+
+/* Order screen box: stop reminders for this customer right from the order. */
+add_action( 'add_meta_boxes', function () {
+	$screens = array( 'shop_order' );
+	if ( function_exists( 'wc_get_page_screen_id' ) ) {
+		$screens[] = wc_get_page_screen_id( 'shop-order' );
+	}
+	foreach ( array_unique( $screens ) as $screen ) {
+		add_meta_box( 'j5cr-order', 'Cart reminders', 'j5cr_order_box', $screen, 'side', 'default' );
+	}
+} );
+
+function j5cr_order_box( $post_or_order ) {
+	$order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order( $post_or_order->ID );
+	if ( ! $order || ! is_email( $order->get_billing_email() ) ) {
+		echo '<p>No customer email on this order.</p>';
+		return;
+	}
+	global $wpdb;
+	$email = $order->get_billing_email();
+	$t     = j5cr_table();
+	$open  = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$t} WHERE email = %s AND status IN ('active','abandoned')", $email ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$last  = j5cr_last_emailed( $email );
+	$muted = j5cr_is_unsubscribed( $email );
+	echo '<p style="margin-top:0">' . ( $muted ? '<strong style="color:#b32d2e">Stopped</strong> for this customer.' : '<strong>On.</strong> ' . ( $open ? $open . ' saved cart' . ( 1 === $open ? '' : 's' ) . ' may get reminders.' : 'No saved carts waiting.' ) ) . '</p>';
+	if ( $last ) {
+		echo '<p class="description">Last recovery email: ' . esc_html( wp_date( 'M j, g:i a', $last ) ) . '</p>';
+	}
+	echo $muted
+		? '<a class="button" href="' . esc_url( j5cr_mute_url( $email, false ) ) . '">Resume reminders</a>'
+		: '<a class="button" href="' . esc_url( j5cr_mute_url( $email, true ) ) . '">Stop reminders for this customer</a>';
+	echo '<p class="description">Covers cart reminders and unpaid-checkout follow-ups. Order emails are not affected.</p>';
+}
+
+add_action( 'admin_notices', function () {
+	$m = isset( $_GET['j5cr_msg'] ) ? sanitize_key( $_GET['j5cr_msg'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if ( 'muted' === $m ) {
+		echo '<div class="notice notice-success is-dismissible"><p>Cart reminders stopped for that customer.</p></div>';
+	} elseif ( 'unmuted' === $m ) {
+		echo '<div class="notice notice-success is-dismissible"><p>Cart reminders resumed for that customer. Carts that were already stopped stay stopped.</p></div>';
+	}
+} );
+
 add_action( 'admin_post_j5cr_delete', function () {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
 		wp_die( 'Not allowed' );
@@ -255,7 +319,7 @@ function j5cr_admin_carts( $s ) {
 			?>
 			<tr>
 				<td><?php echo esc_html( wp_date( 'M j, g:i a', strtotime( $r['updated'] . ' UTC' ) ) ); ?></td>
-				<td><strong><?php echo esc_html( $r['first_name'] ?: '(no name)' ); ?></strong><br><a href="mailto:<?php echo esc_attr( $r['email'] ); ?>"><?php echo esc_html( $r['email'] ); ?></a><?php echo $r['user_id'] ? ' <span class="j5cr-badge">account</span>' : ''; ?><?php echo $r['has_le'] ? ' <span class="j5cr-badge">LE items</span>' : ''; ?></td>
+				<td><strong><?php echo esc_html( $r['first_name'] ?: '(no name)' ); ?></strong><br><a href="mailto:<?php echo esc_attr( $r['email'] ); ?>"><?php echo esc_html( $r['email'] ); ?></a><?php echo $r['user_id'] ? ' <span class="j5cr-badge">account</span>' : ''; ?><?php echo $r['has_le'] ? ' <span class="j5cr-badge">LE items</span>' : ''; ?><?php echo $r['email'] && j5cr_is_unsubscribed( $r['email'] ) ? ' <span class="j5cr-badge failed">reminders stopped</span>' : ''; ?></td>
 				<td class="items"><?php echo implode( '<br>', $names ); // escaped above ?></td>
 				<td><strong><?php echo esc_html( $money( $r['total'] ) ); ?></strong></td>
 				<td><span class="j5cr-badge <?php echo esc_attr( $badge ); ?>"><?php echo esc_html( $label ); ?></span><?php echo $r['note'] ? '<br><small>' . esc_html( $r['note'] ) . '</small>' : ''; ?></td>
@@ -267,6 +331,9 @@ function j5cr_admin_carts( $s ) {
 				<td style="white-space:nowrap">
 					<?php if ( 'cart' === $r['source'] && in_array( $r['status'], array( 'active', 'abandoned' ), true ) && null !== j5cr_next_step( $r, $s ) ) : ?>
 						<a class="button button-small" href="<?php echo esc_url( j5cr_action_url( 'j5cr_send_now', array( 'id' => $r['id'] ) ) ); ?>">Send reminder now</a>
+					<?php endif; ?>
+					<?php if ( $r['email'] ) : $muted = j5cr_is_unsubscribed( $r['email'] ); ?>
+						<a class="button button-small" href="<?php echo esc_url( j5cr_mute_url( $r['email'], ! $muted ) ); ?>" <?php echo $muted ? '' : 'onclick="return confirm(\'Stop all cart reminders and payment follow-ups to ' . esc_js( $r['email'] ) . '?\')"'; ?>><?php echo $muted ? 'Resume reminders' : 'Stop reminders'; ?></a>
 					<?php endif; ?>
 					<a class="button button-small" href="<?php echo esc_url( j5cr_restore_url( $r ) ); ?>" target="_blank" title="Opens the saved cart in your own browser session">Open cart</a>
 					<a class="button button-small button-link-delete" href="<?php echo esc_url( j5cr_action_url( 'j5cr_delete', array( 'id' => $r['id'] ) ) ); ?>" onclick="return confirm('Delete this cart record?')">Delete</a>
@@ -295,6 +362,8 @@ function j5cr_admin_settings( $s ) {
 			<table class="form-table" role="presentation">
 				<tr><th>Cart Recovery</th><td><?php echo $chk( 'enabled', $s['enabled'], 'On: capture carts and send reminders' ); // phpcs:ignore ?></td></tr>
 				<tr><th>Capture</th><td><?php echo $chk( 'capture_guests', $s['capture_guests'], 'Guests (once they type an email at checkout)' ); // phpcs:ignore ?><br><?php echo $chk( 'capture_users', $s['capture_users'], 'Signed-in customers (as soon as they add to cart)' ); // phpcs:ignore ?></td></tr>
+				<tr><th>Email spacing</th><td>At most one recovery email per customer every <input type="number" min="1" max="168" name="<?php echo esc_attr( $f( 'email_gap' ) ); ?>" value="<?php echo (int) $s['email_gap']; ?>" class="small-text"> hours <p class="description">Counts cart reminders and unpaid-checkout follow-ups together. If a customer has several carts, only the newest one gets reminders.</p></td></tr>
+				<tr><th>Open orders</th><td><label><input type="checkbox" name="<?php echo esc_attr( $f( 'stop_open_order' ) ); ?>" value="1" <?php checked( $s['stop_open_order'], 1 ); ?>> Stop reminders when the customer has a pending or on-hold order</label><p class="description">For example, an order you recreated and sent a pay link for.</p></td></tr>
 				<tr><th>Abandoned after</th><td><input type="number" min="15" max="1440" name="<?php echo esc_attr( $f( 'abandon_after' ) ); ?>" value="<?php echo (int) $s['abandon_after']; ?>" class="small-text"> minutes with no cart activity</td></tr>
 				<tr><th>Minimum cart value</th><td><input type="number" min="0" step="1" name="<?php echo esc_attr( $f( 'min_total' ) ); ?>" value="<?php echo esc_attr( $s['min_total'] ); ?>" class="small-text"> $ (smaller carts get no reminders)</td></tr>
 				<tr><th>Carts with LE-only items</th><td>
@@ -367,7 +436,7 @@ function j5cr_admin_settings( $s ) {
 			<h2>Data</h2>
 			<table class="form-table" role="presentation">
 				<tr><th>Keep cart records</th><td><input type="number" min="7" max="365" name="<?php echo esc_attr( $f( 'retention' ) ); ?>" value="<?php echo (int) $s['retention']; ?>" class="small-text"> days</td></tr>
-				<tr><th>Unsubscribed emails</th><td><textarea name="j5cr_unsub" rows="4" class="large-text code"><?php echo esc_textarea( implode( "\n", (array) $unsub ) ); ?></textarea><p class="description">One per line. These never get cart reminders. Order emails are not affected.</p></td></tr>
+				<tr><th>Do not remind</th><td><textarea name="j5cr_unsub" rows="4" class="large-text code"><?php echo esc_textarea( implode( "\n", (array) $unsub ) ); ?></textarea><p class="description">One email per line. These customers never get cart reminders or unpaid-checkout follow-ups (added here by the Stop reminders buttons and the unsubscribe link). Order emails are not affected.</p></td></tr>
 			</table>
 		</div>
 

@@ -17,6 +17,8 @@ function j5cr_defaults() {
 		'abandon_after'      => 60,      // minutes of no cart activity before a cart counts as abandoned
 		'min_total'          => 0,       // ignore carts under this value
 		'le_audience'        => 'verified', // all | verified | none  (carts holding LE-only items)
+		'email_gap'          => 24,      // hours: at most one recovery email per customer in this window
+		'stop_open_order'    => 1,       // stop reminders while the customer has a pending / on-hold order (e.g. a pay link staff sent)
 		'steps'              => array(
 			array(
 				'enabled'  => 1,
@@ -123,6 +125,8 @@ function j5cr_sanitize( $in ) {
 	$out['capture_users']  = $b( 'capture_users' );
 	$out['abandon_after']  = $n( 'abandon_after', 15, 1440 );
 	$out['min_total']      = $n( 'min_total', 0, 1000000, true );
+	$out['email_gap']       = $n( 'email_gap', 1, 168 );
+	$out['stop_open_order'] = $b( 'stop_open_order' );
 	$out['le_audience']    = isset( $in['le_audience'] ) && in_array( $in['le_audience'], array( 'all', 'verified', 'none' ), true ) ? $in['le_audience'] : 'verified';
 
 	$out['steps'] = array();
