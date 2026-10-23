@@ -51,6 +51,8 @@ require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 require_once get_stylesheet_directory() . '/inc/j5-factory-savings.php';
 // Shipping rates/totals rounded to cents: MxMerchant rejects sub-cent shipAmount (orders cancelled unpaid).
 require_once get_stylesheet_directory() . '/inc/j5-shipping-rounding.php';
+// Documents: Receipt / Invoice / Packing slip PDFs (emails, My Account, wp-admin). Self-contained in inc/j5-documents/.
+require_once get_stylesheet_directory() . '/inc/j5-documents/j5-documents.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';
