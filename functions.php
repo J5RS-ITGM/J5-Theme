@@ -49,6 +49,8 @@ require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
 require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 // Factory order savings: page line (no number) + auto-applied virtual coupon in cart (DP _j5_factory_discount).
 require_once get_stylesheet_directory() . '/inc/j5-factory-savings.php';
+// Shipping rates/totals rounded to cents: MxMerchant rejects sub-cent shipAmount (orders cancelled unpaid).
+require_once get_stylesheet_directory() . '/inc/j5-shipping-rounding.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';
