@@ -105,6 +105,30 @@ function j5doc_image_url( $product ) {
 	return $src ? $src[0] : '';
 }
 
+/** US phone as (480) 582-2285; anything else unchanged. */
+function j5doc_phone( $raw ) {
+	$digits = preg_replace( '/\D+/', '', (string) $raw );
+	if ( 11 === strlen( $digits ) && '1' === $digits[0] ) {
+		$digits = substr( $digits, 1 );
+	}
+	return 10 === strlen( $digits )
+		? sprintf( '(%s) %s-%s', substr( $digits, 0, 3 ), substr( $digits, 3, 3 ), substr( $digits, 6 ) )
+		: trim( (string) $raw );
+}
+
+/** Formatted address limited to <br>, without a "United States" line for US addresses. */
+function j5doc_address( $html, $country ) {
+	$html = wp_kses( (string) $html, array( 'br' => array() ) );
+	if ( '' === $html || 'US' !== strtoupper( (string) $country ) ) {
+		return $html;
+	}
+	$lines = preg_split( '/<br\s*\/?>/i', $html );
+	$lines = array_filter( $lines, function ( $l ) {
+		return ! preg_match( '/^\s*(United States( of America)?( \(US\))?|USA|US)\s*$/i', wp_strip_all_tags( $l ) );
+	} );
+	return implode( '<br>', $lines );
+}
+
 /** PO number from common meta keys (filter j5doc_po_meta_keys to add yours). */
 function j5doc_po_number( $order ) {
 	foreach ( (array) apply_filters( 'j5doc_po_meta_keys', array( '_j5_po_number', '_po_number', 'po_number', '_billing_po', 'billing_po', '_purchase_order_number' ) ) as $key ) {
@@ -187,11 +211,13 @@ function j5doc_build( $order, $type = 'billing' ) {
 	// Addresses.
 	$billing  = $order->get_formatted_billing_address();
 	$shipping = $order->has_shipping_address() ? $order->get_formatted_shipping_address() : '';
-	$parties  = array(
-		'bill_to'  => $billing ? wp_kses( $billing, array( 'br' => array() ) ) : '',
-		'ship_to'  => $shipping ? wp_kses( $shipping, array( 'br' => array() ) ) : ( $billing ? wp_kses( $billing, array( 'br' => array() ) ) : '' ),
+	$bill_html = j5doc_address( $billing, $order->get_billing_country() );
+	$ship_html = $shipping ? j5doc_address( $shipping, $order->get_shipping_country() ) : $bill_html;
+	$parties   = array(
+		'bill_to'  => $bill_html,
+		'ship_to'  => $ship_html,
 		'email'    => $order->get_billing_email(),
-		'phone'    => $order->get_billing_phone(),
+		'phone'    => j5doc_phone( $order->get_billing_phone() ),
 		'shipping' => $order->get_shipping_method(),
 	);
 

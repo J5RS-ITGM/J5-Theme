@@ -53,38 +53,47 @@ td, th { vertical-align: top; padding: 0; }
 .muted { color: #6b6d72; }
 .red { color: #c41e24; }
 
-/* Header */
-.head td { vertical-align: top; }
-.mark { width: 46px; height: 46px; border: 2px solid #c8a84e; text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: 26pt; line-height: 44px; color: #1b1d21; }
+/* Header band */
+.band { background: #16181c; border-bottom: 3px solid #c41e24; }
+.band td { vertical-align: middle; }
+.band-in { padding: 14px 18px; }
+.mark-cell { width: 44px; }
+.mark { width: 44px; height: 44px; border: 2px solid #c8a84e; }
+.mark td { height: 38px; text-align: center; vertical-align: middle; font-family: 'Bebas Neue', sans-serif; font-size: 22pt; line-height: 1; color: #ffffff; padding: 0 0 2px 1px; }
 .brand { padding-left: 12px; }
-.brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 22pt; line-height: 1; letter-spacing: 1px; }
-.brand-lines { font-size: 8.5pt; color: #55575c; margin-top: 3px; line-height: 1.35; }
-.doc-title { font-family: 'Bebas Neue', sans-serif; font-size: 34pt; line-height: 0.9; letter-spacing: 1.5px; text-align: right; }
-.badge { display: inline-block; margin-top: 6px; padding: 3px 9px; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 9pt; letter-spacing: 1.5px; text-transform: uppercase; color: #fff; }
+.brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 21pt; line-height: 1; letter-spacing: 1.2px; color: #ffffff; }
+.brand-lines { font-size: 8pt; color: #a4a49a; margin-top: 3px; line-height: 1.35; }
+.brand-lines .gold { color: #c8a84e; }
+.doc-title { font-family: 'Bebas Neue', sans-serif; font-size: 30pt; line-height: 1; letter-spacing: 2px; color: #ffffff; text-align: right; }
+.badge-row { text-align: right; margin-top: 5px; }
+.badge { display: inline-block; padding: 3px 10px 2px; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 8.5pt; letter-spacing: 1.6px; text-transform: uppercase; color: #fff; }
 .badge.good { background: #2e7d4f; }
 .badge.due { background: #c41e24; }
-.badge.muted { background: #6b6d72; }
-.rule { height: 3px; background: #c41e24; margin: 14px 0 0; }
-.rule-gold { height: 1px; background: #c8a84e; margin: 0 0 8px; }
+.badge.muted { background: #55575c; }
+
+/* Section labels */
+.label { font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 8pt; letter-spacing: 1.8px; text-transform: uppercase; color: #a8862f; padding-bottom: 4px; margin-bottom: 6px; border-bottom: 1px solid #e3e1db; }
 
 /* Facts + parties */
-.facts { width: 100%; }
-.facts td { padding: 1px 0; font-size: 9pt; }
-.facts .k { width: 78px; color: #6b6d72; }
-.facts .v { font-weight: 600; }
-.party-h { font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 8.5pt; letter-spacing: 1.5px; text-transform: uppercase; color: #a8862f; margin-bottom: 4px; }
-.party { font-size: 9.5pt; line-height: 1.3; }
-.parties td { padding-right: 14px; }
+.parties { margin-top: 16px; }
+.parties > tbody > tr > td, .parties > tr > td { vertical-align: top; }
+.party { font-size: 9.5pt; line-height: 1.35; }
+.party-gap { width: 18px; }
+.facts-box { background: #f6f5f1; border: 1px solid #ebe9e3; padding: 8px 10px; }
+.facts td { padding: 2px 0; font-size: 8.5pt; vertical-align: middle; }
+.facts .k { width: 70px; color: #6b6d72; text-transform: uppercase; letter-spacing: 0.6px; font-size: 7.5pt; }
+.facts .v { font-weight: 600; text-align: right; }
 
 /* Items */
-.items { margin-top: 12px; }
-.items th { font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 8.5pt; letter-spacing: 1.3px; text-transform: uppercase; color: #fff; background: #1b1d21; padding: 6px 8px; text-align: left; }
+.items { margin-top: 18px; }
+.items th { font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 8pt; letter-spacing: 1.6px; text-transform: uppercase; color: #1b1d21; background: #ffffff; padding: 0 8px 5px; text-align: left; border-bottom: 2px solid #1b1d21; vertical-align: bottom; }
 .items th.num, .items td.num { text-align: right; }
 .items th.ctr, .items td.ctr { text-align: center; }
-.items td { padding: 6px 8px; border-bottom: 1px solid #e3e1db; }
+.items td { padding: 8px 8px; border-bottom: 1px solid #e3e1db; vertical-align: middle; }
+.items td.thumb-cell { text-align: center; }
 .items tr.zebra td { background: #faf9f6; }
-.thumb { width: 38px; height: 38px; border: 1px solid #e3e1db; }
-.thumb-empty { width: 38px; height: 38px; border: 1px solid #e3e1db; background: #f3f2ee; }
+.thumb { width: 38px; height: 38px; border: 1px solid #e3e1db; display: block; margin: 0 auto; }
+.thumb-empty { width: 38px; height: 38px; border: 1px solid #e3e1db; background: #f3f2ee; margin: 0 auto; }
 .name { font-weight: 600; font-size: 10pt; }
 .sku { font-size: 8.5pt; color: #6b6d72; margin-top: 1px; }
 .meta { margin-top: 3px; font-size: 8.5pt; color: #3a3c41; }
@@ -95,26 +104,28 @@ td, th { vertical-align: top; padding: 0; }
 .box { width: 15px; height: 15px; border: 1.5px solid #1b1d21; margin: 0 auto; }
 
 /* Totals */
-.totals-wrap { margin-top: 8px; }
-.totals td { padding: 2px 8px; font-size: 9.5pt; }
+.totals-wrap { margin-top: 12px; }
+.totals-wrap > tbody > tr > td, .totals-wrap > tr > td { vertical-align: top; }
+.totals-wrap .panel { margin-top: 0; }
+.totals td { padding: 3px 8px; font-size: 9.5pt; vertical-align: middle; }
 .totals .lbl { text-align: right; color: #55575c; }
 .totals .val { text-align: right; width: 150px; font-weight: 600; }
-.totals tr.order_total td { border-top: 2px solid #1b1d21; padding-top: 5px; font-size: 13pt; font-weight: bold; color: #1b1d21; }
+.totals tr.order_total td { border-top: 2px solid #1b1d21; padding-top: 6px; font-size: 13pt; font-weight: bold; color: #1b1d21; }
 .totals tr.order_total .lbl { font-family: 'Bebas Neue', sans-serif; font-weight: normal; font-size: 16pt; letter-spacing: 1px; }
 
 /* Panels */
-.panel { margin-top: 10px; padding: 8px 12px; border: 1px solid #e3e1db; border-left: 3px solid #c8a84e; page-break-inside: avoid; }
-.panel-h { font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 9pt; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+.panel { margin-top: 10px; padding: 9px 12px; background: #faf9f6; border-left: 3px solid #c8a84e; page-break-inside: avoid; }
+.panel-h { font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 8.5pt; letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 4px; }
 .panel p { margin: 2px 0; font-size: 9pt; }
 .due { border-left-color: #c41e24; }
 .due .amt { font-family: 'Bebas Neue', sans-serif; font-size: 22pt; color: #c41e24; line-height: 1; }
-.hold { margin-top: 14px; padding: 10px 12px; background: #c41e24; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 12pt; letter-spacing: 1px; text-transform: uppercase; }
-.ok { margin-top: 14px; padding: 8px 12px; border: 1.5px solid #2e7d4f; color: #2e7d4f; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 10pt; letter-spacing: 1px; text-transform: uppercase; }
+.hold { margin-top: 14px; text-align: center; padding: 10px 12px; background: #c41e24; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 12pt; letter-spacing: 1px; text-transform: uppercase; }
+.ok { margin-top: 14px; text-align: center; padding: 8px 12px; border: 1.5px solid #2e7d4f; color: #2e7d4f; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 10pt; letter-spacing: 1px; text-transform: uppercase; }
 .sign td { padding-top: 20px; font-size: 8.5pt; color: #55575c; }
 .sign .line { border-bottom: 1px solid #1b1d21; height: 14px; }
 
 /* Footer */
-.foot { position: fixed; bottom: -0.45in; left: 0; right: 0; font-size: 7.5pt; color: #8a8c91; text-align: center; border-top: 1px solid #e3e1db; padding-top: 5px; }
+.foot { position: fixed; bottom: -0.45in; left: 0; right: 0; font-size: 7.5pt; color: #8a8c91; text-align: left; border-top: 1px solid #c8a84e; padding-top: 6px; padding-right: 80px; letter-spacing: 0.3px; }
 <?php if ( 'html' === $mode ) : ?>
 .foot { position: static; margin-top: 28px; }
 <?php endif; ?>
@@ -127,30 +138,24 @@ td, th { vertical-align: top; padding: 0; }
 	<?php if ( ! $slip ) : ?> · Returns: <?php echo $e( $d['seller']['website'] ); ?>/returns-refunds<?php endif; ?>
 </div>
 
-<table class="head">
-	<tr>
-		<td style="width:60%">
-			<table><tr>
-				<td style="width:50px"><div class="mark">J5</div></td>
-				<td class="brand">
-					<div class="brand-name">J5 Rescue Supply</div>
-					<div class="brand-lines">
-						<?php echo $e( implode( ' · ', $d['seller']['lines'] ) ); ?><br>
-						<?php echo $e( $d['seller']['phone'] ); ?> · <?php echo $e( $d['seller']['email'] ); ?>
-					</div>
-				</td>
-			</tr></table>
+<table class="band"><tr><td class="band-in">
+	<table><tr>
+		<td class="mark-cell"><table class="mark"><tr><td>J5</td></tr></table></td>
+		<td class="brand">
+			<div class="brand-name">J5 Rescue Supply</div>
+			<div class="brand-lines">
+				<?php echo $e( implode( ' · ', $d['seller']['lines'] ) ); ?><br>
+				<span class="gold"><?php echo $e( $d['seller']['phone'] ); ?></span> · <?php echo $e( $d['seller']['email'] ); ?> · <?php echo $e( $d['seller']['website'] ); ?>
+			</div>
 		</td>
-		<td style="width:40%; text-align:right">
+		<td style="width:42%">
 			<div class="doc-title"><?php echo $e( $d['title'] ); ?></div>
 			<?php if ( ! empty( $d['badge']['text'] ) ) : ?>
-				<div class="badge <?php echo $e( $tone ); ?>"><?php echo $e( $d['badge']['text'] ); ?></div>
+				<div class="badge-row"><span class="badge <?php echo $e( $tone ); ?>"><?php echo $e( $d['badge']['text'] ); ?></span></div>
 			<?php endif; ?>
 		</td>
-	</tr>
-</table>
-<div class="rule"></div>
-<div class="rule-gold" style="margin-top:2px"></div>
+	</tr></table>
+</td></tr></table>
 
 <?php if ( $slip ) : ?>
 	<?php if ( in_array( $d['le_status'], array( 'pending', 'missing' ), true ) ) : ?>
@@ -162,27 +167,32 @@ td, th { vertical-align: top; padding: 0; }
 	<?php endif; ?>
 <?php endif; ?>
 
-<table class="parties" style="margin-top:12px">
+<table class="parties">
 	<tr>
 		<?php if ( ! $slip ) : ?>
-			<td style="width:33%">
-				<div class="party-h">Bill to</div>
+			<td style="width:31%">
+				<div class="label">Bill to</div>
 				<div class="party"><?php echo $d['parties']['bill_to']; // already wp_kses'd to <br> only ?></div>
 				<?php if ( $d['parties']['email'] ) : ?><div class="party muted"><?php echo $e( $d['parties']['email'] ); ?></div><?php endif; ?>
 				<?php if ( $d['parties']['phone'] ) : ?><div class="party muted"><?php echo $e( $d['parties']['phone'] ); ?></div><?php endif; ?>
 			</td>
+			<td class="party-gap"></td>
 		<?php endif; ?>
-		<td style="width:<?php echo $slip ? '55' : '33'; ?>%">
-			<div class="party-h">Ship to</div>
+		<td style="width:<?php echo $slip ? '52' : '31'; ?>%">
+			<div class="label">Ship to</div>
 			<div class="party" style="<?php echo $slip ? 'font-size:12pt; font-weight:600; line-height:1.35' : ''; ?>"><?php echo $d['parties']['ship_to']; ?></div>
 			<?php if ( $slip && $d['parties']['phone'] ) : ?><div class="party muted"><?php echo $e( $d['parties']['phone'] ); ?></div><?php endif; ?>
 		</td>
-		<td style="width:<?php echo $slip ? '45' : '34'; ?>%">
-			<table class="facts">
-				<?php foreach ( $d['facts'] as $k => $v ) : ?>
-					<tr><td class="k"><?php echo $e( $k ); ?></td><td class="v"><?php echo $e( $v ); ?></td></tr>
-				<?php endforeach; ?>
-			</table>
+		<td class="party-gap"></td>
+		<td style="width:<?php echo $slip ? '44' : '34'; ?>%">
+			<div class="label">Details</div>
+			<div class="facts-box">
+				<table class="facts">
+					<?php foreach ( $d['facts'] as $k => $v ) : ?>
+						<tr><td class="k"><?php echo $e( $k ); ?></td><td class="v"><?php echo $e( $v ); ?></td></tr>
+					<?php endforeach; ?>
+				</table>
+			</div>
 		</td>
 	</tr>
 </table>
@@ -206,7 +216,7 @@ td, th { vertical-align: top; padding: 0; }
 		$img = 'pdf' === $mode ? $it['img_path'] : $it['img_url'];
 		?>
 		<tr class="<?php echo 1 === $i % 2 ? 'zebra' : ''; ?>">
-			<td><?php echo $img ? '<img class="thumb" src="' . $e( $img ) . '" alt="">' : '<div class="thumb-empty"></div>'; ?></td>
+			<td class="thumb-cell"><?php echo $img ? '<img class="thumb" src="' . $e( $img ) . '" alt="">' : '<div class="thumb-empty"></div>'; ?></td>
 			<td>
 				<div class="name"><?php echo $e( $it['name'] ); ?></div>
 				<?php if ( $it['sku'] ) : ?><div class="sku">SKU <?php echo $e( $it['sku'] ); ?></div><?php endif; ?>

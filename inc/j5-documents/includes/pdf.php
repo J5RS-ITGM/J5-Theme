@@ -45,9 +45,8 @@ function j5doc_pdf( $html, $args = array() ) {
 
 	// Page numbers on multi-page documents.
 	$canvas = $dompdf->getCanvas();
-	if ( $canvas->get_page_count() > 1 ) {
-		$font = $dompdf->getFontMetrics()->getFont( 'DejaVu Sans' );
-		$canvas->page_text( $canvas->get_width() - 100, $canvas->get_height() - 28, 'Page {PAGE_NUM} of {PAGE_COUNT}', $font, 7, array( 0.55, 0.55, 0.57 ) );
-	}
+	$font = $dompdf->getFontMetrics()->getFont( 'Barlow' ) ?: $dompdf->getFontMetrics()->getFont( 'DejaVu Sans' );
+	// Right end of the footer line, same baseline as the footer text.
+	$canvas->page_text( $canvas->get_width() - 36 - 34, $canvas->get_height() - 0.7 * 72 + 0.45 * 72 - 11, 'Page {PAGE_NUM} of {PAGE_COUNT}', $font, 7.5, array( 0.54, 0.55, 0.57 ) );
 	return $dompdf->output();
 }
