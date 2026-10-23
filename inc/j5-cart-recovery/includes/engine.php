@@ -166,12 +166,13 @@ function j5cr_send_step( $row, $i, $to = null ) {
 		'order'     => '',
 	);
 	$ok = j5cr_mail( $to ? $to : $row['email'], ( $is_test ? '[TEST] ' : '' ) . $st['subject'], $args );
+	$GLOBALS['j5cr_last_no_code'] = $coupon ? '' : j5cr_no_code_reason( $row, $st );
 
 	if ( ! $is_test && $ok ) {
 		$set = array(
 			'steps_sent' => $i + 1,
 			'last_sent'  => current_time( 'mysql', true ),
-			'note'       => 'Reminder ' . ( $i + 1 ) . ' sent' . ( $coupon ? ' with code ' . $coupon['code'] : '' ),
+			'note'       => 'Reminder ' . ( $i + 1 ) . ' sent' . ( $coupon ? ' with code ' . $coupon['code'] : ( ! empty( $st['discount'] ) ? ', no code (nothing eligible)' : '' ) ),
 		);
 		if ( $coupon ) {
 			$set['coupon'] = $coupon['code'];
@@ -208,36 +209,65 @@ function j5cr_mail( $to, $subject, $args ) {
 
 /** Product + variation IDs in the cart that may be discounted. */
 function j5cr_eligible_ids( $cart, $s ) {
-	$extra = array_filter( array_map( 'trim', explode( ',', (string) $s['exclude_products'] ) ) );
-	$ids   = array();
+	$ids = array();
 	foreach ( (array) $cart as $it ) {
-		$pid = (int) $it['product_id'];
-		$vid = (int) $it['variation_id'];
-		$p   = wc_get_product( $vid ? $vid : $pid );
-		if ( ! $p ) {
+		if ( '' !== j5cr_item_exclusion( $it, $s ) ) {
 			continue;
 		}
-		if ( ! empty( $s['exclude_brands'] ) && taxonomy_exists( 'product_brand' ) ) {
-			$brands = wp_get_post_terms( $pid, 'product_brand', array( 'fields' => 'ids' ) );
-			if ( ! is_wp_error( $brands ) && array_intersect( $brands, array_map( 'intval', $s['exclude_brands'] ) ) ) {
-				continue;
-			}
-		}
-		if ( ! empty( $s['exclude_le'] ) && function_exists( 'j5_is_le_only' ) && j5_is_le_only( $p ) ) {
-			continue;
-		}
-		if ( ! empty( $s['exclude_sale'] ) && $p->is_on_sale() ) {
-			continue;
-		}
-		if ( $extra && ( in_array( (string) $pid, $extra, true ) || in_array( (string) $vid, $extra, true ) || ( $p->get_sku() && in_array( $p->get_sku(), $extra, true ) ) ) ) {
-			continue;
-		}
-		$ids[] = $pid;
-		if ( $vid ) {
-			$ids[] = $vid;
+		$ids[] = (int) $it['product_id'];
+		if ( ! empty( $it['variation_id'] ) ) {
+			$ids[] = (int) $it['variation_id'];
 		}
 	}
 	return array_values( array_unique( $ids ) );
+}
+
+/** Why a cart line can't take a code ('' = eligible). */
+function j5cr_item_exclusion( $it, $s ) {
+	$pid = (int) $it['product_id'];
+	$vid = (int) $it['variation_id'];
+	$p   = wc_get_product( $vid ? $vid : $pid );
+	if ( ! $p ) {
+		return 'product no longer exists';
+	}
+	if ( ! empty( $s['exclude_brands'] ) && taxonomy_exists( 'product_brand' ) ) {
+		$brands = wp_get_post_terms( $pid, 'product_brand', array( 'fields' => 'all' ) );
+		if ( ! is_wp_error( $brands ) ) {
+			foreach ( $brands as $b ) {
+				if ( in_array( (int) $b->term_id, array_map( 'intval', $s['exclude_brands'] ), true ) ) {
+					return 'brand ' . $b->name . ' is checked under "Never discount these brands"';
+				}
+			}
+		}
+	}
+	if ( ! empty( $s['exclude_le'] ) && function_exists( 'j5_is_le_only' ) && j5_is_le_only( $p ) ) {
+		return 'LE-only item ("Law enforcement only items" is excluded)';
+	}
+	if ( ! empty( $s['exclude_sale'] ) && $p->is_on_sale() ) {
+		return 'on sale ("Items already on sale" is excluded)';
+	}
+	$extra = array_filter( array_map( 'trim', explode( ',', (string) $s['exclude_products'] ) ) );
+	if ( $extra && ( in_array( (string) $pid, $extra, true ) || in_array( (string) $vid, $extra, true ) || ( $p->get_sku() && in_array( $p->get_sku(), $extra, true ) ) ) ) {
+		return 'listed under Excluded products';
+	}
+	return '';
+}
+
+/** Plain-English reason a step went out without a code ('' = it has one or shouldn't). */
+function j5cr_no_code_reason( $row, $st ) {
+	if ( empty( $st['discount'] ) ) {
+		return '"Include a discount code" is not checked for this reminder in the saved settings.';
+	}
+	$s     = j5cr_settings();
+	$lines = array();
+	foreach ( (array) $row['cart'] as $it ) {
+		$why = j5cr_item_exclusion( $it, $s );
+		if ( '' === $why ) {
+			return '';
+		}
+		$lines[] = ( $it['name'] ?? ( '#' . $it['product_id'] ) ) . ': ' . $why;
+	}
+	return 'Nothing in the cart can take a code. ' . implode( '; ', $lines ) . '.';
 }
 
 /** Wording for what the code covers. */

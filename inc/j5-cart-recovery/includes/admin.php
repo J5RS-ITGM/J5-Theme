@@ -90,6 +90,10 @@ add_action( 'admin_post_j5cr_test', function () {
 		} else {
 			$row['first_name'] = $me->first_name;
 			$ok                = j5cr_send_step( $row, min( 2, $step ), $me->user_email );
+			$why               = $GLOBALS['j5cr_last_no_code'] ?? '';
+			if ( $ok && $why ) {
+				set_transient( 'j5cr_test_note_' . $me->ID, 'Reminder ' . ( min( 2, $step ) + 1 ) . ' test went out without a code. ' . $why . ( empty( $row['id'] ) ? '' : ' (Test used the most recent captured cart, #' . (int) $row['id'] . '.)' ), 300 );
+			}
 		}
 	}
 	wp_safe_redirect( j5cr_admin_url( array( 'tab' => 'settings', 'msg' => $ok ? 'test' : 'testfail' ) ) );
@@ -172,6 +176,13 @@ function j5cr_admin_page() {
 		@media (max-width:1200px){.j5cr-steps{grid-template-columns:1fr}.j5cr-stats{grid-template-columns:repeat(2,1fr)}}
 		</style>
 		<h1>Cart Recovery</h1>
+		<?php
+		$j5cr_note = 'test' === $msg ? get_transient( 'j5cr_test_note_' . get_current_user_id() ) : '';
+		if ( $j5cr_note ) :
+			delete_transient( 'j5cr_test_note_' . get_current_user_id() );
+			?>
+			<div class="notice notice-warning is-dismissible"><p><?php echo esc_html( $j5cr_note ); ?></p></div>
+		<?php endif; ?>
 		<?php if ( isset( $msgs[ $msg ] ) ) : ?>
 			<div class="notice notice-<?php echo esc_attr( $msgs[ $msg ][0] ); ?> is-dismissible"><p><?php echo esc_html( $msgs[ $msg ][1] ); ?></p></div>
 		<?php endif; ?>
