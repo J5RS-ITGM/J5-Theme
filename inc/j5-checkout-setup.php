@@ -31,6 +31,16 @@ add_action( 'wp_enqueue_scripts', function () {
 		filemtime( get_stylesheet_directory() . '/assets/css/j5-checkout.css' )
 	);
 
+	// Pay-for-order page (payment links): layout for woocommerce/checkout/form-pay.php.
+	if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-pay' ) ) {
+		wp_enqueue_style(
+			'j5-order-pay',
+			get_stylesheet_directory_uri() . '/assets/css/j5-order-pay.css',
+			array( 'j5-checkout-css' ),
+			filemtime( get_stylesheet_directory() . '/assets/css/j5-order-pay.css' )
+		);
+	}
+
 	// Brand fonts are self-hosted and loaded site-wide by inc/j5-fonts.php.
 }, 20 );
 
