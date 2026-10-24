@@ -529,7 +529,6 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 							<th scope="row" class="j5ac-td--model">
 								<span class="j5ac-model"><?php echo esc_html( $m['model'] ); ?></span>
 								<span class="j5ac-maker"><?php echo esc_html( $m['manufacturer'] ); ?><?php if ( $m['carried'] ) : ?> <span class="j5ac-stock"><?php echo $m['wc_product_url'] ? 'Sold by J5' : 'Quote from J5'; ?></span><?php endif; ?></span>
-								<button type="button" class="j5ac-rowhelp" data-j5ac-rowhelp="<?php echo esc_attr( $m['slug'] ); ?>">Help me compare</button>
 							</th>
 							<?php foreach ( $cols as $f ) :
 								$v = isset( $m['specs'][ $f['key'] ] ) ? $m['specs'][ $f['key'] ] : null; ?>
@@ -545,8 +544,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 			<p class="j5ac-none" data-j5ac-none hidden>No <?php echo esc_html( strtolower( $feed['label'] ) ); ?> match. Widen the filters.</p>
 		</div>
 
-		<p class="j5ac-hint"><span data-j5ac-hint>Check up to 6 to compare side by side, or check one and use Help me compare.</span> <button type="button" class="j5ac-help" data-j5ac-help hidden>Help me compare</button> <button type="button" class="j5ac-clear" data-j5ac-clear hidden>Clear selection</button></p>
-		<p class="j5ac-helpnote" data-j5ac-helpnote hidden></p>
+		<p class="j5ac-hint"><span data-j5ac-hint>Check up to 6 to compare side by side.</span> <button type="button" class="j5ac-clear" data-j5ac-clear hidden>Clear selection</button></p>
 		<div class="j5ac-compare" data-j5ac-compare-out hidden tabindex="-1"></div>
 
 		<p class="j5ac-foot">Specs as published by each manufacturer<?php echo $pulled ? ', sheets pulled ' . esc_html( $pulled ) : ''; ?>. Ounces per square inch is calculated from the listed size and weight. Confirm current specs with the manufacturer or with us before you buy.</p>

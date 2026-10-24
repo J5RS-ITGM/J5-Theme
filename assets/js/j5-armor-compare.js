@@ -59,8 +59,6 @@
 		this.none = section.querySelector('[data-j5ac-none]');
 		this.hint = section.querySelector('[data-j5ac-hint]');
 		this.clearBtn = section.querySelector('[data-j5ac-clear]');
-		this.helpBtn = section.querySelector('[data-j5ac-help]');
-		this.helpNote = section.querySelector('[data-j5ac-helpnote]');
 		this.out = section.querySelector('[data-j5ac-compare-out]');
 		this.picked = [];
 		this.bind();
@@ -97,60 +95,6 @@
 			self.pick(e.target.value, e.target.checked, e.target);
 		});
 		this.clearBtn.addEventListener('click', function () { self.clearPicks(); });
-		this.helpBtn.addEventListener('click', function () { if (self.picked.length) self.helpCompare(self.picked[0]); });
-		this.tbody.addEventListener('click', function (e) {
-			var b = e.target.closest('[data-j5ac-rowhelp]');
-			if (b) self.helpCompare(b.getAttribute('data-j5ac-rowhelp'));
-		});
-	};
-
-	/**
-	 * Help me compare: start from one model and pull in the closest matches from
-	 * other manufacturers. Same protection level first, same standard preferred,
-	 * then nearest by coverage and weight, one per manufacturer before doubling up.
-	 */
-	Panel.prototype.helpCompare = function (slug) {
-		var anchor = this.rowBySlug(slug);
-		if (!anchor) return;
-		var a = anchor.data, aLevel = a.specs.level, aStd = a.specs.standard;
-		var aArea = num(a.derived.area_sqin), aWt = num(a.specs.weight_lb);
-		var want = MAX_PICK - 1;
-
-		var pool = this.rows.filter(function (r) { return r !== anchor && r.data.manufacturer !== a.manufacturer; });
-		var tiers = [
-			function (r) { return r.data.specs.level === aLevel && r.data.specs.standard === aStd; },
-			function (r) { return r.data.specs.level === aLevel; },
-			function (r) { return tier(r.data.specs.level) === tier(aLevel); }
-		];
-		function closeness(r) {
-			var d = 0, area = num(r.data.derived.area_sqin), wt = num(r.data.specs.weight_lb);
-			if (aArea && area) d += Math.abs(area - aArea) / aArea;
-			if (aWt && wt) d += Math.abs(wt - aWt) / aWt;
-			if (r.data.carried) d -= 0.05;
-			return d;
-		}
-		var chosen = [], makers = {}, usedTier = -1;
-		for (var t = 0; t < tiers.length && chosen.length < want; t++) {
-			var cands = pool.filter(tiers[t]).filter(function (r) { return chosen.indexOf(r) === -1; }).sort(function (x, y) { return closeness(x) - closeness(y); });
-			// one per manufacturer first
-			cands.forEach(function (r) { if (chosen.length < want && !makers[r.data.manufacturer]) { chosen.push(r); makers[r.data.manufacturer] = 1; if (usedTier < t) usedTier = t; } });
-			cands.forEach(function (r) { if (chosen.length < want && chosen.indexOf(r) === -1) { chosen.push(r); if (usedTier < t) usedTier = t; } });
-		}
-
-		this.clearPicks();
-		this.picked = [anchor].concat(chosen).map(function (r) { return r.data.slug; });
-		this.picked.forEach(function (sl) { var row = this.rowBySlug(sl); row.tr.classList.add('is-picked'); row.tr.querySelector('.j5ac-pick').checked = true; }, this);
-		this.anchorSlug = slug;
-		this.hint.textContent = 'Comparing ' + this.picked.length + '.';
-		this.clearBtn.hidden = false;
-		this.helpBtn.hidden = true;
-
-		var how = chosen.length ? (usedTier === 0 ? 'the same protection level and test standard' : usedTier === 1 ? 'the same protection level' : 'the same threat class') : '';
-		this.helpNote.textContent = chosen.length
-			? a.manufacturer + ' ' + a.model + ' against ' + chosen.length + ' from other manufacturers with ' + how + ', closest in size and weight first.'
-			: 'Nothing from another manufacturer is rated like the ' + a.model + ' in this list.';
-		this.helpNote.hidden = false;
-		this.compare(true);
 	};
 
 	Panel.prototype.clearPicks = function () {
@@ -159,11 +103,8 @@
 			if (row) { row.tr.classList.remove('is-picked'); row.tr.querySelector('.j5ac-pick').checked = false; }
 		}, this);
 		this.picked = [];
-		this.anchorSlug = null;
-		this.hint.textContent = 'Check up to ' + MAX_PICK + ' to compare side by side, or check one and use Help me compare.';
+		this.hint.textContent = 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = true;
-		this.helpBtn.hidden = true;
-		this.helpNote.hidden = true;
 		this.compare(false);
 	};
 
@@ -240,10 +181,8 @@
 		}
 		var row = this.rowBySlug(slug);
 		if (row) row.tr.classList.toggle('is-picked', on);
-		this.hint.textContent = this.picked.length ? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.') : 'Check up to ' + MAX_PICK + ' to compare side by side, or check one and use Help me compare.';
+		this.hint.textContent = this.picked.length ? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.') : 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = this.picked.length === 0;
-		this.helpBtn.hidden = this.picked.length !== 1;
-		if (this.anchorSlug && this.picked.indexOf(this.anchorSlug) === -1) { this.anchorSlug = null; this.helpNote.hidden = true; }
 		this.compare(on && this.picked.length === 1);
 	};
 
@@ -285,59 +224,25 @@
 		var best = {};
 		specRows.forEach(function (sr) {
 			if (sr.type !== 'number' || rows.length < 2) return;
-			var nums = rows.map(function (r) { return num(sr.derived ? r.data.derived[sr.key] : r.data.specs[sr.key]); }).filter(function (n) { return n !== null; });
+			var nums = rows.map(function (r) { var x = sr.derived ? r.data.derived[sr.key] : r.data.specs[sr.key]; if (sr.sizes && (x === undefined || x === null)) x = 1; return num(x); }).filter(function (n) { return n !== null; });
 			if (nums.length < 2 || Math.min.apply(null, nums) === Math.max.apply(null, nums)) return;
 			if (LOWER_BETTER.test(sr.key)) best[sr.key] = Math.min.apply(null, nums);
 			else if (HIGHER_BETTER.test(sr.key)) best[sr.key] = Math.max.apply(null, nums);
 		});
-		// Best all-around: ounces per sq in (lower), coverage (higher), viewport present, viewport size (higher).
-		// Handle, light mounts and carry options are not scored yet.
-		var scored = null;
-		if (rows.length > 1) {
-			var W = { eff: 0.40, area: 0.25, vp: 0.20, vparea: 0.15 };
-			var effs = rows.map(function (r) { return num(r.data.derived.oz_per_sqin); });
-			var areas = rows.map(function (r) { return num(r.data.derived.area_sqin); });
-			var vps = rows.map(function (r) { return viewportArea(r.data.specs.viewport); });
-			function span(arr) { var v = arr.filter(function (n) { return n !== null; }); return v.length ? [Math.min.apply(null, v), Math.max.apply(null, v)] : null; }
-			var sE = span(effs), sA = span(areas), sV = span(vps);
-			function hi(n, sp) { return n === null || !sp || sp[1] === sp[0] ? 0.5 : (n - sp[0]) / (sp[1] - sp[0]); }
-			scored = rows.map(function (r, i) {
-				var sc = 0;
-				if (cfg.category !== 'helmet') {
-					sc += W.eff * (effs[i] === null ? 0 : 1 - hi(effs[i], sE));
-					sc += W.area * hi(areas[i], sA);
-				} else {
-					var wts = rows.map(function (x) { return num(x.data.specs.weight_lb); }), sW = span(wts);
-					sc += (W.eff + W.area) * (1 - hi(wts[i], sW));
-				}
-				if (cfg.category === 'shield') {
-					sc += W.vp * (vps[i] > 0 ? 1 : 0);
-					sc += W.vparea * (vps[i] > 0 ? hi(vps[i], sV) : 0);
-				} else sc += W.vp + W.vparea > 0 ? 0 : 0;
-				return sc;
-			});
-		}
-		var bestScore = scored ? Math.max.apply(null, scored) : null;
-		if (cfg.category === 'shield') { best.viewport_sqin = Math.max.apply(null, rows.map(function (r) { return viewportArea(r.data.specs.viewport); })); if (!(best.viewport_sqin > 0)) delete best.viewport_sqin; }
-
-		if (scored) {
-			var how = el('p', 'j5ac-scorenote');
-			how.textContent = cfg.category === 'shield'
-				? 'Best all-around weighs ounces per square inch, coverage, and the viewport (whether there is one, and its size). Handle, lights and carry options are not scored.'
-				: 'Best all-around weighs ' + (cfg.category === 'helmet' ? 'weight.' : 'ounces per square inch and coverage.');
-			this.out.appendChild(how);
+		if (cfg.category === 'shield') { best.viewport_sqin = Math.max.apply(null, rows.map(function (r) { return viewportArea(r.data.specs.viewport); })); if (!(best.viewport_sqin > 0) || rows.length < 2) delete best.viewport_sqin; }
+		if (rows.length > 1 && Object.keys(best).length) {
+			var key = el('p', 'j5ac-scorenote');
+			key.textContent = 'Gold marks where a model leads on a listed spec: lightest, most coverage, fewest ounces per square inch' + (cfg.category === 'shield' ? ', largest viewport' : '') + (cfg.sizes ? ', most sizes' : '') + '. No overall winner is picked.';
+			this.out.appendChild(key);
 		}
 		var grid = el('div', 'j5ac-cards');
 		rows.forEach(function (r, idx) {
 			var card = el('div', 'j5ac-card');
-			var isAnchor = this.anchorSlug === r.data.slug;
-			var isTop = scored && scored[idx] === bestScore && scored.filter(function (x) { return x === bestScore; }).length === 1;
-			if (isAnchor) card.classList.add('is-anchor');
-			if (isTop) { card.classList.add('is-best'); card.appendChild(el('p', 'j5ac-card-best', (isAnchor ? 'Your pick, ' : '') + 'best all-around')); }
-			else if (isAnchor) card.appendChild(el('p', 'j5ac-card-best', 'Your pick'));
+
 			card.appendChild(el('span', 'j5ac-model', r.data.model));
 			card.appendChild(el('span', 'j5ac-maker', r.data.manufacturer));
 
+			var leads = 0;
 			var t = el('table'), tb = el('tbody');
 			specRows.forEach(function (sr) {
 				var v = sr.derived ? r.data.derived[sr.key] : r.data.specs[sr.key];
@@ -350,12 +255,12 @@
 				else if (sr.key === 'level') td.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(v), text));
 				else if (sr.sizes) { td.textContent = text; if (r.data.derived.size_list) { td.appendChild(el('small', null, ' ' + r.data.derived.size_list)); } }
 				else td.textContent = sr.unit && typeof v === 'number' ? text + ' ' + sr.unit : text;
-				if (best[sr.key] !== undefined && num(v) === best[sr.key]) td.classList.add('is-best');
-				if (sr.key === 'viewport' && best.viewport_sqin !== undefined && viewportArea(v) === best.viewport_sqin) td.classList.add('is-best');
+				if ((best[sr.key] !== undefined && num(v) === best[sr.key]) || (sr.key === 'viewport' && best.viewport_sqin !== undefined && viewportArea(v) === best.viewport_sqin)) { td.classList.add('is-best'); leads++; }
 				tr.appendChild(td);
 				tb.appendChild(tr);
 			});
 			t.appendChild(tb);
+			if (leads) card.insertBefore(el('p', 'j5ac-card-best', 'Leads on ' + leads + (leads === 1 ? ' spec' : ' specs')), card.firstChild);
 			card.appendChild(t);
 
 			var src = el('p', 'j5ac-card-src');

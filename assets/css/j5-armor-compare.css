@@ -91,11 +91,6 @@
 .j5ac-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 900px) { .j5ac-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .j5ac-cards { grid-template-columns: minmax(0, 1fr); } }
-.j5ac-card.is-anchor { border-color: var(--bone); }
-.j5ac-card.is-anchor.is-best { border-color: var(--g); }
-.j5ac .j5ac-help { font-family: var(--cond); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #15110a; background: var(--g); border-radius: 4px; padding: 6px 12px; }
-.j5ac-help:hover { background: var(--gh); }
-.j5ac-helpnote { margin: 10px 0 0; font-size: 14px; color: var(--dim); }
 .j5ac-scorenote { margin: 0 0 14px; font-size: 13px; color: var(--mute); }
 .j5ac-float { position: fixed; right: 24px; bottom: 24px; z-index: 50; display: flex; flex-direction: column; gap: 10px; opacity: 0; pointer-events: none; transform: translateY(12px); }
 .j5ac-float.is-on { opacity: 1; pointer-events: auto; transform: none; }
@@ -107,10 +102,7 @@
 .j5ac .j5ac-float-btn--reset::before { content: "\21BA"; font-size: 18px; }
 .j5ac .j5ac-float-btn--reset:hover { background: var(--rh); border-color: var(--rh); color: #fff; }
 @media (max-width: 720px) { .j5ac-float { right: 12px; bottom: 12px; flex-direction: row; } .j5ac .j5ac-float-btn { min-width: 0; padding: 14px 18px; font-size: 18px; } }
-.j5ac .j5ac-rowhelp { display: block; margin-top: 4px; font-family: var(--cond); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); text-decoration: underline; text-underline-offset: 3px; }
-.j5ac-rowhelp:hover { color: var(--g); }
 .j5ac-card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 18px 18px 16px; display: flex; flex-direction: column; }
-.j5ac-card.is-best { border-color: var(--g); }
 .j5ac-card.is-carried { box-shadow: inset 0 3px 0 var(--g); }
 .j5ac-card-nocarry { margin: 12px 0 0; padding: 11px 14px; text-align: center; font-size: 13px; color: var(--mute); border: 1px dashed var(--line-hi); border-radius: 4px; }
 .j5ac-card td small { color: var(--mute); font-size: 11px; }
