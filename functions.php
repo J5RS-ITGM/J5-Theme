@@ -224,6 +224,8 @@ require_once get_stylesheet_directory() . '/inc/j5-armor-reference.php';
 require_once get_stylesheet_directory() . '/inc/j5-faq-schema.php';
 // [j5_plate_sizing]: real-text plate sizing chart (chest to SAPI size, cut equivalents). J5-SIZING
 require_once get_stylesheet_directory() . '/inc/j5-plate-sizing.php';
+// [j5_threat_grid]: lineup-wide rounds x models hit grid from DP _j5_armor_spec (after j5-threat-matrix). J5-THREATGRID
+require_once get_stylesheet_directory() . '/inc/j5-threat-grid.php';
 // === J5-GUIDES-REQUIRES-END ===
 
 // === J5-PRODUCT-SCHEMA-REQUIRES-START ===
