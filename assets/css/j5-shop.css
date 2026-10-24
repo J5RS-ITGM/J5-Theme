@@ -1374,7 +1374,7 @@ body.j5-shop-template .j5-container {
 }
 
 .j5-prod-badge.le-only { background: #1d3a52; color: #b9dbf2; border: 1px solid #2f5d80; }
-.j5-prod-badge.nij { background: rgba(200, 168, 78, 0.14); color: #e3c56e; border: 1px solid rgba(200, 168, 78, 0.6); }
+.j5-prod-badge.nij { background: #3a2d0f; color: #e8c86a; border: 1px solid #8a6d2b; }
 
 /* NIJ Certified line on the product page (inc/j5-nij-certified.php) J5-NIJ */
 .j5-nij { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: -8px 0 18px; }
