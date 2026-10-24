@@ -86,7 +86,7 @@
 	}
 	function stepLabel(d, step, val) {
 		if (step === 'threat') { for (var i = 0; i < THREATS.length; i++) if (THREATS[i].id === val) return THREATS[i]; return { label: val, sub: '' }; }
-		if (step === 'nij') return { label: val === 'yes' ? 'NIJ certified' : 'Not on the NIJ list', sub: val === 'yes' ? 'On the Compliant Products List' : 'Tested to the standard, not listed' };
+		if (step === 'nij') return { label: val === 'yes' ? 'NIJ certified' : 'Not certified', sub: val === 'yes' ? 'On the NIJ Compliant Products List' : 'May be tested to a standard, but it is not on the NIJ CPL' };
 		if (step === 'size') { var sz = sizeOf(d); return sz ? { label: sz.label, sub: sz.sub } : { label: 'Not listed', sub: '' }; }
 		return { label: val || 'Not specified', sub: '' };
 	}
@@ -182,6 +182,7 @@
 			});
 			if (step === 'threat') order.sort(function (a, b) { return THREATS.map(function (t) { return t.id; }).indexOf(a) - THREATS.map(function (t) { return t.id; }).indexOf(b); });
 			else if (step === 'size') order.sort(function (a, b) { var A = sizeOf(groups[a].sample), B = sizeOf(groups[b].sample); return (A.w * A.h) - (B.w * B.h) || A.w - B.w; });
+			else if (step === 'nij') order.sort(function (a, b) { return (a === 'yes' ? 0 : 1) - (b === 'yes' ? 0 : 1); });
 			else order.sort(function (a, b) { return (a === '') - (b === '') || a.localeCompare(b); });
 			var tiles = el('div', 'j5ac-tiles');
 			order.forEach(function (v) {

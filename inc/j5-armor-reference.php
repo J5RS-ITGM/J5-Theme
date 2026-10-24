@@ -562,7 +562,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 		<p class="j5ac-hint"><span data-j5ac-hint>Check up to 6 to compare side by side.</span> <button type="button" class="j5ac-clear" data-j5ac-clear hidden>Clear selection</button></p>
 		<div class="j5ac-compare" data-j5ac-compare-out hidden tabindex="-1"></div>
 
-		<p class="j5ac-foot">Specs as published by each manufacturer<?php echo $pulled ? ', sheets pulled ' . esc_html( $pulled ) : ''; ?>. Ounces per square inch is calculated from the listed size and weight. Confirm current specs with the manufacturer or with us before you buy.</p>
+		<p class="j5ac-foot">Specs as published by each manufacturer<?php echo $pulled ? ', sheets pulled ' . esc_html( $pulled ) : ''; ?>. Ounces per square inch is calculated from the listed size and weight. NIJ certification claims are taken from manufacturer spec sheets and cross-checked against the <a href="https://cpl.nij.ojp.gov/" target="_blank" rel="noopener">NIJ Compliant Products List</a>; "Not certified" means the model is not on the CPL, whatever the sheet says it was tested to. Confirm current specs with the manufacturer or with us before you buy.</p>
 	</section>
 	<?php
 	j5_armor_ref_jsonld( $feed );
