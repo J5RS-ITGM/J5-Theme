@@ -28,6 +28,14 @@
 		if (m) return parseFloat(m[1]) * parseFloat(m[2]);
 		return /^(no|none|n\/a|without)/i.test(v.trim()) ? 0 : 1; // present, size unknown
 	}
+	/** Size identity for like-for-like picking: "10 x 12 in", "SAPI Medium", or width x height. Null = no restriction. */
+	function sizeKey(d) {
+		var sz = d.specs && d.specs.size;
+		if (sz) return String(sz).toLowerCase().replace(/×/g, 'x').replace(/\s+/g, '').replace(/in(ch(es)?)?$/, '');
+		var w = num(d.specs && d.specs.width_in), h = num(d.specs && d.specs.height_in);
+		if (w && h) return w + 'x' + h;
+		return null;
+	}
 	function tier(l) {
 		l = String(l || '').toUpperCase().trim();
 		if (['IIA', 'II', 'IIIA', 'HG1', 'HG2'].indexOf(l) !== -1) return 'hg';
@@ -35,6 +43,39 @@
 		if (['RF1', 'RF2', 'RF3'].indexOf(l) !== -1) return 'rf';
 		if (l === 'IV') return 'ap';
 		return 'other';
+	}
+	var THREATS = [
+		{ id: 'iiia', label: 'Handgun', sub: 'NIJ IIIA', levels: ['IIA', 'II', 'IIIA', 'HG1', 'HG2'] },
+		{ id: 'iii',  label: 'Rifle', sub: 'NIJ III / III+', levels: ['III', 'III+'] },
+		{ id: 'iv',   label: 'Rifle', sub: 'NIJ IV', levels: ['IV'] },
+		{ id: 'rf1',  label: 'Rifle', sub: 'RF1', levels: ['RF1'] },
+		{ id: 'rf2',  label: 'Rifle', sub: 'RF2 / RF3', levels: ['RF2', 'RF3'] }
+	];
+	var STEPS = {
+		shield: ['threat', 'type', 'size'],
+		plate:  ['threat', 'nij', 'size'],
+		helmet: ['threat', 'cut'],
+		soft_armor: ['threat', 'size']
+	};
+	var STEP_Q = { threat: 'What does it need to stop?', type: 'What kind of shield?', nij: 'NIJ certified?', size: 'What size?', cut: 'What cut?' };
+	function threatOf(level) {
+		var l = String(level || '').toUpperCase().trim();
+		for (var i = 0; i < THREATS.length; i++) if (THREATS[i].levels.indexOf(l) !== -1) return THREATS[i].id;
+		return null;
+	}
+	function stepValue(d, step) {
+		if (step === 'threat') return threatOf(d.specs.level);
+		if (step === 'type') return d.specs.type ? String(d.specs.type) : '';
+		if (step === 'nij') { var v = d.specs.nij_certified; if (v === undefined || v === null || v === '') return ''; return (v === true || /^(yes|true|1)$/i.test(String(v))) ? 'yes' : 'no'; }
+		if (step === 'size') return sizeKey(d) || '';
+		if (step === 'cut') return d.specs.cut ? String(d.specs.cut) : '';
+		return '';
+	}
+	function stepLabel(d, step, val) {
+		if (step === 'threat') { for (var i = 0; i < THREATS.length; i++) if (THREATS[i].id === val) return THREATS[i]; return { label: val, sub: '' }; }
+		if (step === 'nij') return { label: val === 'yes' ? 'NIJ certified' : 'Not on the NIJ list', sub: val === 'yes' ? 'On the Compliant Products List' : 'Tested to the standard, not listed' };
+		if (step === 'size') return { label: d.specs.size ? String(d.specs.size) : (d.specs.width_in + ' x ' + d.specs.height_in + ' in'), sub: '' };
+		return { label: val || 'Not specified', sub: '' };
 	}
 	function el(tag, cls, text) {
 		var e = document.createElement(tag);
@@ -61,8 +102,136 @@
 		this.clearBtn = section.querySelector('[data-j5ac-clear]');
 		this.out = section.querySelector('[data-j5ac-compare-out]');
 		this.picked = [];
+		this.guide = {};
+		this.guideOn = true;
+		this.steps = STEPS[this.config.category] || ['threat'];
+		this.guideBox = section.querySelector('[data-j5ac-guide]');
+		this.listWrap = section.querySelector('.j5ac-table-wrap');
 		this.bind();
+		this.renderGuide();
+		this.ready = true;
 	}
+
+	/** Rows that satisfy every answered guide step. */
+	Panel.prototype.guideRows = function () {
+		var g = this.guide;
+		return this.rows.filter(function (r) {
+			for (var k in g) if (g[k] !== undefined && g[k] !== '*' && stepValue(r.data, k) !== g[k]) return false;
+			return true;
+		});
+	};
+
+	Panel.prototype.nextStep = function () {
+		for (var i = 0; i < this.steps.length; i++) if (this.guide[this.steps[i]] === undefined) return this.steps[i];
+		return null;
+	};
+
+	Panel.prototype.renderGuide = function () {
+		var self = this, box = this.guideBox;
+		box.textContent = '';
+		if (!this.guideOn) { box.hidden = true; this.form.hidden = false; this.applyGuide(); return; }
+		box.hidden = false;
+
+		// Breadcrumb of answers so far
+		var crumbs = el('div', 'j5ac-crumbs');
+		this.steps.forEach(function (st) {
+			if (self.guide[st] === undefined || self.guide[st] === '*') return;
+			var sample = self.guideRows()[0];
+			var lab = sample ? stepLabel(sample.data, st, self.guide[st]) : { label: self.guide[st] };
+			var b = el('button', 'j5ac-crumb', (st === 'threat' ? lab.label + ' ' + lab.sub : lab.label));
+			b.type = 'button'; b.title = 'Change';
+			b.addEventListener('click', function () { self.backTo(st); });
+			crumbs.appendChild(b);
+		});
+		var all = el('button', 'j5ac-seeall', this.guide.threat === undefined ? 'See all ' + this.config.label.toLowerCase() : 'See all');
+		all.type = 'button';
+		all.addEventListener('click', function () { self.seeAll(); });
+		crumbs.appendChild(all);
+		box.appendChild(crumbs);
+
+		var step = this.nextStep();
+		var pool = this.guideRows();
+
+		// Skip a step the data can't answer yet (no model in the pool carries the field).
+		while (step && !pool.some(function (r) { var v = stepValue(r.data, step); return v !== '' && v !== null; })) {
+			this.guide[step] = '*';
+			step = this.nextStep();
+		}
+		if (step) {
+			var q = el('h3', 'j5ac-q', STEP_Q[step] || step);
+			box.appendChild(q);
+			var groups = {}, order = [];
+			pool.forEach(function (r) {
+				var v = stepValue(r.data, step);
+				if (v === null) return;
+				if (!groups[v]) { groups[v] = { n: 0, sample: r.data }; order.push(v); }
+				groups[v].n++;
+			});
+			if (step === 'threat') order.sort(function (a, b) { return THREATS.map(function (t) { return t.id; }).indexOf(a) - THREATS.map(function (t) { return t.id; }).indexOf(b); });
+			else if (step === 'size') order.sort(function (a, b) { return groups[b].n - groups[a].n || a.localeCompare(b, undefined, { numeric: true }); });
+			else order.sort(function (a, b) { return (a === '') - (b === '') || a.localeCompare(b); });
+			var tiles = el('div', 'j5ac-tiles');
+			order.forEach(function (v) {
+				var g = groups[v], lab = stepLabel(g.sample, step, v);
+				var t = el('button', 'j5ac-tile'); t.type = 'button';
+				t.appendChild(el('span', 'j5ac-tile-l', lab.label));
+				if (lab.sub) t.appendChild(el('span', 'j5ac-tile-s', lab.sub));
+				t.appendChild(el('span', 'j5ac-tile-n', g.n + (g.n === 1 ? ' model' : ' models')));
+				t.addEventListener('click', function () { self.answer(step, v); });
+				tiles.appendChild(t);
+			});
+			box.appendChild(tiles);
+			this.listWrap.hidden = true;
+			this.form.hidden = true;
+			this.hint.parentNode.hidden = true;
+		} else {
+			// All answered: show the matched list, compare-ready.
+			var n = pool.length;
+			box.appendChild(el('p', 'j5ac-guide-done', n + (n === 1 ? ' model matches. ' : ' models match. ') + 'Check any to compare side by side.'));
+			this.listWrap.hidden = false;
+			this.form.hidden = true;
+			this.hint.parentNode.hidden = false;
+			this.applyGuide();
+		}
+		this.writeHash();
+	};
+
+	Panel.prototype.answer = function (step, v) { this.guide[step] = v; this.clearPicks(); this.renderGuide(); };
+	Panel.prototype.backTo = function (step) {
+		var i = this.steps.indexOf(step);
+		for (var j = i; j < this.steps.length; j++) delete this.guide[this.steps[j]];
+		this.clearPicks(); this.renderGuide();
+	};
+	Panel.prototype.seeAll = function () {
+		// Carry the threat answer into the level chips, drop the rest, show the full list and filters.
+		var threat = this.guide.threat;
+		this.guideOn = false; this.guide = {};
+		this.form.reset();
+		if (threat && threat !== '*') {
+			var levels = THREATS.filter(function (t) { return t.id === threat; })[0].levels;
+			Array.prototype.forEach.call(this.form.querySelectorAll('input[name=level]'), function (cb) { cb.checked = levels.indexOf(cb.value) !== -1; });
+		}
+		this.listWrap.hidden = false; this.hint.parentNode.hidden = false;
+		this.clearPicks();
+		this.renderGuide();
+		var back = el('button', 'j5ac-seeall j5ac-seeall--back', 'Back to guided search'); back.type = 'button';
+		var self = this;
+		back.addEventListener('click', function () { self.guideOn = true; self.form.reset(); self.clearPicks(); self.renderGuide(); self.filter(); });
+		this.guideBox.textContent = ''; this.guideBox.hidden = false; this.guideBox.appendChild(back);
+		this.filter();
+	};
+	Panel.prototype.applyGuide = function () { this.filter(); this.sort(this.form.elements.sort.value); };
+	Panel.prototype.writeHash = function () {
+		if (!history.replaceState || !this.ready || this.section.hidden) return;
+		var parts = ['j5ac-' + this.config.category];
+		this.steps.forEach(function (st) { if (this.guide[st] !== undefined) parts.push(encodeURIComponent(this.guide[st] === '*' ? '-' : this.guide[st])); }, this);
+		history.replaceState(null, '', '#' + parts.join('/'));
+	};
+	Panel.prototype.readHash = function (segs) {
+		var self = this;
+		segs.forEach(function (seg, i) { if (self.steps[i] !== undefined && seg !== '') self.guide[self.steps[i]] = seg === '-' ? '*' : decodeURIComponent(seg); });
+		this.renderGuide();
+	};
 
 	Panel.prototype.value = function (row, key) {
 		if (key === 'model') return row.data.model.toLowerCase();
@@ -105,6 +274,7 @@
 		this.picked = [];
 		this.hint.textContent = 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = true;
+		this.lockSizes();
 		this.compare(false);
 	};
 
@@ -129,9 +299,10 @@
 			else if (inp.type === 'checkbox') { if (inp.checked) (lists[inp.name] = lists[inp.name] || []).push(inp.value); }
 			else if (inp.type === 'range') { if (parseFloat(inp.value) < parseFloat(inp.max)) maxes[inp.name.slice(4)] = parseFloat(inp.value); }
 		});
-		var shown = 0;
+		var shown = 0, g = this.guideOn ? this.guide : {};
 		this.rows.forEach(function (row) {
 			var ok = true, k, i, v;
+			for (k in g) if (g[k] !== undefined && g[k] !== '*' && stepValue(row.data, k) !== g[k]) { ok = false; break; }
 			if (q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
 			if (ok && maker && row.data.manufacturer !== maker) ok = false;
 			if (ok && carriedOnly && !row.data.carried) ok = false;
@@ -162,6 +333,19 @@
 		sorted.forEach(function (row) { this.tbody.appendChild(row.tr); }, this);
 	};
 
+	Panel.prototype.lockSizes = function () {
+		var first = this.picked.length ? this.rowBySlug(this.picked[0]) : null;
+		var key = first ? sizeKey(first.data) : null;
+		this.rows.forEach(function (row) {
+			var lock = key !== null && sizeKey(row.data) !== key;
+			row.tr.classList.toggle('is-locked', lock);
+			var cb = row.tr.querySelector('.j5ac-pick');
+			cb.disabled = lock;
+			cb.title = lock ? 'Different size from your first pick. Clear the selection to compare this one.' : '';
+		});
+		return key;
+	};
+
 	Panel.prototype.rowBySlug = function (slug) {
 		for (var i = 0; i < this.rows.length; i++) if (this.rows[i].data.slug === slug) return this.rows[i];
 		return null;
@@ -181,7 +365,12 @@
 		}
 		var row = this.rowBySlug(slug);
 		if (row) row.tr.classList.toggle('is-picked', on);
-		this.hint.textContent = this.picked.length ? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.') : 'Check up to ' + MAX_PICK + ' to compare side by side.';
+		var key = this.lockSizes();
+		var first = this.picked.length ? this.rowBySlug(this.picked[0]).data : null;
+		var sizeText = first && key !== null ? (first.specs.size ? first.specs.size : first.specs.width_in + ' x ' + first.specs.height_in + ' in') : '';
+		this.hint.textContent = this.picked.length
+			? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + (sizeText ? ', same size only (' + sizeText + ').' : '.') : 'Comparing ' + MAX_PICK + '.')
+			: 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = this.picked.length === 0;
 		this.compare(on && this.picked.length === 1);
 	};
@@ -296,7 +485,7 @@
 		root.appendChild(bar);
 		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
 		reset.addEventListener('click', function () {
-			Object.keys(panels).forEach(function (k) { panels[k].clearPicks(); panels[k].form.reset(); });
+			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.clearPicks(); p.form.reset(); p.guide = {}; p.guideOn = true; p.renderGuide(); p.filter(); });
 			root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
 		});
 		function tick() {
@@ -326,11 +515,14 @@
 				e.preventDefault();
 				var cat = a.getAttribute('data-cat');
 				show(cat);
-				if (history.replaceState) history.replaceState(null, '', '#j5ac-' + cat);
+				if (panels[cat]) panels[cat].writeHash();
 			});
 		});
 		var hash = (location.hash || '').replace('#j5ac-', '');
-		if (hash && panels[hash]) show(hash);
+		if (hash) {
+			var segs = hash.split('/'), cat = segs.shift();
+			if (panels[cat]) { show(cat); if (segs.length) panels[cat].readHash(segs); }
+		}
 		floatingBar(root, panels);
 	}
 

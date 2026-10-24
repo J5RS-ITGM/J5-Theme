@@ -434,6 +434,8 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	<section class="j5ac-panel" id="j5ac-<?php echo esc_attr( $cat ); ?>" data-cat="<?php echo esc_attr( $cat ); ?>" <?php echo $open ? '' : 'hidden'; ?>>
 		<script type="application/json" class="j5ac-config"><?php echo wp_json_encode( $config, JSON_UNESCAPED_SLASHES ); ?></script>
 
+		<div class="j5ac-guide" data-j5ac-guide hidden></div>
+
 		<form class="j5ac-filters" data-j5ac-filters aria-label="Filter <?php echo esc_attr( strtolower( $feed['label'] ) ); ?>">
 			<?php foreach ( $fields as $f ) :
 				if ( 'list' === $f['type'] && $f['options'] ) :

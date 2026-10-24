@@ -40,6 +40,21 @@
       ]
     },
     {
+      "key": "type",
+      "label": "Type",
+      "type": "list",
+      "unit": null,
+      "required": true,
+      "options": [
+        "Patrol",
+        "Entry",
+        "Rolling",
+        "Flexible",
+        "Ladder",
+        "Panel"
+      ]
+    },
+    {
       "key": "width_in",
       "label": "Width",
       "type": "number",
@@ -110,7 +125,8 @@
         "viewport": "4 x 12 in",
         "handle": "Single, ambidextrous",
         "light_mounts": "Picatinny rail, top",
-        "carry": "Shoulder strap"
+        "carry": "Shoulder strap",
+        "type": "Patrol"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2034-iiia/2026-10-14_spec.pdf",
@@ -132,7 +148,8 @@
         "weight_lb": 33.5,
         "viewport": "4 x 12 in",
         "handle": "Double",
-        "light_mounts": "Picatinny rail, top"
+        "light_mounts": "Picatinny rail, top",
+        "type": "Entry"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2436-iii/2026-10-14_spec.pdf",
@@ -153,7 +170,8 @@
         "height_in": 30,
         "weight_lb": 14.9,
         "handle": "Single",
-        "carry": "Hand strap"
+        "carry": "Hand strap",
+        "type": "Patrol"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/protech-tactical/protech-intruder-iiia/2026-10-14_spec.pdf",
@@ -175,7 +193,8 @@
         "weight_lb": 38.2,
         "viewport": "4 x 10 in",
         "handle": "Double",
-        "light_mounts": "Integrated LED"
+        "light_mounts": "Integrated LED",
+        "type": "Entry"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/protech-tactical/protech-rifle-rf2/2026-10-14_spec.pdf",
@@ -195,7 +214,8 @@
         "height_in": 34,
         "weight_lb": 25.6,
         "viewport": "4 x 12 in",
-        "handle": "Single, ambidextrous"
+        "handle": "Single, ambidextrous",
+        "type": "Entry"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/highcom-armor/highcom-patrol-rf1/2026-10-14_spec.pdf",
@@ -216,7 +236,8 @@
         "weight_lb": 41.0,
         "viewport": "5 x 12 in",
         "handle": "Double",
-        "light_mounts": "Picatinny rail, side"
+        "light_mounts": "Picatinny rail, side",
+        "type": "Entry"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/rts-tactical/rts-entry-iii/2026-10-14_spec.pdf",
@@ -235,7 +256,8 @@
         "width_in": 18,
         "height_in": 30,
         "weight_lb": 12.6,
-        "handle": "Single"
+        "handle": "Single",
+        "type": "Patrol"
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-1830-iiia/2026-10-14_spec.pdf",

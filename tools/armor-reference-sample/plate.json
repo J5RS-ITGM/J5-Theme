@@ -40,6 +40,14 @@
       ]
     },
     {
+      "key": "nij_certified",
+      "label": "NIJ certified",
+      "type": "bool",
+      "unit": null,
+      "required": true,
+      "options": null
+    },
+    {
       "key": "standalone",
       "label": "Standalone or ICW",
       "type": "list",
@@ -142,7 +150,8 @@
         "curve": "Multi-curve",
         "thickness_in": 0.9,
         "material": "Ceramic / polyethylene",
-        "multi_hit": "Yes"
+        "multi_hit": "Yes",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-l211/2026-10-14_spec.pdf",
@@ -166,7 +175,8 @@
         "curve": "Multi-curve",
         "thickness_in": 1.0,
         "material": "Polyethylene",
-        "multi_hit": "Yes"
+        "multi_hit": "Yes",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-3612/2026-10-14_spec.pdf",
@@ -190,7 +200,8 @@
         "curve": "Multi-curve",
         "thickness_in": 0.85,
         "material": "Ceramic / polyethylene",
-        "multi_hit": "Yes"
+        "multi_hit": "Yes",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-4403mc/2026-10-14_spec.pdf",
@@ -212,7 +223,8 @@
         "weight_lb": 6.2,
         "curve": "Multi-curve",
         "thickness_in": 0.95,
-        "material": "Ceramic / polyethylene"
+        "material": "Ceramic / polyethylene",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/highcom-armor/highcom-ras-4s17m/2026-10-14_spec.pdf",
@@ -234,7 +246,8 @@
         "weight_lb": 4.1,
         "curve": "Single curve",
         "thickness_in": 1.1,
-        "material": "Polyethylene"
+        "material": "Polyethylene",
+        "nij_certified": false
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/rts-tactical/rts-rf1-1012/2026-10-14_spec.pdf",
@@ -256,7 +269,8 @@
         "weight_lb": 2.9,
         "curve": "Single curve",
         "thickness_in": 0.5,
-        "material": "Ceramic"
+        "material": "Ceramic",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/protech-tactical/protech-icw-iii/2026-10-14_spec.pdf",
@@ -279,7 +293,8 @@
         "special_threats": "M2 AP",
         "curve": "Multi-curve",
         "thickness_in": 0.9,
-        "material": "Ceramic / polyethylene"
+        "material": "Ceramic / polyethylene",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/hesco-armor/hesco-l210/2026-10-14_spec.pdf",
@@ -301,7 +316,8 @@
         "weight_lb": 4.9,
         "curve": "Multi-curve",
         "thickness_in": 1.0,
-        "material": "Polyethylene"
+        "material": "Polyethylene",
+        "nij_certified": true
       },
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/plate/highcom-armor/highcom-3s9m-1114/2026-10-14_spec.pdf",
