@@ -226,18 +226,20 @@ $W "cd $SITE && wp post get $ID --field=post_content 2>/dev/null" > /tmp/hesco-o
 echo "   saved /tmp/hesco-old-$ID.html ($(wc -c < /tmp/hesco-old-$ID.html) bytes)"
 
 echo "== resolving internal links against live pages"
-: > /tmp/hesco-links.txt
-for seg in $(grep -o 'href="/[^"]*"' /tmp/hesco-new.html | sed 's/href="//; s/"$//' | sed 's#/$##' | awk -F/ '{print $NF}' | sort -u); do
-  pid=$($W "cd $SITE && wp db query \"SELECT ID FROM wptp_posts WHERE post_name='$seg' AND post_status='publish' AND post_type IN ('post','page','product') LIMIT 1\" --skip-column-names 2>/dev/null" | tr -d '[:space:]')
-  if [ -n "$pid" ]; then
-    url=$($W "cd $SITE && wp eval 'echo wp_make_link_relative(get_permalink($pid));' 2>/dev/null" | tr -d '[:space:]')
-    echo "$seg $url" >> /tmp/hesco-links.txt
-  else
-    # brand pages live on a taxonomy, not posts
-    turl=$($W "cd $SITE && wp eval '\$t=get_term_by(\"slug\",\"$seg\",\"product_brand\"); echo \$t?wp_make_link_relative(get_term_link(\$t)):\"\";' 2>/dev/null" | tr -d '[:space:]')
-    if [ -n "$turl" ]; then echo "$seg $turl" >> /tmp/hesco-links.txt; else echo "$seg MISSING" >> /tmp/hesco-links.txt; fi
-  fi
-done
+cat > /tmp/hesco-links.php <<'EOF'
+<?php
+// usage: wp eval-file /tmp/hesco-links.php seg1 seg2 ...  -> prints "seg path" or "seg MISSING"
+foreach ( array_slice( $args, 0 ) as $seg ) {
+	$url = '';
+	$p = get_page_by_path( $seg, OBJECT, array( 'post', 'page', 'product' ) );
+	if ( $p && 'publish' === $p->post_status ) $url = wp_make_link_relative( get_permalink( $p ) );
+	if ( ! $url ) { foreach ( array( 'product_brand', 'product_cat' ) as $tax ) { $t = get_term_by( 'slug', $seg, $tax ); if ( $t && ! is_wp_error( $t ) ) { $url = wp_make_link_relative( get_term_link( $t ) ); break; } } }
+	echo $seg, ' ', $url ? $url : 'MISSING', "\n";
+}
+EOF
+chmod 644 /tmp/hesco-links.php
+SEGS=$(grep -o 'href="/[^"]*"' /tmp/hesco-new.html | sed 's/href="//; s/"$//; s#/$##' | awk -F/ '{print $NF}' | sort -u | tr '\n' ' ')
+$W "cd $SITE && wp eval-file /tmp/hesco-links.php $SEGS 2>/dev/null" > /tmp/hesco-links.txt || true
 cat /tmp/hesco-links.txt
 
 echo "== merging images and links"
