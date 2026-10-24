@@ -49,13 +49,6 @@ require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
 require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 // Factory order savings: page line (no number) + auto-applied virtual coupon in cart (DP _j5_factory_discount).
 require_once get_stylesheet_directory() . '/inc/j5-factory-savings.php';
-// Shipping rates/totals rounded to cents: MxMerchant rejects sub-cent shipAmount (orders cancelled unpaid).
-require_once get_stylesheet_directory() . '/inc/j5-shipping-rounding.php';
-// Documents: Receipt / Invoice / Packing slip PDFs (emails, My Account, wp-admin). Self-contained in inc/j5-documents/.
-require_once get_stylesheet_directory() . '/inc/j5-documents/j5-documents.php';
-
-// Cart Recovery: abandoned-cart reminders + unpaid-checkout follow-up. Settings in WooCommerce > Cart Recovery. Self-contained in inc/j5-cart-recovery/.
-require_once get_stylesheet_directory() . '/inc/j5-cart-recovery/j5-cart-recovery.php';
 
 // [j5_rfq] native quote page: live DP catalog search, submits to the DP quote inbox.
 require_once get_stylesheet_directory() . '/inc/j5-rfq.php';
@@ -225,6 +218,13 @@ if ( is_admin() ) {
 // [j5_armor_compare] renders the server-side table + compare UI from the stored feed. J5-ARMOR-REF
 require_once get_stylesheet_directory() . '/inc/j5-armor-reference.php';
 // === J5-ARMOR-REFERENCE-REQUIRES-END ===
+
+// === J5-GUIDES-REQUIRES-START ===
+// FAQPage JSON-LD from a post's "Common questions" section (H2 containing "question" + H3 pairs). J5-FAQ
+require_once get_stylesheet_directory() . '/inc/j5-faq-schema.php';
+// [j5_plate_sizing]: real-text plate sizing chart (chest to SAPI size, cut equivalents). J5-SIZING
+require_once get_stylesheet_directory() . '/inc/j5-plate-sizing.php';
+// === J5-GUIDES-REQUIRES-END ===
 
 // === J5-PRODUCT-SCHEMA-REQUIRES-START ===
 // Completes Rank Math's Product JSON-LD from DP data: brand, GTIN, MPN,

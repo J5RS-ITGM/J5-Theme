@@ -70,6 +70,10 @@
 .j5-single-hero img {
     width: 100%;
     height: auto;
+    max-height: 460px;
+    aspect-ratio: 2.2 / 1;
+    object-fit: cover;
+    object-position: center;
     display: block;
     border-radius: 8px;
 }
@@ -82,7 +86,7 @@
 /* ============ BODY (reading column) ============ */
 
 .j5-single-body {
-    max-width: 700px;
+    max-width: 740px;
     margin: 40px auto 0;
     font-size: 1.06rem;
     line-height: 1.75;
@@ -217,6 +221,26 @@
 .j5-single-body .aligncenter { margin-left: auto; margin-right: auto; display: block; }
 .j5-single-body .alignwide,
 .j5-single-body .alignfull { max-width: 100%; }
+
+/* Wide blocks: tables and sizing charts get a 900px lane, centered on the column */
+.j5-single-body .wp-block-table,
+.j5-single-body .j5-sizing,
+.j5-single-body .alignwide {
+    width: 900px;
+    max-width: calc(100vw - 48px);
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+.j5-single-body .wp-block-table table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.j5-single-body .wp-block-table th,
+.j5-single-body .wp-block-table td { padding: 10px 12px; border-bottom: 1px solid var(--j5-border, #23272f); text-align: left; vertical-align: top; }
+.j5-single-body .wp-block-table thead th { font-family: 'Barlow Condensed', sans-serif; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--j5-ink-mute, #6e6e66); font-weight: 600; }
+.j5-single-body .wp-block-table td:first-child { font-weight: 600; white-space: nowrap; }
+@media (max-width: 960px) {
+    .j5-single-body .wp-block-table,
+    .j5-single-body .j5-sizing,
+    .j5-single-body .alignwide { width: auto; max-width: 100%; margin-left: 0; transform: none; }
+}
 
 /* Responsive video embeds */
 .j5-single-body iframe { max-width: 100%; }
