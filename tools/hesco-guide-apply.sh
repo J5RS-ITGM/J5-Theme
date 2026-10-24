@@ -28,19 +28,19 @@ cat > /tmp/hesco-final2-$ID.html <<'EOF'
 <!-- wp:table -->
 <figure class="wp-block-table"><table>
 <thead>
-<tr><th>Model</th><th>Protection</th><th>Curve</th><th>Thickness</th><th>Weight (Large SH)</th><th>Best for</th></tr>
+<tr><th>Model</th><th>Protection</th><th>Curve</th><th class="n">Thickness</th><th class="n">Weight, Large SH</th><th>Best for</th></tr>
 </thead>
 <tbody>
-<tr><td><a href="/hesco-u210-special-threat-plate-set/">U210</a></td><td>Special threat</td><td>Multi</td><td>0.56"</td><td>4.0 lb</td><td>Most concealable, all day wear</td></tr>
-<tr><td><a href="/hesco-m210-special-threat-plate-set/">M210</a></td><td>Special threat</td><td>Multi</td><td>0.61"</td><td>4.9 lb</td><td>Adds 7.62x54R and M855A1, still concealable</td></tr>
-<tr><td><a href="/hesco-l211-special-threat-plate-set/">L211</a></td><td>Special threat</td><td>Single</td><td>0.69"</td><td>4.9 lb</td><td>Budget special threat, L210 successor</td></tr>
-<tr><td><a href="/hesco-3802c-level-iii-plate-set/">3802C</a></td><td>NIJ Level III</td><td>Multi</td><td>0.95"</td><td>2.4 lb</td><td>Lightest plate in the lineup</td></tr>
-<tr><td><a href="/hesco-armor-3612-ballistic-plate/">3612</a></td><td>Level III+ (NIJ III certified)</td><td>Multi</td><td>1.00"</td><td>3.8 lb</td><td>Light rifle plate that also stops M855</td></tr>
-<tr><td><a href="/hesco-3612c-level-iii-plate-set/">3612C</a></td><td>Level III+</td><td>Multi</td><td colspan="2">See product page</td><td>3612 platform variant</td></tr>
-<tr><td><a href="/hesco-3810-level-iii/">3810</a></td><td>Level III+ (NIJ .06 certified)</td><td>Multi</td><td>0.98"</td><td>3.9 lb</td><td>Long running favorite</td></tr>
-<tr><td><a href="/hesco-4403mc-level-iv-plate-set/">4403MC</a></td><td>NIJ Level IV</td><td>Multi</td><td>See product page</td><td>7.7 lb</td><td>Lowest cost Level IV, 4400 successor</td></tr>
-<tr><td><a href="/hesco-4601-level-iv-plate-set/">4601</a></td><td>NIJ Level IV</td><td>Multi</td><td>1.18"</td><td>6.4 lb</td><td>Rated against the most rounds</td></tr>
-<tr><td><a href="/hesco-armor-4800-ballistic-plate/">4800</a></td><td>NIJ Level IV</td><td>Multi</td><td>1.04"</td><td>4.9 lb</td><td>Lightest Level IV HESCO makes</td></tr>
+<tr><td><a href="/hesco-u210-special-threat-plate-set/">U210</a></td><td><span class="j5-lv j5-lv--st">Special threat</span></td><td>Multi</td><td class="n">0.56 in</td><td class="n">4.0 lb</td><td class="b">Most concealable, all day wear</td></tr>
+<tr><td><a href="/hesco-m210-special-threat-plate-set/">M210</a></td><td><span class="j5-lv j5-lv--st">Special threat</span></td><td>Multi</td><td class="n">0.61 in</td><td class="n">4.9 lb</td><td class="b">Adds 7.62x54R and M855A1, still concealable</td></tr>
+<tr><td><a href="/hesco-l211-special-threat-plate-set/">L211</a></td><td><span class="j5-lv j5-lv--st">Special threat</span></td><td>Single</td><td class="n">0.69 in</td><td class="n">4.9 lb</td><td class="b">Budget special threat, L210 successor</td></tr>
+<tr><td><a href="/hesco-3802c-level-iii-plate-set/">3802C</a></td><td><span class="j5-lv j5-lv--rifle">NIJ III</span></td><td>Multi</td><td class="n">0.95 in</td><td class="n">2.4 lb</td><td class="b">Lightest plate in the lineup</td></tr>
+<tr><td><a href="/hesco-armor-3612-ballistic-plate/">3612</a></td><td><span class="j5-lv j5-lv--rifle">III+</span>NIJ III certified</td><td>Multi</td><td class="n">1.00 in</td><td class="n">3.8 lb</td><td class="b">Light rifle plate that also stops M855</td></tr>
+<tr><td><a href="/hesco-3612c-level-iii-plate-set/">3612C</a></td><td><span class="j5-lv j5-lv--rifle">III+</span></td><td>Multi</td><td class="n">see page</td><td class="n">see page</td><td class="b">3612 platform variant</td></tr>
+<tr><td><a href="/hesco-3810-level-iii/">3810</a></td><td><span class="j5-lv j5-lv--rifle">III+</span>NIJ .06 certified</td><td>Multi</td><td class="n">0.98 in</td><td class="n">3.9 lb</td><td class="b">Long running favorite</td></tr>
+<tr><td><a href="/hesco-4403mc-level-iv-plate-set/">4403MC</a></td><td><span class="j5-lv j5-lv--ap">NIJ IV</span></td><td>Multi</td><td class="n">see page</td><td class="n">7.7 lb</td><td class="b">Lowest cost Level IV, 4400 successor</td></tr>
+<tr><td><a href="/hesco-4601-level-iv-plate-set/">4601</a></td><td><span class="j5-lv j5-lv--ap">NIJ IV</span></td><td>Multi</td><td class="n">1.18 in</td><td class="n">6.4 lb</td><td class="b">Rated against the most rounds</td></tr>
+<tr><td><a href="/hesco-armor-4800-ballistic-plate/">4800</a></td><td><span class="j5-lv j5-lv--ap">NIJ IV</span></td><td>Multi</td><td class="n">1.04 in</td><td class="n">4.9 lb</td><td class="b">Lightest Level IV HESCO makes</td></tr>
 </tbody>
 </table></figure>
 <!-- /wp:table -->
@@ -82,6 +82,10 @@ cat > /tmp/hesco-final2-$ID.html <<'EOF'
 <!-- wp:shortcode -->
 [j5_threat_grid brand="hesco-armor" exclude="hesco-l210-special-threat-plate-set"]
 <!-- /wp:shortcode -->
+
+<!-- wp:paragraph -->
+<p><a href="https://www.j5rescue.com/wp-content/uploads/2022/01/HESCO-Threat-Performance-Matrix.png" target="_blank" rel="noopener">View HESCO's published threat performance matrix</a> (opens the full-size image in a new tab).</p>
+<!-- /wp:paragraph -->
 
 <!-- wp:heading {"level":3} -->
 <h3>NIJ 0101.07: the new level names</h3>

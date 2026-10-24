@@ -73,7 +73,7 @@ function j5_plate_sizing_css() {
 	$done = true;
 	?>
 	<style>
-	.j5-sizing{margin:1.8em 0;padding:22px 24px 18px;background:var(--j5-bg-card,#15181d);border:1px solid var(--j5-border,#23272f);border-radius:8px;font-family:'Barlow',sans-serif;color:var(--j5-ink,#eceae2)}
+	.j5-sizing{margin:1.8em 0;font-family:'Barlow',sans-serif;color:var(--j5-ink,#eceae2)}
 	.j5-sizing__step{display:flex;align-items:baseline;gap:12px;margin:0 0 12px}
 	.j5-sizing__step+.j5-sizing__scroll{margin-top:0}
 	.j5-sizing__n{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--j5-gold,#d4a044);border:1px solid var(--j5-gold,#d4a044);border-radius:3px;padding:3px 8px}
@@ -82,14 +82,15 @@ function j5_plate_sizing_css() {
 	.j5-sizing table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
 	.j5-sizing th,.j5-sizing td{padding:10px 8px;text-align:center;color:var(--j5-ink,#eceae2);border-bottom:1px solid var(--j5-border,#23272f);vertical-align:top;line-height:1.3}
 	.j5-sizing th[scope=row]{text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--j5-ink-mute,#6e6e66);font-weight:600;width:22%}
-	.j5-sizing thead th[scope=col]{font-weight:600;color:var(--j5-ink,#eceae2)}
+	.j5-sizing thead th{border-bottom:2px solid var(--j5-gold,#d4a044)}.j5-sizing thead th[scope=col]{font-weight:600;color:var(--j5-bone,#f5f1e8)}
+	.j5-sizing tbody tr:nth-child(even) td,.j5-sizing tbody tr:nth-child(even) th{background:rgba(255,255,255,.03)}
 	.j5-sizing small{display:block;font-size:11px;color:var(--j5-ink-mute,#6e6e66);margin-top:2px;letter-spacing:0;text-transform:none}
 	.j5-sizing td b{font-family:'Bebas Neue','Barlow Condensed',Impact,sans-serif;font-weight:400;font-size:26px;letter-spacing:.03em;color:var(--j5-gold,#d4a044)}
 	.j5-sizing__t2 td[colspan]{background:rgba(255,255,255,.025)}
 	.j5-sizing__note{margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--j5-ink-dim,#a4a49a)}
 	.j5-sizing__src{margin:0;font-size:12px;color:var(--j5-ink-mute,#6e6e66)}
 	@media(max-width:640px){
-	.j5-sizing{padding:16px 14px}
+	
 	.j5-sizing__t1 thead{display:none}
 	.j5-sizing__t1,.j5-sizing__t1 tbody,.j5-sizing__t1 tr,.j5-sizing__t1 th,.j5-sizing__t1 td{display:block;width:auto;text-align:left}
 	.j5-sizing__t1 tr{display:grid;grid-template-columns:1fr}

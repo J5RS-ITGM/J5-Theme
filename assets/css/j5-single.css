@@ -231,11 +231,25 @@
     margin-left: 50%;
     transform: translateX(-50%);
 }
-.j5-single-body .wp-block-table table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+/* Guide tables, standard "ledger": gold rule under the header, zebra rows, no grid lines */
+.j5-single-body .wp-block-table table { width: 100%; border-collapse: collapse; font-size: .95rem; border: 0; }
 .j5-single-body .wp-block-table th,
-.j5-single-body .wp-block-table td { padding: 10px 12px; border-bottom: 1px solid var(--j5-border, #23272f); text-align: left; vertical-align: top; }
-.j5-single-body .wp-block-table thead th { font-family: 'Barlow Condensed', sans-serif; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--j5-ink-mute, #6e6e66); font-weight: 600; }
-.j5-single-body .wp-block-table td:first-child { font-weight: 600; white-space: nowrap; }
+.j5-single-body .wp-block-table td { padding: 11px 14px; border: 0; text-align: left; vertical-align: top; line-height: 1.4; }
+.j5-single-body .wp-block-table thead th { font-family: 'Barlow Condensed', sans-serif; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--j5-bone, #f5f1e8); font-weight: 600; border-bottom: 2px solid var(--j5-gold, #d4a044); padding-bottom: 9px; }
+.j5-single-body .wp-block-table tbody td { border-bottom: 1px solid var(--j5-border, #23272f); }
+.j5-single-body .wp-block-table tbody tr:nth-child(even) td { background: rgba(255, 255, 255, .03); }
+.j5-single-body .wp-block-table tbody td:first-child { font-weight: 600; color: var(--j5-bone, #f5f1e8); white-space: nowrap; }
+.j5-single-body .wp-block-table td:first-child a { color: var(--j5-bone, #f5f1e8); text-decoration: none; border-bottom: 1px solid var(--j5-gold, #d4a044); }
+.j5-single-body .wp-block-table td:first-child a:hover { color: var(--j5-gold, #d4a044); }
+.j5-single-body .wp-block-table .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.j5-single-body .wp-block-table .b { color: var(--j5-ink-dim, #a4a49a); }
+.j5-single-body .wp-block-table figcaption { padding-top: 8px; }
+/* Level pills, same tiers as the comparison tool */
+.j5-lv { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; line-height: 1; padding: 4px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; vertical-align: 1px; margin-right: 6px; }
+.j5-lv--st { color: #8fb5c9; }
+.j5-lv--rifle { color: var(--j5-gold-hi, #f0bc5a); }
+.j5-lv--rf { color: #f07a52; }
+.j5-lv--ap { color: #ff5a6e; }
 @media (max-width: 960px) {
     .j5-single-body .wp-block-table,
     .j5-single-body .j5-sizing,
