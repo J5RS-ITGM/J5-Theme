@@ -176,6 +176,10 @@ get_header();
                 if ( function_exists( 'j5_render_le_only_banner' ) ) {
                     j5_render_le_only_banner( $product );
                 }
+                // NIJ CERTIFIED: same line style, driven by portal meta (inc/j5-nij-certified.php) J5-NIJ
+                if ( function_exists( 'j5_render_nij_certified_tag' ) ) {
+                    j5_render_nij_certified_tag( $product );
+                }
                 ?>
 
                 <?php if ( $short_desc ) : ?>

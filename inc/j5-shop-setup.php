@@ -227,6 +227,11 @@ function j5_build_product_query_args() {
         $args['tax_query'] = $tax_query;
     }
 
+    // NIJ Certified (portal meta _j5_nij_certified = yes). J5-NIJ
+    if ( function_exists( 'j5_nij_filter_active' ) && j5_nij_filter_active() ) {
+        $args['meta_query'][] = j5_nij_filter_meta_query();
+    }
+
     // Rating
     if ( ! empty( $_GET['rating'] ) ) {
         $min_rating = max( 1, min( 5, absint( $_GET['rating'] ) ) );
@@ -318,6 +323,14 @@ function j5_get_active_filters() {
                 'remove_url' => j5_filter_remove_url( 'availability', null ),
             );
         }
+    }
+
+    // NIJ Certified chip. J5-NIJ
+    if ( function_exists( 'j5_nij_filter_active' ) && j5_nij_filter_active() ) {
+        $chips[] = array(
+            'label'      => 'NIJ Certified',
+            'remove_url' => j5_filter_remove_url( 'nij', null ),
+        );
     }
 
     // Rating chip
@@ -564,7 +577,7 @@ function j5_render_filter_sidebar() {
         }
         j5_render_filter_price();
         j5_render_filter_taxonomy_pill( 'protection', 'pa_threat-level', 'Protection Level' );
-        j5_render_filter_taxonomy_pill( 'nij-cert', 'pa_nij-certified', 'NIJ Certified' );
+        if ( function_exists( 'j5_render_filter_nij' ) ) { j5_render_filter_nij(); } // portal meta, not an attribute. J5-NIJ
         j5_render_filter_taxonomy_pill( 'cut', 'pa_plate-cut', 'Cut' );
         j5_render_filter_taxonomy_pill( 'size', 'pa_plate-size', 'Size' );
         j5_render_filter_taxonomy_pill( 'curve', 'pa_plate-curve', 'Curve' );

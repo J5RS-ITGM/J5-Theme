@@ -1374,6 +1374,13 @@ body.j5-shop-template .j5-container {
 }
 
 .j5-prod-badge.le-only { background: #1d3a52; color: #b9dbf2; border: 1px solid #2f5d80; }
+.j5-prod-badge.nij { background: rgba(200, 168, 78, 0.14); color: #e3c56e; border: 1px solid rgba(200, 168, 78, 0.6); }
+
+/* NIJ Certified line on the product page (inc/j5-nij-certified.php) J5-NIJ */
+.j5-nij { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: -8px 0 18px; }
+.j5-le-only + .j5-nij { margin-top: -10px; }
+.j5-nij__tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border: 1px solid rgba(200, 168, 78, 0.6); background: rgba(200, 168, 78, 0.1); color: #e3c56e; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+.j5-nij__body { font-size: 13px; line-height: 1.5; color: var(--j5-ink-dim); }
 
 /* ============================================================
    J5-SPECSHEETS — Spec Sheets tab (inc/j5-spec-sheets.php)
