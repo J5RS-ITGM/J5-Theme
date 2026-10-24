@@ -98,6 +98,7 @@
 .j5ac-table tbody tr.is-carried.is-picked { background: rgba(212, 160, 68, .10); }
 .j5ac-td--eff { color: var(--g); font-weight: 500; }
 .j5ac-na { color: var(--mute); }
+.j5ac-sapi { display: block; font-family: var(--cond); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--g); }
 .j5ac-th--sheet, .j5ac-td--sheet { width: 56px; }
 .j5ac-td--sheet a { font-size: 13px; }
 

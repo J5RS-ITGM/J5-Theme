@@ -28,14 +28,27 @@
 		if (m) return parseFloat(m[1]) * parseFloat(m[2]);
 		return /^(no|none|n\/a|without)/i.test(v.trim()) ? 0 : 1; // present, size unknown
 	}
-	/** Size identity for like-for-like picking: "10 x 12 in", "SAPI Medium", or width x height. Null = no restriction. */
-	function sizeKey(d) {
-		var sz = d.specs && d.specs.size;
-		if (sz) return String(sz).toLowerCase().replace(/×/g, 'x').replace(/\s+/g, '').replace(/in(ch(es)?)?$/, '');
-		var w = num(d.specs && d.specs.width_in), h = num(d.specs && d.specs.height_in);
-		if (w && h) return w + 'x' + h;
-		return null;
+	/** Standard SAPI / ESAPI plate cuts, inches. */
+	var SAPI = [
+		{ name: 'SAPI XS', w: 7.25, h: 11.5 },
+		{ name: 'SAPI Small', w: 8.75, h: 11.75 },
+		{ name: 'SAPI Medium', w: 9.5, h: 12.5 },
+		{ name: 'SAPI Large', w: 10.25, h: 13.25 },
+		{ name: 'SAPI XL', w: 11, h: 14 }
+	];
+	/** Parsed, normalized size: { w, h, key, label, sub } or null. 8.0 x 10.0 and 8 x 10 become one size. */
+	function sizeOf(d) {
+		var w = null, h = null, raw = d.specs && d.specs.size ? String(d.specs.size) : '';
+		var m = raw.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i);
+		if (m) { w = parseFloat(m[1]); h = parseFloat(m[2]); }
+		else { w = num(d.specs && d.specs.width_in); h = num(d.specs && d.specs.height_in); }
+		if (!w || !h) return raw ? { w: 0, h: 0, key: raw.toLowerCase().replace(/\s+/g, ''), label: raw, sub: '' } : null;
+		var sapi = null;
+		for (var i = 0; i < SAPI.length; i++) if (Math.abs(SAPI[i].w - w) <= 0.1 && Math.abs(SAPI[i].h - h) <= 0.1) { sapi = SAPI[i]; w = sapi.w; h = sapi.h; break; }
+		var fmtn = function (n) { return String(Math.round(n * 100) / 100); };
+		return { w: w, h: h, key: fmtn(w) + 'x' + fmtn(h), label: fmtn(w) + ' x ' + fmtn(h) + ' in', sub: sapi ? sapi.name : '' };
 	}
+	function sizeKey(d) { var sz = sizeOf(d); return sz ? sz.key : null; }
 	function tier(l) {
 		l = String(l || '').toUpperCase().trim();
 		if (['IIA', 'II', 'IIIA', 'HG1', 'HG2'].indexOf(l) !== -1) return 'hg';
@@ -74,7 +87,7 @@
 	function stepLabel(d, step, val) {
 		if (step === 'threat') { for (var i = 0; i < THREATS.length; i++) if (THREATS[i].id === val) return THREATS[i]; return { label: val, sub: '' }; }
 		if (step === 'nij') return { label: val === 'yes' ? 'NIJ certified' : 'Not on the NIJ list', sub: val === 'yes' ? 'On the Compliant Products List' : 'Tested to the standard, not listed' };
-		if (step === 'size') return { label: d.specs.size ? String(d.specs.size) : (d.specs.width_in + ' x ' + d.specs.height_in + ' in'), sub: '' };
+		if (step === 'size') { var sz = sizeOf(d); return sz ? { label: sz.label, sub: sz.sub } : { label: 'Not listed', sub: '' }; }
 		return { label: val || 'Not specified', sub: '' };
 	}
 	function el(tag, cls, text) {
@@ -138,7 +151,7 @@
 			if (self.guide[st] === undefined || self.guide[st] === '*') return;
 			var sample = self.guideRows()[0];
 			var lab = sample ? stepLabel(sample.data, st, self.guide[st]) : { label: self.guide[st] };
-			var b = el('button', 'j5ac-crumb', (st === 'threat' ? lab.label + ' ' + lab.sub : lab.label));
+			var b = el('button', 'j5ac-crumb', (st === 'threat' || st === 'size') && lab.sub ? lab.label + ' ' + lab.sub : lab.label);
 			b.type = 'button'; b.title = 'Change';
 			b.addEventListener('click', function () { self.backTo(st); });
 			crumbs.appendChild(b);
@@ -168,7 +181,7 @@
 				groups[v].n++;
 			});
 			if (step === 'threat') order.sort(function (a, b) { return THREATS.map(function (t) { return t.id; }).indexOf(a) - THREATS.map(function (t) { return t.id; }).indexOf(b); });
-			else if (step === 'size') order.sort(function (a, b) { return groups[b].n - groups[a].n || a.localeCompare(b, undefined, { numeric: true }); });
+			else if (step === 'size') order.sort(function (a, b) { var A = sizeOf(groups[a].sample), B = sizeOf(groups[b].sample); return (A.w * A.h) - (B.w * B.h) || A.w - B.w; });
 			else order.sort(function (a, b) { return (a === '') - (b === '') || a.localeCompare(b); });
 			var tiles = el('div', 'j5ac-tiles');
 			order.forEach(function (v) {
@@ -367,7 +380,8 @@
 		if (row) row.tr.classList.toggle('is-picked', on);
 		var key = this.lockSizes();
 		var first = this.picked.length ? this.rowBySlug(this.picked[0]).data : null;
-		var sizeText = first && key !== null ? (first.specs.size ? first.specs.size : first.specs.width_in + ' x ' + first.specs.height_in + ' in') : '';
+		var fsz = first ? sizeOf(first) : null;
+		var sizeText = fsz ? fsz.label + (fsz.sub ? ', ' + fsz.sub : '') : '';
 		this.hint.textContent = this.picked.length
 			? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + (sizeText ? ', same size only (' + sizeText + ').' : '.') : 'Comparing ' + MAX_PICK + '.')
 			: 'Check up to ' + MAX_PICK + ' to compare side by side.';
@@ -442,6 +456,7 @@
 				if (sr.sizes) { v = v || 1; text = String(v); }
 				if (text === null) td.appendChild(el('span', 'j5ac-na', 'not listed'));
 				else if (sr.key === 'level') td.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(v), text));
+				else if (sr.key === 'size' && sizeOf(r.data) && sizeOf(r.data).w) { var szc = sizeOf(r.data); td.textContent = szc.label; if (szc.sub) td.appendChild(el('small', null, ' ' + szc.sub)); }
 				else if (sr.sizes) { td.textContent = text; if (r.data.derived.size_list) { td.appendChild(el('small', null, ' ' + r.data.derived.size_list)); } }
 				else td.textContent = sr.unit && typeof v === 'number' ? text + ' ' + sr.unit : text;
 				if ((best[sr.key] !== undefined && num(v) === best[sr.key]) || (sr.key === 'viewport' && best.viewport_sqin !== undefined && viewportArea(v) === best.viewport_sqin)) { td.classList.add('is-best'); leads++; }

@@ -326,6 +326,17 @@ function j5_armor_ref_sizes( array $m, array $all ) {
 	return null;
 }
 
+/** Normalized size display: "8.0 x 10.0 in" -> "8 x 10 in"; standard SAPI cuts get their name. */
+function j5_armor_ref_size_display( array $specs ) {
+	$dims = j5_armor_ref_dims( $specs );
+	if ( ! $dims ) return isset( $specs['size'] ) ? (string) $specs['size'] : '';
+	$sapi = array( 'SAPI XS' => array( 7.25, 11.5 ), 'SAPI Small' => array( 8.75, 11.75 ), 'SAPI Medium' => array( 9.5, 12.5 ), 'SAPI Large' => array( 10.25, 13.25 ), 'SAPI XL' => array( 11, 14 ) );
+	$name = '';
+	foreach ( $sapi as $n => $wh ) if ( abs( $wh[0] - $dims[0] ) <= 0.1 && abs( $wh[1] - $dims[1] ) <= 0.1 ) { $name = $n; $dims = $wh; break; }
+	$out = j5_armor_ref_fmt( $dims[0] ) . ' x ' . j5_armor_ref_fmt( $dims[1] ) . ' in';
+	return $name ? $out . ' <small class="j5ac-sapi">' . esc_html( $name ) . '</small>' : $out;
+}
+
 /** Display string for a spec value. */
 function j5_armor_ref_fmt( $v, $field = null ) {
 	if ( is_bool( $v ) ) return $v ? 'Yes' : 'No';
@@ -534,7 +545,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 							</th>
 							<?php foreach ( $cols as $f ) :
 								$v = isset( $m['specs'][ $f['key'] ] ) ? $m['specs'][ $f['key'] ] : null; ?>
-								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php echo null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ); ?></td>
+								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php echo null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : ( 'size' === $f['key'] ? j5_armor_ref_size_display( $m['specs'] ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ) ); ?></td>
 							<?php endforeach; ?>
 							<?php if ( $any_eff ) : ?><td class="is-num j5ac-td--eff" data-label="Oz / sq in"><?php echo isset( $d['oz_per_sqin'] ) ? esc_html( number_format( $d['oz_per_sqin'], 3 ) ) : '<span class="j5ac-na">not listed</span>'; ?></td><?php endif; ?>
 							<?php if ( $any_sizes ) : ?><td class="is-num" data-label="Sizes"><?php echo $sz ? '<span title="' . esc_attr( $d['size_list'] ) . '">' . (int) $sz['count'] . '</span>' : '1'; ?></td><?php endif; ?>
