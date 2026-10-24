@@ -29,19 +29,25 @@ $pay_url = $order->get_checkout_payment_url();
 		);
 		?>
 	</p>
-	<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
+	<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 24px;">
 		<tr>
-			<td style="border-radius:4px;background:#c8102e;">
-				<a href="<?php echo esc_url( $pay_url ); ?>" style="display:inline-block;padding:14px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:bold;letter-spacing:.04em;color:#ffffff;text-decoration:none;border-radius:4px;">
-					<?php
-					/* translators: %s: order total */
-					printf( esc_html__( 'Pay %s now', 'woocommerce' ), wp_strip_all_tags( wc_price( $order->get_total(), array( 'currency' => $order->get_currency() ) ) ) );
-					?>
-				</a>
+			<td align="center">
+				<table role="presentation" cellspacing="0" cellpadding="0" border="0">
+					<tr>
+						<td style="border-radius:4px;background:#a3142a;">
+							<a href="<?php echo esc_url( $pay_url ); ?>" style="display:inline-block;padding:10px 22px;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:4px;">
+								<?php
+								/* translators: %s: order total */
+								printf( esc_html__( 'Pay %s', 'woocommerce' ), wp_strip_all_tags( wc_price( $order->get_total(), array( 'currency' => $order->get_currency() ) ) ) );
+								?>
+							</a>
+						</td>
+					</tr>
+				</table>
 			</td>
 		</tr>
 	</table>
-	<p style="margin:0 0 24px;font-size:13px;color:#6e6e66;">
+	<p style="margin:0 0 24px;font-size:12px;color:#6e6e66;text-align:center;">
 		<?php esc_html_e( 'If the button does not work, copy this link into your browser:', 'woocommerce' ); ?><br>
 		<a href="<?php echo esc_url( $pay_url ); ?>" style="color:#6e6e66;word-break:break-all;"><?php echo esc_html( $pay_url ); ?></a>
 	</p>
