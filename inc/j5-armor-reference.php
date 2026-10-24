@@ -418,7 +418,9 @@ function j5_armor_ref_shortcode( $atts ) {
 function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	$cat    = $feed['category'];
 	$fields = $feed['fields'];
-	$models = $feed['models'];
+	// Accessories (type = Panel) are reference records only; they never appear in the tool or the schema.
+	$models = array_values( array_filter( $feed['models'], function ( $m ) { return empty( $m['specs']['type'] ) || strcasecmp( (string) $m['specs']['type'], 'Panel' ) !== 0; } ) );
+	$feed['models'] = $models;
 
 	$cols = array();
 	foreach ( $fields as $f ) if ( $f['required'] ) $cols[] = $f;
