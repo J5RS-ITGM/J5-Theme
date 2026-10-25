@@ -122,8 +122,12 @@ function j5_armor_ref_normalize( $category, $body ) {
 		// `carried`: the model is linked to a DP product (we sell it), whether or not it has a store page yet.
 		$carried = ! empty( $m['carried'] ) || ! empty( $m['product_id'] ) || '' !== $wc;
 
+		$image = '';
+		foreach ( array( 'image_url', 'image', 'photo' ) as $ik ) if ( ! empty( $m[ $ik ] ) && is_string( $m[ $ik ] ) ) { $image = esc_url_raw( $m[ $ik ] ); break; }
+
 		$models[] = array(
 			'slug'           => $slug,
+			'image'          => $image,
 			'manufacturer'   => isset( $m['manufacturer'] ) ? sanitize_text_field( (string) $m['manufacturer'] ) : '',
 			'model'          => isset( $m['model'] ) ? sanitize_text_field( (string) $m['model'] ) : $slug,
 			'family'         => isset( $m['family'] ) ? sanitize_text_field( (string) $m['family'] ) : ( isset( $specs['family'] ) ? (string) $specs['family'] : '' ),
@@ -435,10 +439,13 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	sort( $dates );
 	$pulled = $dates ? ( count( array_unique( $dates ) ) > 1 ? j5_armor_ref_date( reset( $dates ) ) . ' to ' . j5_armor_ref_date( end( $dates ) ) : j5_armor_ref_date( reset( $dates ) ) ) : '';
 
-	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes, 'type_order' => $tset['order'] );
+	$featured = function_exists( 'j5_armor_ref_featured_makers' ) ? j5_armor_ref_featured_makers( $cat ) : array();
+	$sgroups  = ( 'plate' === $cat && function_exists( 'j5_armor_ref_size_group_settings' ) ) ? j5_armor_ref_size_group_settings() : array( 'order' => array(), 'hidden' => array() );
+	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes, 'cards' => 'shield' === $cat, 'type_order' => $tset['order'], 'featured' => $featured, 'size_groups' => $sgroups, 'size_group_labels' => function_exists( 'j5_armor_ref_size_groups' ) ? j5_armor_ref_size_groups() : (object) array() );
 
 	// Sort options: the efficiency metric first where it exists, then every numeric field, then name.
 	$sorts = array();
+	$sorts['featured'] = 'Featured brands first';
 	if ( $any_eff ) $sorts['oz_per_sqin'] = 'Lightest per sq in';
 	foreach ( $fields as $f ) if ( 'number' === $f['type'] ) $sorts[ $f['key'] ] = $f['label'];
 	if ( $any_eff ) $sorts['area_sqin'] = 'Coverage';
@@ -514,7 +521,8 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 			</div>
 		</form>
 
-		<div class="j5ac-table-wrap">
+		<?php if ( 'shield' === $cat ) : ?><div class="j5ac-cards-list" data-j5ac-cardlist hidden></div><?php endif; ?>
+		<div class="j5ac-table-wrap<?php echo 'shield' === $cat ? ' j5ac-table-wrap--cards' : ''; ?>">
 			<table class="j5ac-table" data-j5ac-table>
 				<thead>
 					<tr>
@@ -528,7 +536,10 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				</thead>
 				<tbody>
 					<?php
-					usort( $models, function ( $a, $b ) use ( $any_eff ) {
+					$rank = function ( $m ) use ( $featured ) { foreach ( $featured as $i => $f ) if ( '' !== $f && false !== stripos( $m['manufacturer'], $f ) ) return $i; return 999; };
+					usort( $models, function ( $a, $b ) use ( $any_eff, $rank ) {
+						$ra = $rank( $a ); $rb = $rank( $b );
+						if ( $ra !== $rb ) return $ra - $rb;
 						if ( $any_eff ) {
 							$ea = j5_armor_ref_derived( $a['specs'] ); $eb = j5_armor_ref_derived( $b['specs'] );
 							$x = isset( $ea['oz_per_sqin'] ) ? $ea['oz_per_sqin'] : INF; $y = isset( $eb['oz_per_sqin'] ) ? $eb['oz_per_sqin'] : INF;
@@ -540,7 +551,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 						$d  = j5_armor_ref_derived( $m['specs'] );
 						$sz = j5_armor_ref_sizes( $m, $models );
 						if ( $sz ) { $d['size_count'] = $sz['count']; $d['size_list'] = implode( ', ', $sz['list'] ); }
-						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'], 'carried' => $m['carried'], 'family' => $m['family'] );
+						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'], 'carried' => $m['carried'], 'family' => $m['family'], 'image' => isset( $m['image'] ) ? $m['image'] : '' );
 						?>
 						<tr data-slug="<?php echo esc_attr( $m['slug'] ); ?>" data-row="<?php echo esc_attr( wp_json_encode( $row, JSON_UNESCAPED_SLASHES ) ); ?>"<?php echo $m['carried'] ? ' class="is-carried"' : ''; ?>>
 							<td class="j5ac-td--pick"><input type="checkbox" class="j5ac-pick" value="<?php echo esc_attr( $m['slug'] ); ?>" aria-label="Compare <?php echo esc_attr( $m['manufacturer'] . ' ' . $m['model'] ); ?>"></td>
@@ -608,6 +619,7 @@ function j5_armor_ref_jsonld( array $feed ) {
 			'additionalProperty' => $props,
 		);
 		if ( $m['wc_product_url'] ) $product['url'] = $m['wc_product_url'];
+		if ( ! empty( $m['image'] ) ) $product['image'] = $m['image'];
 		if ( $m['spec_sheet']['url'] ) $product['subjectOf'] = array( '@type' => 'DigitalDocument', 'name' => $m['manufacturer'] . ' ' . $m['model'] . ' spec sheet', 'url' => $m['spec_sheet']['url'], 'encodingFormat' => 'application/pdf' );
 		$items[] = array( '@type' => 'ListItem', 'position' => $pos++, 'item' => $product );
 	}

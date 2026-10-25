@@ -77,7 +77,7 @@
 		{ id: 'rf2',  label: 'Rifle', sub: 'RF2 / RF3', levels: ['RF2', 'RF3'] }
 	];
 	var STEPS = {
-		shield: ['threat', 'type', 'size'],
+		shield: ['threat', 'type'],
 		plate:  ['threat', 'nij', 'size'],
 		helmet: ['threat', 'cut'],
 		soft_armor: ['threat', 'size']
@@ -121,6 +121,7 @@
 		this.rows = Array.prototype.map.call(this.tbody.querySelectorAll('tr[data-row]'), function (tr) {
 			return { tr: tr, data: JSON.parse(tr.getAttribute('data-row')) };
 		});
+		this.cardList = section.querySelector('[data-j5ac-cardlist]');
 		this.form = section.querySelector('[data-j5ac-filters]');
 		this.count = section.querySelector('[data-j5ac-count]');
 		this.none = section.querySelector('[data-j5ac-none]');
@@ -236,12 +237,14 @@
 				return t;
 			}
 			if (step === 'size') {
-				// Sections: side plates, shooter's cut, SAPI, each smallest to largest.
+				// Sections: side plates, shooter's cut, SAPI, each smallest to largest. Order and visibility from J5 Apps > Armor Comparison.
+				var sgs = self.config.size_groups || { order: [], hidden: [] }, sgl = self.config.size_group_labels || {};
 				var sections = {};
-				order.forEach(function (v) { var grp = sizeGroup(sizeOf(groups[v].sample)); (sections[grp.id] = sections[grp.id] || { grp: grp, keys: [] }).keys.push(v); });
-				Object.keys(sections).sort(function (a, b) { return sections[a].grp.order - sections[b].grp.order; }).forEach(function (id) {
+				order.forEach(function (v) { var grp = sizeGroup(sizeOf(groups[v].sample)); if ((sgs.hidden || []).indexOf(grp.id) !== -1) return; (sections[grp.id] = sections[grp.id] || { grp: grp, keys: [] }).keys.push(v); });
+				var so = sgs.order && sgs.order.length ? sgs.order : [];
+				Object.keys(sections).sort(function (a, b) { var ia = so.indexOf(a), ib = so.indexOf(b); if (ia === -1) ia = 50 + sections[a].grp.order; if (ib === -1) ib = 50 + sections[b].grp.order; return ia - ib; }).forEach(function (id) {
 					var sec = sections[id];
-					tiles.appendChild(el('h4', 'j5ac-tiles-h', sec.grp.label));
+					tiles.appendChild(el('h4', 'j5ac-tiles-h', sgl[id] || sec.grp.label));
 					var row = el('div', 'j5ac-tiles-row');
 					sec.keys.forEach(function (v) { row.appendChild(tile(v)); });
 					tiles.appendChild(row);
@@ -260,6 +263,7 @@
 			}
 			box.appendChild(tiles);
 			this.listWrap.hidden = true;
+			if (this.cardList) this.cardList.hidden = true;
 			this.form.hidden = true;
 			this.hint.parentNode.hidden = true;
 		} else {
@@ -370,6 +374,7 @@
 		this.hint.textContent = 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = true;
 		this.lockSizes();
+		this.renderCards();
 		this.compare(false);
 	};
 
@@ -411,10 +416,30 @@
 		}, this);
 		this.count.textContent = shown + ' of ' + this.rows.length;
 		this.none.hidden = shown > 0;
+		this.renderCards();
 	};
 
+	Panel.prototype.featuredRank = function (d) {
+		var f = this.config.featured || [], m = String(d.manufacturer || '').toLowerCase();
+		for (var i = 0; i < f.length; i++) if (f[i] && m.indexOf(String(f[i]).toLowerCase()) !== -1) return i;
+		return 999;
+	};
 	Panel.prototype.sort = function (key) {
-		var self = this, numeric = key !== 'model' && key !== 'maker', sign = this.desc ? -1 : 1;
+		var self = this, sign = this.desc ? -1 : 1;
+		if (key === 'featured') {
+			var inner = this.config.eff ? 'oz_per_sqin' : 'weight_lb';
+			var sorted0 = this.rows.slice().sort(function (a, b) {
+				var ra = self.featuredRank(a.data), rb = self.featuredRank(b.data);
+				if (ra !== rb) return (ra - rb) * sign;
+				var na = num(self.value(a, inner)), nb = num(self.value(b, inner));
+				if (na === null && nb === null) return 0; if (na === null) return 1; if (nb === null) return -1;
+				return na - nb;
+			});
+			sorted0.forEach(function (row) { this.tbody.appendChild(row.tr); }, this);
+			this.renderCards();
+			return;
+		}
+		var numeric = key !== 'model' && key !== 'maker';
 		var sorted = this.rows.slice().sort(function (a, b) {
 			var va = self.value(a, key), vb = self.value(b, key);
 			if (numeric) {
@@ -427,11 +452,77 @@
 			return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * sign;
 		});
 		sorted.forEach(function (row) { this.tbody.appendChild(row.tr); }, this);
+		this.renderCards();
+	};
+
+	/** Shields: picture cards in place of the table, built from the table rows (same data, same order, same filters). */
+	Panel.prototype.renderCards = function () {
+		if (!this.cardList) return;
+		var self = this, cfg = this.config;
+		this.cardList.textContent = '';
+		var open = this.openCards || (this.openCards = {});
+		Array.prototype.forEach.call(this.tbody.querySelectorAll('tr[data-row]'), function (tr) {
+			if (tr.classList.contains('is-hidden')) return;
+			var d = JSON.parse(tr.getAttribute('data-row'));
+			var card = el('article', 'j5ac-pcard' + (self.picked.indexOf(d.slug) !== -1 ? ' is-picked' : '') + (d.carried ? ' is-carried' : '') + (tr.classList.contains('is-locked') ? ' is-locked' : ''));
+			card.setAttribute('data-slug', d.slug);
+
+			var fig = el('div', 'j5ac-pcard-img');
+			var ph = '<svg viewBox="0 0 64 80" width="56" height="70" aria-hidden="true"><path d="M8 6h48v44c0 14-10 22-24 26C18 72 8 64 8 50V6z" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="24" y="14" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+			if (d.image) { var img = el('img'); img.src = d.image; img.alt = d.manufacturer + ' ' + d.model; img.loading = 'lazy'; img.addEventListener('error', function () { img.remove(); fig.classList.add('is-empty'); fig.innerHTML = ph; }); fig.appendChild(img); }
+			else { fig.classList.add('is-empty'); fig.innerHTML = ph; }
+			card.appendChild(fig);
+
+			var body = el('div', 'j5ac-pcard-body');
+			var head = el('div', 'j5ac-pcard-head');
+			var pick = el('label', 'j5ac-pcard-pick');
+			var cb = el('input'); cb.type = 'checkbox'; cb.checked = self.picked.indexOf(d.slug) !== -1; cb.disabled = tr.classList.contains('is-locked');
+			cb.setAttribute('aria-label', 'Compare ' + d.manufacturer + ' ' + d.model);
+			cb.addEventListener('change', function () { var tcb = tr.querySelector('.j5ac-pick'); tcb.checked = cb.checked; self.pick(d.slug, cb.checked, tcb); });
+			pick.appendChild(cb); pick.appendChild(el('span', null, 'Compare'));
+			head.appendChild(pick);
+			body.appendChild(head);
+			body.appendChild(el('h3', 'j5ac-pcard-name', d.model));
+			var mk = el('p', 'j5ac-pcard-maker', d.manufacturer);
+			if (d.carried) mk.appendChild(el('span', 'j5ac-stock', d.wc ? ' Sold by J5' : ' Quote from J5'));
+			body.appendChild(mk);
+
+			// Key facts line: level pill, type, size, weight, viewport
+			var facts = el('div', 'j5ac-pcard-facts');
+			if (d.specs.level) facts.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(d.specs.level), d.specs.level));
+			var sz = sizeOf(d); if (sz && sz.w) facts.appendChild(el('span', null, sz.label));
+			if (d.specs.weight_lb !== undefined) facts.appendChild(el('span', null, fmt(d.specs.weight_lb, self.fieldsByKey.weight_lb)));
+			if (cfg.category === 'shield') facts.appendChild(el('span', null, viewportArea(d.specs.viewport) > 0 ? 'Viewport' : 'No viewport'));
+			if (d.derived && d.derived.oz_per_sqin !== undefined) facts.appendChild(el('span', 'is-gold', d.derived.oz_per_sqin.toFixed(3) + ' oz/sq in'));
+			body.appendChild(facts);
+
+			// Expandable specs
+			var more = el('button', 'j5ac-pcard-more', open[d.slug] ? 'Hide specs' : 'Specs'); more.type = 'button'; more.setAttribute('aria-expanded', open[d.slug] ? 'true' : 'false');
+			var specs = el('dl', 'j5ac-pcard-specs'); specs.hidden = !open[d.slug];
+			cfg.fields.forEach(function (f) {
+				if (d.specs[f.key] === undefined) return;
+				specs.appendChild(el('dt', null, f.label));
+				var dd = el('dd'); dd.textContent = fmt(d.specs[f.key], f); specs.appendChild(dd);
+			});
+			if (d.derived && d.derived.area_sqin !== undefined) { specs.appendChild(el('dt', null, 'Coverage')); specs.appendChild(el('dd', null, d.derived.area_sqin + ' sq in')); }
+			if (d.derived && d.derived.size_list) { specs.appendChild(el('dt', null, 'Sizes offered')); specs.appendChild(el('dd', null, d.derived.size_count + ', ' + d.derived.size_list)); }
+			if (d.sheet && d.sheet.url) { specs.appendChild(el('dt', null, 'Spec sheet')); var dd2 = el('dd'); var a = el('a', null, 'PDF'); a.href = d.sheet.url; a.target = '_blank'; a.rel = 'noopener'; dd2.appendChild(a); if (d.sheet.pulled_at) dd2.appendChild(document.createTextNode(', pulled ' + d.sheet.pulled_at)); specs.appendChild(dd2); }
+			more.addEventListener('click', function () { var o = specs.hidden; specs.hidden = !o; open[d.slug] = o; more.textContent = o ? 'Hide specs' : 'Specs'; more.setAttribute('aria-expanded', o ? 'true' : 'false'); });
+			var actions = el('div', 'j5ac-pcard-actions');
+			actions.appendChild(more);
+			if (d.wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = d.wc; actions.appendChild(buy); }
+			else if (d.carried) { var q = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote'); q.href = (self.root.getAttribute('data-quote') || '/request-a-quote/') + '?item=' + encodeURIComponent(d.manufacturer + ' ' + d.model) + '&ref=armor-compare'; actions.appendChild(q); }
+			body.appendChild(actions);
+			body.appendChild(specs);
+			card.appendChild(body);
+			self.cardList.appendChild(card);
+		});
+		this.cardList.hidden = this.listWrap.hidden;
 	};
 
 	Panel.prototype.lockSizes = function () {
 		var first = this.picked.length ? this.rowBySlug(this.picked[0]) : null;
-		var key = first ? sizeKey(first.data) : null;
+		var key = first && this.config.category === 'plate' ? sizeKey(first.data) : null;
 		this.rows.forEach(function (row) {
 			var lock = key !== null && sizeKey(row.data) !== key;
 			row.tr.classList.toggle('is-locked', lock);
@@ -462,9 +553,10 @@
 		var row = this.rowBySlug(slug);
 		if (row) row.tr.classList.toggle('is-picked', on);
 		var key = this.lockSizes();
+		this.renderCards();
 		var first = this.picked.length ? this.rowBySlug(this.picked[0]).data : null;
 		var fsz = first ? sizeOf(first) : null;
-		var sizeText = fsz ? fsz.label + (fsz.sub ? ', ' + fsz.sub : '') : '';
+		var sizeText = fsz && key ? fsz.label + (fsz.sub ? ', ' + fsz.sub : '') : '';
 		this.hint.textContent = this.picked.length
 			? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + (sizeText ? ', same size only (' + sizeText + ').' : '.') : 'Comparing ' + MAX_PICK + '.')
 			: 'Check up to ' + MAX_PICK + ' to compare side by side.';

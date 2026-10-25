@@ -134,7 +134,8 @@
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
       "wc_product_url": "https://j5rescue.com/product/usi-kent-shield/",
-      "family": "KENT"
+      "family": "KENT",
+      "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
     },
     {
       "slug": "usi-kent-2436-iii",
@@ -157,7 +158,8 @@
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
       "wc_product_url": "https://j5rescue.com/product/usi-kent-shield-iii/",
-      "family": "KENT"
+      "family": "KENT",
+      "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
     },
     {
       "slug": "protech-intruder-iiia",
@@ -265,7 +267,8 @@
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
       "wc_product_url": "https://j5rescue.com/product/usi-kent-1830/",
-      "family": "KENT"
+      "family": "KENT",
+      "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
     }
   ]
 }
