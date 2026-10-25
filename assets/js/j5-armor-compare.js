@@ -70,7 +70,8 @@
 		helmet: ['threat', 'cut'],
 		soft_armor: ['threat', 'size']
 	};
-	var STEP_Q = { threat: 'What does it need to stop?', type: 'What kind of shield?', nij: 'NIJ certified?', size: 'What size?', cut: 'What cut?' };
+	var STEP_Q = { threat: 'What does it need to stop?', type: 'What kind of shield?', nij: 'Do you need an NIJ certified model?', size: 'What size?', cut: 'What cut?' };
+	var ANY = 'any'; // answer that keeps every option (the "Show both" tile)
 	function threatOf(level) {
 		var l = String(level || '').toUpperCase().trim();
 		for (var i = 0; i < THREATS.length; i++) if (THREATS[i].levels.indexOf(l) !== -1) return THREATS[i].id;
@@ -86,7 +87,7 @@
 	}
 	function stepLabel(d, step, val) {
 		if (step === 'threat') { for (var i = 0; i < THREATS.length; i++) if (THREATS[i].id === val) return THREATS[i]; return { label: val, sub: '' }; }
-		if (step === 'nij') return { label: val === 'yes' ? 'NIJ certified' : 'Not certified', sub: val === 'yes' ? 'On the NIJ Compliant Products List' : 'May be tested to a standard, but it is not on the NIJ CPL' };
+		if (step === 'nij') { if (val === ANY) return { label: 'Show both', sub: 'Certified and not' }; return { label: val === 'yes' ? 'NIJ certified' : 'Not certified', sub: val === 'yes' ? 'On the NIJ CPL' : 'Not on the NIJ CPL' }; }
 		if (step === 'size') { var sz = sizeOf(d); return sz ? { label: sz.label, sub: sz.sub } : { label: 'Not listed', sub: '' }; }
 		return { label: val || 'Not specified', sub: '' };
 	}
@@ -129,7 +130,7 @@
 	Panel.prototype.guideRows = function () {
 		var g = this.guide;
 		return this.rows.filter(function (r) {
-			for (var k in g) if (g[k] !== undefined && g[k] !== '*' && stepValue(r.data, k) !== g[k]) return false;
+			for (var k in g) if (g[k] !== undefined && g[k] !== '*' && g[k] !== ANY && stepValue(r.data, k) !== g[k]) return false;
 			return true;
 		});
 	};
@@ -207,6 +208,14 @@
 				t.addEventListener('click', function () { self.answer(step, v); });
 				tiles.appendChild(t);
 			});
+			if (step === 'nij' && order.length > 1) {
+				var both = el('button', 'j5ac-tile j5ac-tile--any'); both.type = 'button';
+				both.appendChild(el('span', 'j5ac-tile-k', 'Certified and not'));
+				both.appendChild(el('span', 'j5ac-tile-l', 'Show both'));
+				both.appendChild(el('span', 'j5ac-tile-n', pool.length + ' models'));
+				both.addEventListener('click', function () { self.answer(step, ANY); });
+				tiles.appendChild(both);
+			}
 			box.appendChild(tiles);
 			this.listWrap.hidden = true;
 			this.form.hidden = true;
@@ -334,7 +343,7 @@
 		var shown = 0, g = this.guideOn ? this.guide : {};
 		this.rows.forEach(function (row) {
 			var ok = true, k, i, v;
-			for (k in g) if (g[k] !== undefined && g[k] !== '*' && stepValue(row.data, k) !== g[k]) { ok = false; break; }
+			for (k in g) if (g[k] !== undefined && g[k] !== '*' && g[k] !== ANY && stepValue(row.data, k) !== g[k]) { ok = false; break; }
 			if (q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
 			if (ok && maker && row.data.manufacturer !== maker) ok = false;
 			if (ok && carriedOnly && !row.data.carried) ok = false;
