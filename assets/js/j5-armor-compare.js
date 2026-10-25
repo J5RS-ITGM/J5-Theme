@@ -58,9 +58,9 @@
 		return 'other';
 	}
 	var THREATS = [
-		{ id: 'iiia', label: 'Handgun', sub: 'NIJ IIIA', levels: ['IIA', 'II', 'IIIA', 'HG1', 'HG2'] },
-		{ id: 'iii',  label: 'Rifle', sub: 'NIJ III / III+', levels: ['III', 'III+'] },
-		{ id: 'iv',   label: 'Rifle', sub: 'NIJ IV', levels: ['IV'] },
+		{ id: 'iiia', label: 'Handgun', sub: 'IIIA', levels: ['IIA', 'II', 'IIIA', 'HG1', 'HG2'] },
+		{ id: 'iii',  label: 'Rifle', sub: 'III / III+', levels: ['III', 'III+'] },
+		{ id: 'iv',   label: 'Rifle', sub: 'IV', levels: ['IV'] },
 		{ id: 'rf1',  label: 'Rifle', sub: 'RF1', levels: ['RF1'] },
 		{ id: 'rf2',  label: 'Rifle', sub: 'RF2 / RF3', levels: ['RF2', 'RF3'] }
 	];
@@ -165,6 +165,16 @@
 		var step = this.nextStep();
 		var pool = this.guideRows();
 
+		// Progress: which step we are on, out of the steps this category actually asks.
+		var asked = this.steps.filter(function (st) { return this.guide[st] !== '*'; }, this);
+		var done = asked.filter(function (st) { return this.guide[st] !== undefined; }, this).length;
+		var prog = el('div', 'j5ac-prog');
+		prog.appendChild(el('span', null, step ? 'Step ' + (done + 1) + ' of ' + asked.length : 'Done, ' + asked.length + ' of ' + asked.length));
+		var bar = el('div', 'j5ac-prog-bar');
+		asked.forEach(function (st, i) { var seg = el('i'); if (i < done || !step) seg.className = 'is-on'; else if (i === done) seg.className = 'is-now'; bar.appendChild(seg); });
+		prog.appendChild(bar);
+		box.appendChild(prog);
+
 		// Skip a step the data can't answer yet (no model in the pool carries the field).
 		while (step && !pool.some(function (r) { var v = stepValue(r.data, step); return v !== '' && v !== null; })) {
 			this.guide[step] = '*';
@@ -188,8 +198,11 @@
 			order.forEach(function (v) {
 				var g = groups[v], lab = stepLabel(g.sample, step, v);
 				var t = el('button', 'j5ac-tile'); t.type = 'button';
-				t.appendChild(el('span', 'j5ac-tile-l', lab.label));
-				if (lab.sub) t.appendChild(el('span', 'j5ac-tile-s', lab.sub));
+				// Threat tiles: small word on top (Handgun / Rifle), level as the main line.
+				// Other steps: small qualifier on top when there is one (SAPI Medium), value as the main line.
+				var top = step === 'threat' ? lab.label : lab.sub, main = step === 'threat' ? lab.sub : lab.label;
+				t.appendChild(el('span', 'j5ac-tile-k', top || '\u00a0'));
+				t.appendChild(el('span', 'j5ac-tile-l', main));
 				t.appendChild(el('span', 'j5ac-tile-n', g.n + (g.n === 1 ? ' model' : ' models')));
 				t.addEventListener('click', function () { self.answer(step, v); });
 				tiles.appendChild(t);
@@ -210,6 +223,11 @@
 		this.writeHash();
 	};
 
+	Panel.prototype.startOver = function () {
+		this.guide = {}; this.guideOn = true;
+		this.form.reset(); this.clearPicks(); this.renderGuide(); this.filter();
+		this.section.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+	};
 	Panel.prototype.answer = function (step, v) { this.guide[step] = v; this.clearPicks(); this.renderGuide(); };
 	Panel.prototype.backTo = function (step) {
 		var i = this.steps.indexOf(step);
@@ -496,8 +514,13 @@
 	function floatingBar(root, panels) {
 		var bar = el('div', 'j5ac-float');
 		var top = el('button', 'j5ac-float-btn j5ac-float-btn--top', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
+		var over = el('button', 'j5ac-float-btn j5ac-float-btn--over', 'Start over'); over.type = 'button'; over.setAttribute('aria-label', 'Back to the first question on this tab');
 		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset all'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
-		bar.appendChild(top); bar.appendChild(reset);
+		bar.appendChild(top); bar.appendChild(over); bar.appendChild(reset);
+		over.addEventListener('click', function () {
+			var open = root.querySelector('.j5ac-panel:not([hidden])');
+			if (open && panels[open.getAttribute('data-cat')]) panels[open.getAttribute('data-cat')].startOver();
+		});
 		root.appendChild(bar);
 		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
 		reset.addEventListener('click', function () {
