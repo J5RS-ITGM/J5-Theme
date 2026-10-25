@@ -216,6 +216,10 @@
 			if (step === 'threat') order.sort(function (a, b) { return THREATS.map(function (t) { return t.id; }).indexOf(a) - THREATS.map(function (t) { return t.id; }).indexOf(b); });
 			else if (step === 'size') order.sort(function (a, b) { var A = sizeOf(groups[a].sample), B = sizeOf(groups[b].sample); return (A.w * A.h) - (B.w * B.h) || A.w - B.w; });
 			else if (step === 'nij') order.sort(function (a, b) { return (a === 'yes' ? 0 : 1) - (b === 'yes' ? 0 : 1); });
+			else if (step === 'type') {
+				var to = (self.config.type_order || []).map(function (x) { return String(x).toLowerCase(); });
+				order.sort(function (a, b) { var ia = to.indexOf(a.toLowerCase()), ib = to.indexOf(b.toLowerCase()); if (ia === -1) ia = 999; if (ib === -1) ib = 999; return ia - ib || a.localeCompare(b); });
+			}
 			else order.sort(function (a, b) { return (a === '') - (b === '') || a.localeCompare(b); });
 			var tiles = el('div', 'j5ac-tiles');
 			function tile(v) {

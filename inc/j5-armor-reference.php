@@ -418,8 +418,10 @@ function j5_armor_ref_shortcode( $atts ) {
 function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	$cat    = $feed['category'];
 	$fields = $feed['fields'];
-	// Accessories (type = Panel) are reference records only; they never appear in the tool or the schema.
-	$models = array_values( array_filter( $feed['models'], function ( $m ) { return empty( $m['specs']['type'] ) || strcasecmp( (string) $m['specs']['type'], 'Panel' ) !== 0; } ) );
+	// Hidden types (J5 Apps > Armor Comparison; Panel always) never appear in the tool or the schema.
+	$tset   = function_exists( 'j5_armor_ref_type_settings' ) ? j5_armor_ref_type_settings( $cat ) : array( 'order' => array(), 'hidden' => array( 'Panel' ) );
+	$hidden = array_map( 'strtolower', $tset['hidden'] );
+	$models = array_values( array_filter( $feed['models'], function ( $m ) use ( $hidden ) { return empty( $m['specs']['type'] ) || ! in_array( strtolower( (string) $m['specs']['type'] ), $hidden, true ); } ) );
 	$feed['models'] = $models;
 
 	$cols = array();
@@ -433,7 +435,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	sort( $dates );
 	$pulled = $dates ? ( count( array_unique( $dates ) ) > 1 ? j5_armor_ref_date( reset( $dates ) ) . ' to ' . j5_armor_ref_date( end( $dates ) ) : j5_armor_ref_date( reset( $dates ) ) ) : '';
 
-	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes );
+	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes, 'type_order' => $tset['order'] );
 
 	// Sort options: the efficiency metric first where it exists, then every numeric field, then name.
 	$sorts = array();
