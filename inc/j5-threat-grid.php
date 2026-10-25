@@ -96,6 +96,20 @@ add_shortcode( 'j5_threat_grid', function ( $atts ) {
 			</tbody>
 		</table>
 		</div>
+		<div class="j5tg__m" aria-hidden="true">
+			<?php foreach ( $cols as $id => $c ) : ?>
+				<section class="j5tg__card">
+					<h4><a href="<?php echo esc_url( $c['url'] ); ?>"><?php echo esc_html( $c['model'] ); ?></a><?php if ( $c['level'] ) : ?><small><?php echo esc_html( ( $c['maker'] && 0 !== strcasecmp( $c['maker'], 'Level ' . $c['level'] ) ) ? $c['maker'] : 'Level ' . $c['level'] ); ?></small><?php endif; ?></h4>
+					<ul>
+					<?php $none = array(); foreach ( $order as $key ) : $r = $rows[ $key ];
+						if ( ! isset( $r['hits'][ $id ] ) ) { $none[] = $r['round']; continue; } ?>
+						<li<?php echo $r['base'] ? ' class="is-base"' : ''; ?>><span><?php echo esc_html( $r['round'] ); ?></span><b><?php echo esc_html( $r['hits'][ $id ] ); ?></b></li>
+					<?php endforeach; ?>
+					</ul>
+					<?php if ( $none ) : ?><p class="j5tg__card-none">Not rated for <?php echo esc_html( implode( ', ', $none ) ); ?></p><?php endif; ?>
+				</section>
+			<?php endforeach; ?>
+		</div>
 		<p class="j5tg__key">Numbers are hits stopped. A dot means rated, hit count not published. A dash means the manufacturer does not rate the plate against that round.</p>
 	</div>
 	<?php
@@ -132,7 +146,22 @@ function j5_threat_grid_css() {
 	.j5tg__t tr.is-base th.j5tg__round{color:var(--j5-gold,#d4a044)}
 	.j5tg__t tbody tr:hover td,.j5tg__t tbody tr:hover th{background:rgba(212,160,68,.06)}
 	.j5tg__key{margin:8px 0 0;font-size:12px;color:var(--j5-ink-mute,#6e6e66)}
-	@media(max-width:640px){.j5tg__t{font-size:13px}.j5tg__t th,.j5tg__t td{padding:8px 10px}.j5tg__round{min-width:120px}.j5tg__t td.is-yes{font-size:18px}}
+	.j5tg__m{display:none}
+	@media(max-width:640px){
+	.j5tg__scroll{display:none}
+	.j5tg__m{display:grid;gap:12px}
+	.j5tg__card{background:var(--j5-bg-card,#15181d);border:1px solid var(--j5-border,#23272f);border-radius:8px;padding:0 0 10px;text-align:center}
+	.j5tg__card h4{margin:0 0 6px;padding:12px 14px 10px;border-bottom:2px solid var(--j5-gold,#d4a044);font-family:'Bebas Neue','Barlow Condensed',Impact,sans-serif;font-weight:400;font-size:22px;letter-spacing:.03em}
+	.j5tg__card h4 a{color:var(--j5-bone,#f5f1e8);text-decoration:none}
+	.j5tg__card h4 small{display:block;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--j5-ink-mute,#6e6e66);margin-top:3px}
+	.j5tg__card ul{list-style:none;margin:0;padding:0 14px}
+	.j5tg__card li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--j5-border,#23272f);font-size:14px;text-align:left}
+	.j5tg__card li:last-child{border-bottom:0}
+	.j5tg__card li.is-base span{color:var(--j5-gold,#d4a044)}
+	.j5tg__card li b{font-family:'Bebas Neue','Barlow Condensed',Impact,sans-serif;font-weight:400;font-size:20px;letter-spacing:.03em;color:var(--j5-gold,#d4a044)}
+	.j5tg__card-none{margin:8px 14px 0;font-size:12px;color:var(--j5-ink-mute,#6e6e66)}
+	.j5tg__key{text-align:center}
+	}
 	</style>
 	<?php
 }

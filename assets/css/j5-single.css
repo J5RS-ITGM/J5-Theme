@@ -255,6 +255,29 @@
     .j5-single-body .j5-sizing,
     .j5-single-body .alignwide { width: auto; max-width: 100%; margin-left: 0; transform: none; }
 }
+/* Phones: every guide table stacks. Each row becomes a card: first cell is the
+   centered title, the rest are label / value lines (labels come from the header
+   row, copied into data-label by inc/j5-guide-tables.php). */
+@media (max-width: 640px) {
+    .j5-single-body .wp-block-table { overflow: visible; }
+    .j5-single-body .wp-block-table table,
+    .j5-single-body .wp-block-table thead,
+    .j5-single-body .wp-block-table tbody,
+    .j5-single-body .wp-block-table tr,
+    .j5-single-body .wp-block-table th,
+    .j5-single-body .wp-block-table td { display: block; width: auto; }
+    .j5-single-body .wp-block-table thead { display: none; }
+    .j5-single-body .wp-block-table tbody tr { margin: 0 0 14px; padding: 0 0 6px; border: 1px solid var(--j5-border, #23272f); border-radius: 8px; background: var(--j5-bg-card, #15181d); }
+    .j5-single-body .wp-block-table tbody tr:nth-child(even) td { background: none; }
+    .j5-single-body .wp-block-table tbody td { border: 0; padding: 7px 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; text-align: right; }
+    .j5-single-body .wp-block-table tbody td::before { content: attr(data-label); font-family: 'Barlow Condensed', sans-serif; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--j5-ink-mute, #6e6e66); text-align: left; flex: 0 0 auto; }
+    .j5-single-body .wp-block-table tbody td:first-child { display: block; text-align: center; padding: 12px 14px 10px; margin: 0 0 4px; border-bottom: 2px solid var(--j5-gold, #d4a044); font-size: 1.05rem; white-space: normal; }
+    .j5-single-body .wp-block-table tbody td:first-child::before { content: none; }
+    .j5-single-body .wp-block-table tbody td.b { display: block; text-align: center; padding-top: 10px; margin-top: 4px; border-top: 1px solid var(--j5-border, #23272f); }
+    .j5-single-body .wp-block-table tbody td.b::before { content: none; }
+    .j5-single-body .wp-block-table .n { white-space: normal; }
+    .j5-lv { vertical-align: 0; }
+}
 
 /* Responsive video embeds */
 .j5-single-body iframe { max-width: 100%; }
