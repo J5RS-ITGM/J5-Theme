@@ -325,6 +325,48 @@
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
       "wc_product_url": null
+    },
+    {
+      "slug": "ar500-level-iii-1012",
+      "manufacturer": "AR500 Armor",
+      "model": "Level III 10x12",
+      "specs": {
+        "level": "III",
+        "standard": "NIJ 0101.06",
+        "nij_certified": true,
+        "standalone": "Standalone",
+        "cut": "Shooter's",
+        "size": "10 x 12 in",
+        "weight_lb": 8.5,
+        "material": "AR500 steel"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/x.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": ""
+      },
+      "wc_product_url": null
+    },
+    {
+      "slug": "hesco-side-6x6",
+      "manufacturer": "Hesco Armor",
+      "model": "Side plate 6x6",
+      "specs": {
+        "level": "III",
+        "standard": "NIJ 0101.06",
+        "nij_certified": true,
+        "standalone": "Standalone",
+        "cut": "Rectangle",
+        "size": "6 x 6 in",
+        "weight_lb": 1.2,
+        "material": "Polyethylene"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/y.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": ""
+      },
+      "wc_product_url": null
     }
   ]
 }

@@ -49,6 +49,18 @@
 		return { w: w, h: h, key: fmtn(w) + 'x' + fmtn(h), label: fmtn(w) + ' x ' + fmtn(h) + ' in', sub: sapi ? sapi.name : '' };
 	}
 	function sizeKey(d) { var sz = sizeOf(d); return sz ? sz.key : null; }
+	/** Steel plates (AR500 and the like) are hidden unless the viewer opts in. */
+	function isSteel(d) {
+		var hay = [d.specs && d.specs.material, d.model, d.family].join(' ');
+		return /\bsteel\b|\bar\s?-?(500|550|600|650)\b/i.test(hay);
+	}
+	/** Size family for the size step: side plate, shooter's cut, or SAPI. */
+	function sizeGroup(sz) {
+		if (!sz || !sz.w) return { id: 'other', label: 'Other sizes', order: 3 };
+		if (sz.sub) return { id: 'sapi', label: 'SAPI cut', order: 2 };
+		if (sz.h <= 8) return { id: 'side', label: 'Side plates', order: 0 };
+		return { id: 'shooter', label: "Shooter's cut", order: 1 };
+	}
 	function tier(l) {
 		l = String(l || '').toUpperCase().trim();
 		if (['IIA', 'II', 'IIIA', 'HG1', 'HG2'].indexOf(l) !== -1) return 'hg';
@@ -127,9 +139,11 @@
 	}
 
 	/** Rows that satisfy every answered guide step. */
+	Panel.prototype.steelOn = function () { var cb = this.form.elements.steel; return !!(cb && cb.checked); };
 	Panel.prototype.guideRows = function () {
-		var g = this.guide;
+		var g = this.guide, steel = this.steelOn();
 		return this.rows.filter(function (r) {
+			if (!steel && isSteel(r.data)) return false;
 			for (var k in g) if (g[k] !== undefined && g[k] !== '*' && g[k] !== ANY && stepValue(r.data, k) !== g[k]) return false;
 			return true;
 		});
@@ -166,6 +180,14 @@
 		var step = this.nextStep();
 		var pool = this.guideRows();
 
+		if (this.form.elements.steel) {
+			var steelLab = el('label', 'j5ac-steel');
+			var steelCb = el('input'); steelCb.type = 'checkbox'; steelCb.checked = this.steelOn();
+			steelCb.addEventListener('change', function () { self.form.elements.steel.checked = steelCb.checked; self.clearPicks(); self.renderGuide(); self.filter(); });
+			steelLab.appendChild(steelCb); steelLab.appendChild(el('span', null, 'Include steel plates'));
+			crumbs.insertBefore(steelLab, all);
+		}
+
 		// Progress: which step we are on, out of the steps this category actually asks.
 		var asked = this.steps.filter(function (st) { return this.guide[st] !== '*'; }, this);
 		var done = asked.filter(function (st) { return this.guide[st] !== undefined; }, this).length;
@@ -196,18 +218,34 @@
 			else if (step === 'nij') order.sort(function (a, b) { return (a === 'yes' ? 0 : 1) - (b === 'yes' ? 0 : 1); });
 			else order.sort(function (a, b) { return (a === '') - (b === '') || a.localeCompare(b); });
 			var tiles = el('div', 'j5ac-tiles');
-			order.forEach(function (v) {
+			function tile(v) {
 				var g = groups[v], lab = stepLabel(g.sample, step, v);
 				var t = el('button', 'j5ac-tile'); t.type = 'button';
-				// Threat tiles: small word on top (Handgun / Rifle), level as the main line.
-				// Other steps: small qualifier on top when there is one (SAPI Medium), value as the main line.
-				var top = step === 'threat' ? lab.label : lab.sub, main = step === 'threat' ? lab.sub : lab.label;
+				var top, main;
+				if (step === 'threat') { top = lab.label; main = lab.sub; }
+				else if (step === 'size') { var sz = sizeOf(g.sample), grp = sizeGroup(sz); if (grp.id === 'sapi') { top = lab.label; main = lab.sub; } else { top = ''; main = lab.label; } }
+				else { top = lab.sub; main = lab.label; }
 				t.appendChild(el('span', 'j5ac-tile-k', top || '\u00a0'));
 				t.appendChild(el('span', 'j5ac-tile-l', main));
 				t.appendChild(el('span', 'j5ac-tile-n', g.n + (g.n === 1 ? ' model' : ' models')));
 				t.addEventListener('click', function () { self.answer(step, v); });
-				tiles.appendChild(t);
-			});
+				return t;
+			}
+			if (step === 'size') {
+				// Sections: side plates, shooter's cut, SAPI, each smallest to largest.
+				var sections = {};
+				order.forEach(function (v) { var grp = sizeGroup(sizeOf(groups[v].sample)); (sections[grp.id] = sections[grp.id] || { grp: grp, keys: [] }).keys.push(v); });
+				Object.keys(sections).sort(function (a, b) { return sections[a].grp.order - sections[b].grp.order; }).forEach(function (id) {
+					var sec = sections[id];
+					tiles.appendChild(el('h4', 'j5ac-tiles-h', sec.grp.label));
+					var row = el('div', 'j5ac-tiles-row');
+					sec.keys.forEach(function (v) { row.appendChild(tile(v)); });
+					tiles.appendChild(row);
+				});
+				tiles.classList.add('j5ac-tiles--grouped');
+			} else {
+				order.forEach(function (v) { tiles.appendChild(tile(v)); });
+			}
 			if (step === 'nij' && order.length > 1) {
 				var both = el('button', 'j5ac-tile j5ac-tile--any'); both.type = 'button';
 				both.appendChild(el('span', 'j5ac-tile-k', 'Certified and not'));
@@ -232,6 +270,16 @@
 		this.writeHash();
 	};
 
+	/** Back one question: drop the last answered step (or leave See all mode). */
+	Panel.prototype.backStep = function () {
+		if (!this.guideOn) { this.guideOn = true; this.form.reset(); this.clearPicks(); this.renderGuide(); this.filter(); }
+		else {
+			var answered = this.steps.filter(function (st) { return this.guide[st] !== undefined && this.guide[st] !== '*'; }, this);
+			if (!answered.length) return;
+			this.backTo(answered[answered.length - 1]);
+		}
+		this.section.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+	};
 	Panel.prototype.startOver = function () {
 		this.guide = {}; this.guideOn = true;
 		this.form.reset(); this.clearPicks(); this.renderGuide(); this.filter();
@@ -241,6 +289,8 @@
 	Panel.prototype.backTo = function (step) {
 		var i = this.steps.indexOf(step);
 		for (var j = i; j < this.steps.length; j++) delete this.guide[this.steps[j]];
+		// re-evaluate skipped steps before it too, since the pool changes
+		for (var k = 0; k < i; k++) if (this.guide[this.steps[k]] === '*') delete this.guide[this.steps[k]];
 		this.clearPicks(); this.renderGuide();
 	};
 	Panel.prototype.seeAll = function () {
@@ -329,9 +379,9 @@
 	};
 
 	Panel.prototype.filter = function () {
-		var lists = {}, maxes = {}, onlys = [], has = [], q = '', maker = '', carriedOnly = false;
+		var lists = {}, maxes = {}, onlys = [], has = [], q = '', maker = '', carriedOnly = false, steelOn = this.steelOn();
 		Array.prototype.forEach.call(this.form.elements, function (inp) {
-			if (!inp.name || inp.name === 'sort') return;
+			if (!inp.name || inp.name === 'sort' || inp.name === 'steel') return;
 			if (inp.name === 'q') { q = inp.value.trim().toLowerCase(); return; }
 			if (inp.name === 'maker') { maker = inp.value; return; }
 			if (inp.name === 'carried') { carriedOnly = inp.checked; return; }
@@ -344,7 +394,8 @@
 		this.rows.forEach(function (row) {
 			var ok = true, k, i, v;
 			for (k in g) if (g[k] !== undefined && g[k] !== '*' && g[k] !== ANY && stepValue(row.data, k) !== g[k]) { ok = false; break; }
-			if (q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
+			if (!steelOn && isSteel(row.data)) ok = false;
+			if (ok && q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
 			if (ok && maker && row.data.manufacturer !== maker) ok = false;
 			if (ok && carriedOnly && !row.data.carried) ok = false;
 			if (ok) for (k in lists) { if (lists[k].indexOf(String(this.value(row, k))) === -1) { ok = false; break; } }
@@ -523,9 +574,14 @@
 	function floatingBar(root, panels) {
 		var bar = el('div', 'j5ac-float');
 		var top = el('button', 'j5ac-float-btn j5ac-float-btn--top', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
+		var back = el('button', 'j5ac-float-btn j5ac-float-btn--back', 'Back'); back.type = 'button'; back.setAttribute('aria-label', 'Back one question');
 		var over = el('button', 'j5ac-float-btn j5ac-float-btn--over', 'Start over'); over.type = 'button'; over.setAttribute('aria-label', 'Back to the first question on this tab');
 		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset all'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
-		bar.appendChild(top); bar.appendChild(over); bar.appendChild(reset);
+		bar.appendChild(top); bar.appendChild(back); bar.appendChild(over); bar.appendChild(reset);
+		back.addEventListener('click', function () {
+			var open = root.querySelector('.j5ac-panel:not([hidden])'), pn = open && panels[open.getAttribute('data-cat')];
+			if (pn) pn.backStep();
+		});
 		over.addEventListener('click', function () {
 			var open = root.querySelector('.j5ac-panel:not([hidden])');
 			if (open && panels[open.getAttribute('data-cat')]) panels[open.getAttribute('data-cat')].startOver();

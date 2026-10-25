@@ -481,6 +481,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				</label>
 				<?php endif; ?>
 				<label class="j5ac-check"><input type="checkbox" name="carried" value="1"> <span>J5 carries only</span></label>
+				<?php if ( 'plate' === $cat ) : ?><label class="j5ac-check"><input type="checkbox" name="steel" value="1"> <span>Include steel plates</span></label><?php endif; ?>
 			</div>
 			<div class="j5ac-row">
 			<?php foreach ( $fields as $f ) :
