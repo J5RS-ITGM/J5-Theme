@@ -289,6 +289,7 @@
 		this.section.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
 	};
 	Panel.prototype.startOver = function () {
+		this.sizeTarget = null; this.sizeSel = {};
 		this.guide = {}; this.guideOn = true;
 		this.form.reset(); this.clearPicks(); this.renderGuide(); this.filter();
 		this.section.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
@@ -468,6 +469,18 @@
 		return base;
 	}
 
+	/** The member of a listing closest in size to the target (height first, then width, then lighter), or null. */
+	function nearestSize(items, target) {
+		if (!target || !target.w) return null;
+		var best = null, bd = Infinity;
+		items.forEach(function (i) {
+			var z = sizeOf(i.d); if (!z || !z.w) return;
+			var dist = Math.abs(z.h - target.h) * 2 + Math.abs(z.w - target.w) + (num(i.d.specs && i.d.specs.weight_lb) || 0) / 1000;
+			if (dist < bd) { bd = dist; best = i; }
+		});
+		return best;
+	}
+
 	Panel.prototype.renderCards = function () {
 		if (!this.cardList) return;
 		var self = this, cfg = this.config;
@@ -490,7 +503,7 @@
 			var models = g.items.map(function (i) { return i.d; });
 			// Selected size: a picked member wins, then the remembered choice, then the first.
 			var cur = g.items.filter(function (i) { return self.picked.indexOf(i.d.slug) !== -1; })[0]
-				|| g.items.filter(function (i) { return i.d.slug === sel[g.key]; })[0] || g.items[0];
+				|| g.items.filter(function (i) { return i.d.slug === sel[g.key]; })[0] || nearestSize(g.items, self.sizeTarget) || g.items[0];
 			var d = cur.d, tr = cur.tr;
 			var card = el('article', 'j5ac-pcard' + (self.picked.indexOf(d.slug) !== -1 ? ' is-picked' : '') + (d.carried ? ' is-carried' : '') + (tr.classList.contains('is-locked') ? ' is-locked' : ''));
 			card.setAttribute('data-slug', d.slug);
@@ -506,7 +519,7 @@
 			var pick = el('label', 'j5ac-pcard-pick');
 			var cb = el('input'); cb.type = 'checkbox'; cb.checked = self.picked.indexOf(d.slug) !== -1; cb.disabled = tr.classList.contains('is-locked');
 			cb.setAttribute('aria-label', 'Compare ' + d.manufacturer + ' ' + d.model);
-			cb.addEventListener('change', function () { var tcb = tr.querySelector('.j5ac-pick'); tcb.checked = cb.checked; self.pick(d.slug, cb.checked, tcb); });
+			cb.addEventListener('change', function () { if (cb.checked && !self.sizeTarget) self.sizeTarget = sizeOf(d); var tcb = tr.querySelector('.j5ac-pick'); tcb.checked = cb.checked; self.pick(d.slug, cb.checked, tcb); });
 			pick.appendChild(cb); pick.appendChild(el('span', null, 'Compare'));
 			head.appendChild(pick);
 			body.appendChild(head);
@@ -517,28 +530,43 @@
 
 			// Size picker (only when the listing has more than one size).
 			if (models.length > 1) {
-				var sizes = el('div', 'j5ac-pcard-sizes'); sizes.setAttribute('role', 'group'); sizes.setAttribute('aria-label', 'Size');
-				sizes.appendChild(el('span', 'j5ac-pcard-sizes-k', models.length + ' sizes'));
+				var sopen = self.sizeOpen || (self.sizeOpen = {});
+				var curSz = sizeOf(d), curLabel = curSz && curSz.w ? curSz.label : (d.specs && d.specs.size ? String(d.specs.size) : d.model);
+				var sizes = el('div', 'j5ac-pcard-sizes' + (sopen[g.key] ? ' is-open' : ''));
+				var tog = el('button', 'j5ac-size-toggle'); tog.type = 'button'; tog.setAttribute('aria-expanded', sopen[g.key] ? 'true' : 'false');
+				tog.appendChild(el('span', 'j5ac-size-toggle-k', 'Size'));
+				tog.appendChild(el('span', 'j5ac-size-toggle-v', curLabel + (d.specs && d.specs.weight_lb !== undefined ? ', ' + d.specs.weight_lb + ' lb' : '')));
+				tog.appendChild(el('span', 'j5ac-size-toggle-n', models.length + ' sizes'));
+				tog.addEventListener('click', function () { sopen[g.key] = !sopen[g.key]; self.renderCards(); });
+				sizes.appendChild(tog);
+				var list = el('div', 'j5ac-size-list'); list.setAttribute('role', 'group'); list.setAttribute('aria-label', 'Choose a size'); list.hidden = !sopen[g.key];
 				g.items.forEach(function (i) {
 					var isz = sizeOf(i.d), ih = isz && isz.w ? isz.label : (i.d.specs && i.d.specs.size ? String(i.d.specs.size) : i.d.model);
 					var b = el('button', 'j5ac-size' + (i.d.slug === d.slug ? ' is-on' : '')); b.type = 'button';
 					b.appendChild(el('span', 'j5ac-size-d', ih));
 					var meta = [];
 					if (i.d.specs && i.d.specs.weight_lb !== undefined) meta.push(i.d.specs.weight_lb + ' lb');
-					if (i.d.specs && i.d.specs.handle && models.filter(function (o) { var z = sizeOf(o); return z && isz && z.key === isz.key; }).length > 1) meta.push(String(i.d.specs.handle));
+					// Same dimensions twice: add the handle only when it actually tells them apart.
+					var twins = models.filter(function (o) { var z = sizeOf(o); return z && isz && z.key === isz.key; });
+					if (twins.length > 1 && i.d.specs && i.d.specs.handle && twins.some(function (o) { return String(o.specs.handle || '') !== String(i.d.specs.handle); })) meta.push(String(i.d.specs.handle));
 					b.appendChild(el('span', 'j5ac-size-w', meta.join(', ')));
 					if (i.d.carried) b.appendChild(el('span', 'j5ac-size-c', i.d.wc ? 'Sold by J5' : 'Quote'));
 					b.setAttribute('aria-pressed', i.d.slug === d.slug ? 'true' : 'false');
 					b.addEventListener('click', function () {
-						if (i.d.slug === d.slug) return;
+						sopen[g.key] = false;
+						// This size becomes the target: every other card snaps to its closest size.
+						self.sizeTarget = sizeOf(i.d);
+						self.sizeSel = sel = {};
+						if (i.d.slug === d.slug) { self.renderCards(); return; }
 						// Move an existing pick to the new size so compare follows the card.
 						var was = self.picked.indexOf(d.slug) !== -1;
 						sel[g.key] = i.d.slug;
 						if (was) { var oldcb = tr.querySelector('.j5ac-pick'); oldcb.checked = false; self.pick(d.slug, false, oldcb); var ncb = i.tr.querySelector('.j5ac-pick'); ncb.checked = true; self.pick(i.d.slug, true, ncb); }
 						else self.renderCards();
 					});
-					sizes.appendChild(b);
+					list.appendChild(b);
 				});
+				sizes.appendChild(list);
 				body.appendChild(sizes);
 			}
 
@@ -586,7 +614,10 @@
 		this.cardList.hidden = this.listWrap.hidden;
 		// The "N match" line counts listings when cards are showing.
 		var done = this.guideBox && this.guideBox.querySelector('.j5ac-guide-done');
-		if (done && !this.cardList.hidden) { var n = groups.length; done.textContent = n + (n === 1 ? ' model matches. ' : ' models match. ') + 'Pick a size on a card, then check any to compare side by side.'; }
+		if (done && !this.cardList.hidden) {
+			var n = groups.length, t = this.sizeTarget;
+			done.textContent = n + (n === 1 ? ' model matches. ' : ' models match. ') + (t && t.w ? 'Cards show the size closest to ' + t.label + '. ' : 'Pick a size on a card and the others follow. ') + 'Check any to compare side by side.';
+		}
 	};
 
 	/** "Report incorrect information" dialog, shared by every panel on the page. */
@@ -800,7 +831,7 @@
 		root.appendChild(bar);
 		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
 		reset.addEventListener('click', function () {
-			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.clearPicks(); p.form.reset(); p.guide = {}; p.guideOn = true; p.renderGuide(); p.filter(); });
+			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.clearPicks(); p.form.reset(); p.guide = {}; p.guideOn = true; p.sizeTarget = null; p.sizeSel = {}; p.renderGuide(); p.filter(); });
 			root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
 		});
 		function tick() {
