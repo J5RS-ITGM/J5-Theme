@@ -510,8 +510,9 @@
 
 			var fig = el('div', 'j5ac-pcard-img');
 			var ph = '<svg viewBox="0 0 64 80" width="56" height="70" aria-hidden="true"><path d="M8 6h48v44c0 14-10 22-24 26C18 72 8 64 8 50V6z" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="24" y="14" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
-			if (d.image) { var img = el('img'); img.src = d.image; img.alt = d.manufacturer + ' ' + famName(d); img.loading = 'lazy'; img.addEventListener('error', function () { img.remove(); fig.classList.add('is-empty'); fig.innerHTML = ph; }); fig.appendChild(img); }
+			if (d.image) { var img = el('img'); img.src = d.image; img.alt = d.manufacturer + ' ' + famName(d); img.loading = 'lazy'; img.addEventListener('error', function () { img.remove(); fig.classList.add('is-empty'); fig.insertAdjacentHTML('afterbegin', ph); }); fig.appendChild(img); }
 			else { fig.classList.add('is-empty'); fig.innerHTML = ph; }
+			if (d.carried) fig.appendChild(el('span', 'j5ac-pcard-flag' + (d.wc ? ' is-sold' : ' is-quote'), d.wc ? 'Sold by J5' : 'Quote from J5'));
 			card.appendChild(fig);
 
 			var body = el('div', 'j5ac-pcard-body');
@@ -524,9 +525,7 @@
 			head.appendChild(pick);
 			body.appendChild(head);
 			body.appendChild(el('h3', 'j5ac-pcard-name', famName(d)));
-			var mk = el('p', 'j5ac-pcard-maker', d.manufacturer);
-			if (d.carried) mk.appendChild(el('span', 'j5ac-stock', d.wc ? ' Sold by J5' : ' Quote from J5'));
-			body.appendChild(mk);
+			body.appendChild(el('p', 'j5ac-pcard-maker', d.manufacturer));
 
 			// Size picker (only when the listing has more than one size).
 			if (models.length > 1) {
@@ -550,7 +549,7 @@
 					var twins = models.filter(function (o) { var z = sizeOf(o); return z && isz && z.key === isz.key; });
 					if (twins.length > 1 && i.d.specs && i.d.specs.handle && twins.some(function (o) { return String(o.specs.handle || '') !== String(i.d.specs.handle); })) meta.push(String(i.d.specs.handle));
 					b.appendChild(el('span', 'j5ac-size-w', meta.join(', ')));
-					if (i.d.carried) b.appendChild(el('span', 'j5ac-size-c', i.d.wc ? 'Sold by J5' : 'Quote'));
+					if (i.d.carried) { var dot = el('span', 'j5ac-size-c' + (i.d.wc ? ' is-sold' : ' is-quote')); dot.title = i.d.wc ? 'Sold by J5' : 'Quote from J5'; b.appendChild(dot); }
 					b.setAttribute('aria-pressed', i.d.slug === d.slug ? 'true' : 'false');
 					b.addEventListener('click', function () {
 						sopen[g.key] = false;

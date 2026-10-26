@@ -228,7 +228,7 @@
 .j5ac-size-toggle-n { font-family: var(--cond); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--g); white-space: nowrap; }
 .j5ac-size-toggle-n::after { content: ' \25BE'; }
 .j5ac-pcard-sizes.is-open .j5ac-size-toggle-n::after { content: ' \25B4'; }
-.j5ac-size-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow-y: auto; padding: 6px; background: #15181d; border: 1px solid var(--g); border-radius: 4px; box-shadow: 0 12px 30px rgba(0, 0, 0, .6); }
+.j5ac-size-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding: 6px; background: #0f1114; border: 1px solid var(--line-hi); border-radius: 4px; }
 .j5ac-size-list[hidden] { display: none; }
 .j5ac .j5ac-size { display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'd c' 'w w'; align-items: center; column-gap: 10px; row-gap: 2px; width: 100%; text-align: left; font-family: inherit; font-size: 14px; color: var(--ink); background: rgba(255, 255, 255, .025); border: 1px solid var(--line); border-left: 3px solid transparent; border-radius: 4px; padding: 7px 10px; line-height: 1.2; cursor: pointer; }
 .j5ac .j5ac-size:hover { border-color: var(--line-hi); }
@@ -237,7 +237,8 @@
 .j5ac .j5ac-size.is-on .j5ac-size-d { color: var(--g); }
 .j5ac-size-w { grid-area: w; color: var(--dim); font-size: 13px; }
 .j5ac-size-w:empty { display: none; }
-.j5ac-size-c { grid-area: c; justify-self: end; font-family: var(--cond); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--g); border: 1px solid var(--g); border-radius: 3px; padding: 2px 5px; white-space: nowrap; }
+.j5ac-size-c { grid-area: c; justify-self: end; width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--g); }
+.j5ac-size-c.is-sold { background: var(--g); }
 .j5ac-pcard-sizelist { display: flex; flex-direction: column; gap: 2px; }
 
 /* Report incorrect information */
@@ -272,3 +273,8 @@ body.j5ac-modal-open { overflow: hidden; }
 .j5ac .j5ac-pcard-pdf { font-family: var(--cond); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); border: 1px solid var(--line-hi); border-radius: 4px; padding: 8px 12px; text-decoration: none; line-height: 1; }
 .j5ac .j5ac-pcard-pdf::before { content: 'PDF'; font-size: 9px; letter-spacing: .08em; color: var(--g); border: 1px solid var(--g); border-radius: 2px; padding: 1px 3px; margin-right: 6px; vertical-align: 1px; }
 .j5ac .j5ac-pcard-pdf:hover { border-color: var(--g); color: var(--g); }
+
+/* Carried flag on the photo */
+.j5ac-pcard-flag { position: absolute; left: 0; top: 14px; z-index: 2; font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 5px 10px 5px 12px; border-radius: 0 3px 3px 0; }
+.j5ac-pcard-flag.is-sold { background: var(--g); color: #15120a; }
+.j5ac-pcard-flag.is-quote { background: #15181d; color: var(--g); border: 1px solid var(--g); border-left: 0; }
