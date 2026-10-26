@@ -574,6 +574,7 @@
 			more.addEventListener('click', function () { var o = specs.hidden; specs.hidden = !o; open[g.key] = o; more.textContent = o ? 'Hide specs' : 'Specs'; more.setAttribute('aria-expanded', o ? 'true' : 'false'); });
 			var actions = el('div', 'j5ac-pcard-actions');
 			actions.appendChild(more);
+			if (d.sheet && d.sheet.url) { var pdf = el('a', 'j5ac-pcard-pdf', 'Spec sheet'); pdf.href = d.sheet.url; pdf.target = '_blank'; pdf.rel = 'noopener'; pdf.title = 'Manufacturer spec sheet (PDF)'; actions.appendChild(pdf); }
 			if (d.wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = d.wc; actions.appendChild(buy); }
 			else if (d.carried) { var q = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote'); q.href = (self.root.getAttribute('data-quote') || '/request-a-quote/') + '?item=' + encodeURIComponent(d.manufacturer + ' ' + d.model) + '&ref=armor-compare'; actions.appendChild(q); }
 			body.appendChild(actions);
