@@ -126,9 +126,13 @@ add_action( 'j5_archive_hero_before_title', function () {
 	if ( ! j5_is_brand_archive() ) {
 		return;
 	}
-	$logo = j5_brand_logo_url( get_queried_object_id(), 'medium' );
+	$hub = function_exists( 'j5_brand_hub_logo' ) ? j5_brand_hub_logo( get_queried_object() ) : null;
+	$logo = $hub && $hub['url'] ? $hub['url'] : j5_brand_logo_url( get_queried_object_id(), 'medium' );
 	if ( $logo ) {
-		printf( '<div class="j5rc-brand-logo"><img src="%s" alt="%s" /></div>', esc_url( $logo ), esc_attr( single_term_title( '', false ) ) );
+		printf( '<div class="j5rc-brand-logo%s"><img src="%s" alt="%s" /></div>', $hub && $hub['light'] ? ' is-dark' : '', esc_url( $logo ), esc_attr( single_term_title( '', false ) ) );
+	}
+	if ( $hub && ! empty( $hub['site'] ) ) {
+		printf( '<p class="j5rc-brand-site"><a href="%s" target="_blank" rel="noopener nofollow">Manufacturer site &#8599;</a></p>', esc_url( $hub['site'] ) );
 	}
 }, 5 );
 
@@ -174,10 +178,11 @@ add_shortcode( 'j5_brands', function ( $atts ) {
 	?>
 	<div class="j5rc-brand-grid">
 		<?php foreach ( $terms as $t ) :
-			$logo = j5_brand_logo_url( $t->term_id, 'medium' );
+			$hub  = function_exists( 'j5_brand_hub_logo' ) ? j5_brand_hub_logo( $t ) : null;
+			$logo = $hub && $hub['url'] ? $hub['url'] : j5_brand_logo_url( $t->term_id, 'medium' );
 		?>
 			<a class="j5rc-brand-card" href="<?php echo esc_url( get_term_link( $t ) ); ?>">
-				<span class="j5rc-brand-card-logo">
+				<span class="j5rc-brand-card-logo<?php echo $hub && $hub['light'] ? ' is-dark' : ''; ?>">
 					<?php if ( $logo ) : ?>
 						<img src="<?php echo esc_url( $logo ); ?>" alt="" loading="lazy" />
 					<?php else : ?>

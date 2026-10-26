@@ -92,6 +92,8 @@ require_once get_stylesheet_directory() . '/inc/j5-category-content.php';
 require_once get_stylesheet_directory() . '/inc/j5-rich-category.php';
 // Brand pages on WooCommerce Brands (Products -> Brands). J5-BRANDS
 require_once get_stylesheet_directory() . '/inc/j5-brands.php';
+// Brand logos and facts pushed from the dealer portal (PUT /j5/v1/brands). J5-BRANDS-HUB
+require_once get_stylesheet_directory() . '/inc/j5-brands-hub.php';
 // N/A variation attributes + Law Enforcement Only flag. J5-FLAGS
 require_once get_stylesheet_directory() . '/inc/j5-product-flags.php';
 // Spec Sheets tab (PDF links to the B2 Media bucket). J5-SPECSHEETS

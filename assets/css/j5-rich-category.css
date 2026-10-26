@@ -316,6 +316,10 @@
 	box-sizing: border-box;
 }
 .j5rc-brand-logo img { max-height: 44px; max-width: 220px; width: auto; height: auto; display: block; }
+.j5rc-brand-logo.is-dark { background: #0f1114; border: 1px solid var(--j5-border, #23272f); }
+.j5rc-brand-site { margin: -8px 0 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.j5rc-brand-site a { color: var(--j5-gold, #d4a044); text-decoration: none; }
+.j5rc-brand-site a:hover { color: var(--j5-bone, #f5f1e8); }
 
 /* [j5_brands] grid */
 .j5rc-brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
@@ -341,6 +345,7 @@
 	box-sizing: border-box;
 }
 .j5rc-brand-card-logo img { max-height: 100%; max-width: 100%; object-fit: contain; }
+.j5rc-brand-card-logo.is-dark { background: #0f1114; border: 1px solid var(--j5-border, #23272f); }
 .j5rc-brand-card-logo span { font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 20px; color: #0a0b0d; text-align: center; }
 .j5rc-brand-card-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; color: var(--j5-bone, #f5f1e8); }
 .j5rc-brand-card-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--j5-gold, #d4a044); }
