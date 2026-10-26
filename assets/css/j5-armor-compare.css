@@ -212,3 +212,45 @@
 .j5ac-pcard-specs { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; }
 .j5ac-pcard-specs dt { color: var(--dim); }
 .j5ac-pcard-specs dd { margin: 0; color: var(--ink); text-align: right; }
+
+/* Size picker on a listing card: one row per size */
+.j5ac-pcard-sizes { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.j5ac-pcard-sizes-k { font-family: var(--cond); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 2px; }
+.j5ac .j5ac-size { display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'd c' 'w w'; align-items: center; column-gap: 10px; row-gap: 2px; width: 100%; text-align: left; font-family: inherit; font-size: 14px; color: var(--ink); background: rgba(255, 255, 255, .025); border: 1px solid var(--line); border-left: 3px solid transparent; border-radius: 4px; padding: 7px 10px; line-height: 1.2; cursor: pointer; }
+.j5ac .j5ac-size:hover { border-color: var(--line-hi); }
+.j5ac .j5ac-size.is-on { border-color: var(--g); border-left-color: var(--g); background: rgba(212, 160, 68, .08); }
+.j5ac-size-d { grid-area: d; font-family: var(--cond); font-size: 16px; font-weight: 600; letter-spacing: .03em; color: var(--bone); white-space: nowrap; }
+.j5ac .j5ac-size.is-on .j5ac-size-d { color: var(--g); }
+.j5ac-size-w { grid-area: w; color: var(--dim); font-size: 13px; }
+.j5ac-size-w:empty { display: none; }
+.j5ac-size-c { grid-area: c; justify-self: end; font-family: var(--cond); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--g); border: 1px solid var(--g); border-radius: 3px; padding: 2px 5px; white-space: nowrap; }
+.j5ac-pcard-sizelist { display: flex; flex-direction: column; gap: 2px; }
+
+/* Report incorrect information */
+.j5ac .j5ac-report { font-family: var(--cond); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.j5ac .j5ac-report:hover { color: var(--g); }
+.j5ac-pcard-report { margin: 6px 0 0; }
+.j5ac-card .j5ac-pcard-report { margin-top: 10px; text-align: center; }
+.j5ac-td--sheet .j5ac-report { margin-left: 8px; }
+.j5ac-modal { position: fixed; inset: 0; z-index: 9000; background: rgba(0, 0, 0, .72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.j5ac-modal[hidden] { display: none; }
+.j5ac-modal-box { position: relative; width: 100%; max-width: 480px; background: var(--card); border: 1px solid var(--line-hi); border-top: 3px solid var(--g); border-radius: 8px; padding: 22px 24px 20px; color: var(--ink); }
+.j5ac-modal-box h3 { font-family: var(--disp); font-weight: 400; font-size: 26px; letter-spacing: .03em; margin: 0 0 2px; color: var(--bone); }
+.j5ac-modal-model { margin: 0 0 14px; font-family: var(--cond); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--g); }
+.j5ac-modal-box label { display: block; font-size: 13px; color: var(--dim); margin: 0 0 10px; }
+.j5ac-modal-box label span { color: var(--mute); }
+.j5ac-modal-box input[type=text], .j5ac-modal-box input[type=email], .j5ac-modal-box textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; background: #0f1114; color: var(--ink); border: 1px solid var(--line-hi); border-radius: 4px; padding: 8px 10px; font: inherit; font-size: 14px; }
+.j5ac-modal-box textarea { resize: vertical; }
+.j5ac-modal-box input:focus, .j5ac-modal-box textarea:focus { outline: none; border-color: var(--g); }
+.j5ac-hp { position: absolute; left: -9999px; }
+.j5ac-modal-actions { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+.j5ac .j5ac-modal-actions .j5ac-btn { width: auto; margin: 0; padding: 10px 18px; background: var(--r); color: #fff; border: 1px solid transparent; border-radius: 4px; cursor: pointer; font-family: var(--cond); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; }
+.j5ac .j5ac-modal-actions .j5ac-btn:hover { background: var(--rh); }
+.j5ac .j5ac-modal-actions .j5ac-btn[disabled] { opacity: .5; cursor: default; }
+.j5ac .j5ac-modal-cancel { background: none; border: 0; color: var(--dim); font-family: var(--cond); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+.j5ac .j5ac-modal-x { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--mute); font-size: 26px; line-height: 1; cursor: pointer; }
+.j5ac .j5ac-modal-x:hover, .j5ac .j5ac-modal-cancel:hover { color: var(--bone); }
+.j5ac-modal-msg { font-size: 13px; margin: 0 0 10px; }
+.j5ac-modal-msg.is-ok { color: var(--g); }
+.j5ac-modal-msg.is-err { color: #e06060; }
+body.j5ac-modal-open { overflow: hidden; }

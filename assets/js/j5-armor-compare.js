@@ -456,20 +456,48 @@
 	};
 
 	/** Shields: picture cards in place of the table, built from the table rows (same data, same order, same filters). */
+	/** Listing (family) helpers: one card per listing, sizes picked on the card. */
+	function famKey(d) { return d.fslug || d.slug; }
+	function famName(d) { return d.family || d.model; }
+	function sizeSortKey(d) { var sz = sizeOf(d) || { h: 0, w: 0 }; return [sz.h || 0, sz.w || 0, num(d.specs && d.specs.weight_lb) || 0]; }
+	/** Size label for a picker: dimensions, plus the weight when two sizes share dimensions. */
+	function sizeLabel(d, group) {
+		var sz = sizeOf(d), base = sz && sz.w ? sz.label : (d.specs && d.specs.size ? String(d.specs.size) : d.model);
+		var dup = group.filter(function (o) { var z = sizeOf(o); return z && sz && z.key === sz.key; }).length > 1;
+		if (dup && d.specs && d.specs.weight_lb !== undefined) base += ', ' + d.specs.weight_lb + ' lb';
+		return base;
+	}
+
 	Panel.prototype.renderCards = function () {
 		if (!this.cardList) return;
 		var self = this, cfg = this.config;
 		this.cardList.textContent = '';
 		var open = this.openCards || (this.openCards = {});
+		var sel = this.sizeSel || (this.sizeSel = {});
+
+		// Group the visible rows by listing, keeping the table's order for the first member.
+		var groups = [], byKey = {};
 		Array.prototype.forEach.call(this.tbody.querySelectorAll('tr[data-row]'), function (tr) {
 			if (tr.classList.contains('is-hidden')) return;
-			var d = JSON.parse(tr.getAttribute('data-row'));
+			var d = JSON.parse(tr.getAttribute('data-row')), k = famKey(d);
+			if (!byKey[k]) { byKey[k] = { key: k, items: [] }; groups.push(byKey[k]); }
+			byKey[k].items.push({ d: d, tr: tr });
+		});
+		this.listingCount = groups.length;
+
+		groups.forEach(function (g) {
+			g.items.sort(function (a, b) { var x = sizeSortKey(a.d), y = sizeSortKey(b.d); return (x[0] - y[0]) || (x[1] - y[1]) || (x[2] - y[2]); });
+			var models = g.items.map(function (i) { return i.d; });
+			// Selected size: a picked member wins, then the remembered choice, then the first.
+			var cur = g.items.filter(function (i) { return self.picked.indexOf(i.d.slug) !== -1; })[0]
+				|| g.items.filter(function (i) { return i.d.slug === sel[g.key]; })[0] || g.items[0];
+			var d = cur.d, tr = cur.tr;
 			var card = el('article', 'j5ac-pcard' + (self.picked.indexOf(d.slug) !== -1 ? ' is-picked' : '') + (d.carried ? ' is-carried' : '') + (tr.classList.contains('is-locked') ? ' is-locked' : ''));
 			card.setAttribute('data-slug', d.slug);
 
 			var fig = el('div', 'j5ac-pcard-img');
 			var ph = '<svg viewBox="0 0 64 80" width="56" height="70" aria-hidden="true"><path d="M8 6h48v44c0 14-10 22-24 26C18 72 8 64 8 50V6z" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="24" y="14" width="16" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
-			if (d.image) { var img = el('img'); img.src = d.image; img.alt = d.manufacturer + ' ' + d.model; img.loading = 'lazy'; img.addEventListener('error', function () { img.remove(); fig.classList.add('is-empty'); fig.innerHTML = ph; }); fig.appendChild(img); }
+			if (d.image) { var img = el('img'); img.src = d.image; img.alt = d.manufacturer + ' ' + famName(d); img.loading = 'lazy'; img.addEventListener('error', function () { img.remove(); fig.classList.add('is-empty'); fig.innerHTML = ph; }); fig.appendChild(img); }
 			else { fig.classList.add('is-empty'); fig.innerHTML = ph; }
 			card.appendChild(fig);
 
@@ -482,12 +510,39 @@
 			pick.appendChild(cb); pick.appendChild(el('span', null, 'Compare'));
 			head.appendChild(pick);
 			body.appendChild(head);
-			body.appendChild(el('h3', 'j5ac-pcard-name', d.model));
+			body.appendChild(el('h3', 'j5ac-pcard-name', famName(d)));
 			var mk = el('p', 'j5ac-pcard-maker', d.manufacturer);
 			if (d.carried) mk.appendChild(el('span', 'j5ac-stock', d.wc ? ' Sold by J5' : ' Quote from J5'));
 			body.appendChild(mk);
 
-			// Key facts line: level pill, type, size, weight, viewport
+			// Size picker (only when the listing has more than one size).
+			if (models.length > 1) {
+				var sizes = el('div', 'j5ac-pcard-sizes'); sizes.setAttribute('role', 'group'); sizes.setAttribute('aria-label', 'Size');
+				sizes.appendChild(el('span', 'j5ac-pcard-sizes-k', models.length + ' sizes'));
+				g.items.forEach(function (i) {
+					var isz = sizeOf(i.d), ih = isz && isz.w ? isz.label : (i.d.specs && i.d.specs.size ? String(i.d.specs.size) : i.d.model);
+					var b = el('button', 'j5ac-size' + (i.d.slug === d.slug ? ' is-on' : '')); b.type = 'button';
+					b.appendChild(el('span', 'j5ac-size-d', ih));
+					var meta = [];
+					if (i.d.specs && i.d.specs.weight_lb !== undefined) meta.push(i.d.specs.weight_lb + ' lb');
+					if (i.d.specs && i.d.specs.handle && models.filter(function (o) { var z = sizeOf(o); return z && isz && z.key === isz.key; }).length > 1) meta.push(String(i.d.specs.handle));
+					b.appendChild(el('span', 'j5ac-size-w', meta.join(', ')));
+					if (i.d.carried) b.appendChild(el('span', 'j5ac-size-c', i.d.wc ? 'Sold by J5' : 'Quote'));
+					b.setAttribute('aria-pressed', i.d.slug === d.slug ? 'true' : 'false');
+					b.addEventListener('click', function () {
+						if (i.d.slug === d.slug) return;
+						// Move an existing pick to the new size so compare follows the card.
+						var was = self.picked.indexOf(d.slug) !== -1;
+						sel[g.key] = i.d.slug;
+						if (was) { var oldcb = tr.querySelector('.j5ac-pick'); oldcb.checked = false; self.pick(d.slug, false, oldcb); var ncb = i.tr.querySelector('.j5ac-pick'); ncb.checked = true; self.pick(i.d.slug, true, ncb); }
+						else self.renderCards();
+					});
+					sizes.appendChild(b);
+				});
+				body.appendChild(sizes);
+			}
+
+			// Key facts for the selected size.
 			var facts = el('div', 'j5ac-pcard-facts');
 			if (d.specs.level) facts.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(d.specs.level), d.specs.level));
 			var sz = sizeOf(d); if (sz && sz.w) facts.appendChild(el('span', null, sz.label));
@@ -496,29 +551,83 @@
 			if (d.derived && d.derived.oz_per_sqin !== undefined) facts.appendChild(el('span', 'is-gold', d.derived.oz_per_sqin.toFixed(3) + ' oz/sq in'));
 			body.appendChild(facts);
 
-			// Expandable specs
-			var more = el('button', 'j5ac-pcard-more', open[d.slug] ? 'Hide specs' : 'Specs'); more.type = 'button'; more.setAttribute('aria-expanded', open[d.slug] ? 'true' : 'false');
-			var specs = el('dl', 'j5ac-pcard-specs'); specs.hidden = !open[d.slug];
+			// Expandable specs for the selected size.
+			var isOpen = !!open[g.key];
+			var more = el('button', 'j5ac-pcard-more', isOpen ? 'Hide specs' : 'Specs'); more.type = 'button'; more.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+			var specs = el('dl', 'j5ac-pcard-specs'); specs.hidden = !isOpen;
 			cfg.fields.forEach(function (f) {
-				if (d.specs[f.key] === undefined) return;
+				if (d.specs[f.key] === undefined || f.key === 'family') return;
 				specs.appendChild(el('dt', null, f.label));
 				var dd = el('dd'); dd.textContent = fmt(d.specs[f.key], f); specs.appendChild(dd);
 			});
 			if (d.derived && d.derived.area_sqin !== undefined) { specs.appendChild(el('dt', null, 'Coverage')); specs.appendChild(el('dd', null, d.derived.area_sqin + ' sq in')); }
-			if (d.derived && d.derived.size_list) { specs.appendChild(el('dt', null, 'Sizes offered')); specs.appendChild(el('dd', null, d.derived.size_count + ', ' + d.derived.size_list)); }
-			if (d.sheet && d.sheet.url) { specs.appendChild(el('dt', null, 'Spec sheet')); var dd2 = el('dd'); var a = el('a', null, 'PDF'); a.href = d.sheet.url; a.target = '_blank'; a.rel = 'noopener'; dd2.appendChild(a); if (d.sheet.pulled_at) dd2.appendChild(document.createTextNode(', pulled ' + d.sheet.pulled_at)); specs.appendChild(dd2); }
-			more.addEventListener('click', function () { var o = specs.hidden; specs.hidden = !o; open[d.slug] = o; more.textContent = o ? 'Hide specs' : 'Specs'; more.setAttribute('aria-expanded', o ? 'true' : 'false'); });
+			if (models.length > 1) { specs.appendChild(el('dt', null, 'Sizes offered')); var sdd = el('dd', 'j5ac-pcard-sizelist'); models.forEach(function (m) { sdd.appendChild(el('span', null, sizeLabel(m, models))); }); specs.appendChild(sdd); }
+			if (d.sheet && d.sheet.url) {
+				specs.appendChild(el('dt', null, 'Spec sheet')); var dd2 = el('dd');
+				var a = el('a', null, d.sheet.pages ? 'PDF, page ' + d.sheet.pages : 'PDF'); a.href = d.sheet.url; a.target = '_blank'; a.rel = 'noopener'; dd2.appendChild(a);
+				if (d.sheet.full_url) { dd2.appendChild(document.createTextNode(' / ')); var fa = el('a', null, 'full catalog sheet'); fa.href = d.sheet.full_url; fa.target = '_blank'; fa.rel = 'noopener'; dd2.appendChild(fa); }
+				if (d.sheet.pulled_at) dd2.appendChild(document.createTextNode(', pulled ' + d.sheet.pulled_at));
+				specs.appendChild(dd2);
+			}
+			var rep = el('button', 'j5ac-report', 'Report incorrect information'); rep.type = 'button';
+			rep.addEventListener('click', function () { openReport(self.root, cfg.category, d); });
+			more.addEventListener('click', function () { var o = specs.hidden; specs.hidden = !o; open[g.key] = o; more.textContent = o ? 'Hide specs' : 'Specs'; more.setAttribute('aria-expanded', o ? 'true' : 'false'); });
 			var actions = el('div', 'j5ac-pcard-actions');
 			actions.appendChild(more);
 			if (d.wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = d.wc; actions.appendChild(buy); }
 			else if (d.carried) { var q = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote'); q.href = (self.root.getAttribute('data-quote') || '/request-a-quote/') + '?item=' + encodeURIComponent(d.manufacturer + ' ' + d.model) + '&ref=armor-compare'; actions.appendChild(q); }
 			body.appendChild(actions);
 			body.appendChild(specs);
+			var repWrap = el('p', 'j5ac-pcard-report'); repWrap.appendChild(rep); body.appendChild(repWrap);
 			card.appendChild(body);
 			self.cardList.appendChild(card);
 		});
 		this.cardList.hidden = this.listWrap.hidden;
+		// The "N match" line counts listings when cards are showing.
+		var done = this.guideBox && this.guideBox.querySelector('.j5ac-guide-done');
+		if (done && !this.cardList.hidden) { var n = groups.length; done.textContent = n + (n === 1 ? ' model matches. ' : ' models match. ') + 'Pick a size on a card, then check any to compare side by side.'; }
 	};
+
+	/** "Report incorrect information" dialog, shared by every panel on the page. */
+	function openReport(root, category, d) {
+		var modal = root.querySelector('[data-j5ac-modal]'); if (!modal) return;
+		var form = modal.querySelector('[data-j5ac-report-form]'), msg = modal.querySelector('[data-j5ac-report-msg]');
+		form.reset(); msg.hidden = true; msg.className = 'j5ac-modal-msg';
+		form.elements.category.value = category; form.elements.slug.value = d.slug; form.elements.model.value = d.model; form.elements.manufacturer.value = d.manufacturer;
+		modal.querySelector('[data-j5ac-report-model]').textContent = d.manufacturer + ' ' + d.model;
+		form.querySelector('button[type=submit]').disabled = false;
+		modal.hidden = false; document.body.classList.add('j5ac-modal-open');
+		setTimeout(function () { form.elements.field.focus(); }, 30);
+	}
+	function bindReport(root) {
+		var modal = root.querySelector('[data-j5ac-modal]'); if (!modal) return;
+		var form = modal.querySelector('[data-j5ac-report-form]'), msg = modal.querySelector('[data-j5ac-report-msg]');
+		function close() { modal.hidden = true; document.body.classList.remove('j5ac-modal-open'); }
+		Array.prototype.forEach.call(modal.querySelectorAll('[data-j5ac-modal-close]'), function (b) { b.addEventListener('click', close); });
+		modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+		document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) close(); });
+		form.addEventListener('submit', function (e) {
+			e.preventDefault();
+			var btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+			var data = {};
+			Array.prototype.forEach.call(form.elements, function (i) { if (i.name) data[i.name] = i.value; });
+			data.page = location.href;
+			fetch(root.getAttribute('data-report-url'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+				.then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+				.then(function (x) {
+					msg.hidden = false;
+					if (x.ok) { msg.className = 'j5ac-modal-msg is-ok'; msg.textContent = 'Thanks. We will check it against the manufacturer sheet and fix it if it is off.'; setTimeout(close, 2200); }
+					else { msg.className = 'j5ac-modal-msg is-err'; msg.textContent = (x.j && x.j.message) || 'Could not send. Try again.'; btn.disabled = false; }
+				})
+				.catch(function () { msg.hidden = false; msg.className = 'j5ac-modal-msg is-err'; msg.textContent = 'Could not send. Try again.'; btn.disabled = false; });
+		});
+		// Table rows (plates, helmets) carry a small Report button in the sheet column.
+		root.addEventListener('click', function (e) {
+			var b = e.target.closest && e.target.closest('[data-j5ac-report]'); if (!b) return;
+			var tr = b.closest('tr[data-row]'), panel = b.closest('.j5ac-panel');
+			if (tr && panel) openReport(root, panel.getAttribute('data-cat'), JSON.parse(tr.getAttribute('data-row')));
+		});
+	}
 
 	Panel.prototype.lockSizes = function () {
 		var first = this.picked.length ? this.rowBySlug(this.picked[0]) : null;
@@ -565,6 +674,7 @@
 	};
 
 	Panel.prototype.compare = function (scroll) {
+		var self = this;
 		var rows = this.picked.map(this.rowBySlug, this).filter(Boolean);
 		this.out.textContent = '';
 		if (!rows.length) { this.out.hidden = true; return; }
@@ -617,7 +727,8 @@
 		rows.forEach(function (r, idx) {
 			var card = el('div', 'j5ac-card');
 
-			card.appendChild(el('span', 'j5ac-model', r.data.model));
+			var csz = sizeOf(r.data);
+			card.appendChild(el('span', 'j5ac-model', famName(r.data) + (r.data.family && csz && csz.w ? ' ' + csz.label.replace(' in', '') : '')));
 			card.appendChild(el('span', 'j5ac-maker', r.data.manufacturer));
 
 			var leads = 0;
@@ -659,6 +770,9 @@
 				q.href = quote + (quote.indexOf('?') === -1 ? '?' : '&') + 'item=' + encodeURIComponent(r.data.manufacturer + ' ' + r.data.model) + '&ref=armor-compare';
 				card.appendChild(q);
 			} else card.appendChild(el('p', 'j5ac-card-nocarry', 'Reference only. Not a J5 product.'));
+			var crep = el('button', 'j5ac-report', 'Report incorrect information'); crep.type = 'button';
+			crep.addEventListener('click', function () { openReport(self.root, cfg.category, r.data); });
+			var crw = el('p', 'j5ac-pcard-report'); crw.appendChild(crep); card.appendChild(crw);
 			if (r.data.carried) card.classList.add('is-carried');
 			grid.appendChild(card);
 		}, this);
@@ -701,6 +815,7 @@
 	function init(root) {
 		var panels = {};
 		Array.prototype.forEach.call(root.querySelectorAll('.j5ac-panel'), function (s) { panels[s.getAttribute('data-cat')] = new Panel(s, root); });
+		bindReport(root);
 		var links = root.querySelectorAll('.j5ac-cat[data-cat]');
 		function show(cat) {
 			Array.prototype.forEach.call(root.querySelectorAll('.j5ac-panel'), function (s) { s.hidden = s.getAttribute('data-cat') !== cat; });

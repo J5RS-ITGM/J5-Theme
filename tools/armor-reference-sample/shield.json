@@ -131,10 +131,15 @@
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2034-iiia/2026-10-14_spec.pdf",
         "pulled_at": "2026-10-14",
-        "source_url": "https://example-manufacturer.com/spec.pdf"
+        "source_url": "https://example-manufacturer.com/spec.pdf",
+        "pages": "2",
+        "full_url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2034-iiia/2026-10-14_spec_full.pdf"
       },
       "wc_product_url": "https://j5rescue.com/product/usi-kent-shield/",
-      "family": "KENT",
+      "family": {
+        "slug": "united-shield-international-kent-iiia",
+        "name": "KENT IIIA"
+      },
       "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
     },
     {
@@ -158,7 +163,10 @@
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
       "wc_product_url": "https://j5rescue.com/product/usi-kent-shield-iii/",
-      "family": "KENT",
+      "family": {
+        "slug": "united-shield-international-kent-iii",
+        "name": "KENT III"
+      },
       "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
     },
     {
@@ -181,7 +189,12 @@
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
       "wc_product_url": null,
-      "carried": true
+      "carried": true,
+      "family": {
+        "slug": "protech-intruder-iiia",
+        "name": "Intruder 20x30 IIIA"
+      },
+      "image_url": null
     },
     {
       "slug": "protech-rifle-rf2",
@@ -203,7 +216,12 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": null
+      "wc_product_url": null,
+      "family": {
+        "slug": "protech-rifle-rf2",
+        "name": "Rifle 24x36 RF2"
+      },
+      "image_url": null
     },
     {
       "slug": "highcom-patrol-rf1",
@@ -224,7 +242,12 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": null
+      "wc_product_url": null,
+      "family": {
+        "slug": "highcom-patrol-rf1",
+        "name": "Patrol 20x34 RF1"
+      },
+      "image_url": null
     },
     {
       "slug": "rts-entry-iii",
@@ -246,7 +269,12 @@
         "pulled_at": "2026-10-14",
         "source_url": "https://example-manufacturer.com/spec.pdf"
       },
-      "wc_product_url": null
+      "wc_product_url": null,
+      "family": {
+        "slug": "rts-entry-iii",
+        "name": "Entry 24x40 III"
+      },
+      "image_url": null
     },
     {
       "slug": "usi-kent-1830-iiia",
@@ -264,10 +292,45 @@
       "spec_sheet": {
         "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-1830-iiia/2026-10-14_spec.pdf",
         "pulled_at": "2026-10-14",
-        "source_url": "https://example-manufacturer.com/spec.pdf"
+        "source_url": "https://example-manufacturer.com/spec.pdf",
+        "pages": "2",
+        "full_url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-1830-iiia/2026-10-14_spec_full.pdf"
       },
       "wc_product_url": "https://j5rescue.com/product/usi-kent-1830/",
-      "family": "KENT",
+      "family": {
+        "slug": "united-shield-international-kent-iiia",
+        "name": "KENT IIIA"
+      },
+      "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
+    },
+    {
+      "slug": "usi-kent-2034-iiia-trigrip",
+      "manufacturer": "United Shield International",
+      "model": "KENT 20x34 IIIA TriGrip",
+      "specs": {
+        "level": "IIIA",
+        "standard": "NIJ 0108.01",
+        "width_in": 20,
+        "height_in": 34,
+        "weight_lb": 19.9,
+        "viewport": "4 x 12 in",
+        "handle": "TriGrip",
+        "light_mounts": "Picatinny rail, top",
+        "carry": "Shoulder strap",
+        "type": "Patrol"
+      },
+      "spec_sheet": {
+        "url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2034-iiia/2026-10-14_spec.pdf",
+        "pulled_at": "2026-10-14",
+        "source_url": "https://example-manufacturer.com/spec.pdf",
+        "pages": "2",
+        "full_url": "https://media.j5rescue.com/spec-sheets/shield/united-shield-international/usi-kent-2034-iiia/2026-10-14_spec_full.pdf"
+      },
+      "wc_product_url": null,
+      "family": {
+        "slug": "united-shield-international-kent-iiia",
+        "name": "KENT IIIA"
+      },
       "image_url": "https://www.j5rescue.com/wp-content/uploads/2026/10/web-40.webp"
     }
   ]

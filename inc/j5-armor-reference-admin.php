@@ -35,6 +35,12 @@ function j5_armor_ref_featured_makers( $category ) {
 	return array_values( array_filter( array_map( 'trim', $s ) ) );
 }
 
+/** Whole settings option (report email lives at the top level). */
+function j5_armor_ref_settings() {
+	$all = get_option( J5_ARMOR_REF_SETTINGS, array() );
+	return is_array( $all ) ? $all : array();
+}
+
 /** Plate size-group settings: [ 'order' => [ids], 'hidden' => [ids] ]. */
 function j5_armor_ref_size_group_settings() {
 	$all = get_option( J5_ARMOR_REF_SETTINGS, array() );
@@ -107,10 +113,22 @@ function j5_armor_ref_settings_page() {
 				$all['plate']['size_groups'] = array( 'order' => array_keys( $sorted ), 'hidden' => $hidden );
 			}
 		}
+		$all['report_email'] = isset( $_POST['report_email'] ) ? sanitize_email( wp_unslash( $_POST['report_email'] ) ) : '';
 		update_option( J5_ARMOR_REF_SETTINGS, $all, true );
 		if ( function_exists( 'j5_armor_ref_after_push' ) ) j5_armor_ref_after_push( 'settings' );
 		echo '<div class="notice notice-success is-dismissible"><p>Saved. The comparison page cache was cleared.</p></div>';
 	}
+	if ( isset( $_POST['j5_armor_ref_report_action'], $_POST['report_at'] ) && check_admin_referer( 'j5_armor_ref_reports' ) ) {
+		$list = get_option( 'j5_armor_ref_reports', array() ); if ( ! is_array( $list ) ) $list = array();
+		$at = sanitize_text_field( wp_unslash( $_POST['report_at'] ) ); $act = sanitize_key( $_POST['j5_armor_ref_report_action'] );
+		foreach ( $list as $i => $rep ) {
+			if ( $rep['at'] !== $at ) continue;
+			if ( 'delete' === $act ) unset( $list[ $i ] ); else $list[ $i ]['status'] = 'done' === $act ? 'done' : 'new';
+		}
+		update_option( 'j5_armor_ref_reports', array_values( $list ), false );
+	}
+	$settings = j5_armor_ref_settings();
+	$reports  = get_option( 'j5_armor_ref_reports', array() ); if ( ! is_array( $reports ) ) $reports = array();
 	$groups = j5_armor_ref_size_groups();
 	?>
 	<div class="wrap">
@@ -118,6 +136,8 @@ function j5_armor_ref_settings_page() {
 		<p>What the walkthrough offers and in what order. Hidden items are removed from the tool and its search markup entirely. Model data itself comes from the dealer portal; edit it there.</p>
 		<form method="post">
 			<?php wp_nonce_field( 'j5_armor_ref_settings' ); ?>
+			<h2>Spec reports</h2>
+			<p><label>Send "Report incorrect information" submissions to <input type="email" name="report_email" value="<?php echo esc_attr( $settings['report_email'] ?? '' ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" class="regular-text"></label><br><span class="description">Blank uses the site admin email. Every report is also listed at the bottom of this page.</span></p>
 			<?php foreach ( $categories as $cat => $label ) : ?>
 				<h2><?php echo esc_html( $label ); ?></h2>
 
@@ -163,6 +183,32 @@ function j5_armor_ref_settings_page() {
 			<?php endforeach; ?>
 			<p class="submit"><button type="submit" name="j5_armor_ref_save" value="1" class="button button-primary">Save</button></p>
 		</form>
+
+		<h2 id="reports">Reports from the tool (<?php echo count( array_filter( $reports, function ( $r ) { return ( $r['status'] ?? 'new' ) === 'new'; } ) ); ?> open)</h2>
+		<?php if ( ! $reports ) : ?>
+			<p>No reports yet.</p>
+		<?php else : ?>
+			<table class="widefat striped">
+				<thead><tr><th>When</th><th>Model</th><th>Spec</th><th>What they said</th><th>Contact</th><th></th></tr></thead>
+				<tbody>
+				<?php foreach ( $reports as $rep ) : $done = ( $rep['status'] ?? 'new' ) === 'done'; ?>
+					<tr<?php echo $done ? ' style="opacity:.55"' : ''; ?>>
+						<td><?php echo esc_html( get_date_from_gmt( str_replace( array( 'T', '+00:00' ), array( ' ', '' ), $rep['at'] ), 'M j, Y g:i a' ) ); ?></td>
+						<td><strong><?php echo esc_html( $rep['manufacturer'] . ' ' . $rep['model'] ); ?></strong><br><code><?php echo esc_html( $rep['category'] . ' / ' . $rep['slug'] ); ?></code></td>
+						<td><?php echo esc_html( $rep['field'] ); ?></td>
+						<td><?php echo nl2br( esc_html( $rep['issue'] ) ); ?></td>
+						<td><?php echo $rep['email'] ? '<a href="mailto:' . esc_attr( $rep['email'] ) . '">' . esc_html( $rep['email'] ) . '</a>' : '<em>none</em>'; ?></td>
+						<td style="white-space:nowrap">
+							<form method="post" style="display:inline"><?php wp_nonce_field( 'j5_armor_ref_reports' ); ?><input type="hidden" name="report_at" value="<?php echo esc_attr( $rep['at'] ); ?>">
+								<button class="button button-small" name="j5_armor_ref_report_action" value="<?php echo $done ? 'reopen' : 'done'; ?>"><?php echo $done ? 'Reopen' : 'Done'; ?></button>
+								<button class="button button-small button-link-delete" name="j5_armor_ref_report_action" value="delete">Delete</button>
+							</form>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
 	</div>
 	<?php
 }

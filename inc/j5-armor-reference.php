@@ -111,12 +111,26 @@ function j5_armor_ref_normalize( $category, $body ) {
 			}
 		}
 
-		$sheet = array( 'url' => '', 'pulled_at' => '', 'source_url' => '' );
+		$sheet = array( 'url' => '', 'pulled_at' => '', 'source_url' => '', 'pages' => '', 'full_url' => '' );
 		if ( isset( $m['spec_sheet'] ) && is_array( $m['spec_sheet'] ) ) {
 			$sheet['url']        = isset( $m['spec_sheet']['url'] ) ? esc_url_raw( (string) $m['spec_sheet']['url'] ) : '';
 			$sheet['pulled_at']  = isset( $m['spec_sheet']['pulled_at'] ) ? sanitize_text_field( (string) $m['spec_sheet']['pulled_at'] ) : '';
 			$sheet['source_url'] = isset( $m['spec_sheet']['source_url'] ) ? esc_url_raw( (string) $m['spec_sheet']['source_url'] ) : '';
+			$sheet['pages']      = ! empty( $m['spec_sheet']['pages'] ) ? sanitize_text_field( (string) $m['spec_sheet']['pages'] ) : '';
+			$sheet['full_url']   = ! empty( $m['spec_sheet']['full_url'] ) ? esc_url_raw( (string) $m['spec_sheet']['full_url'] ) : '';
 		}
+
+		// Listing (family): contract 1 section 7 sends {slug, name}; older pushes sent a bare name string.
+		$fam_name = ''; $fam_slug = '';
+		if ( isset( $m['family'] ) && is_array( $m['family'] ) ) {
+			$fam_name = isset( $m['family']['name'] ) ? sanitize_text_field( (string) $m['family']['name'] ) : '';
+			$fam_slug = isset( $m['family']['slug'] ) ? sanitize_title( (string) $m['family']['slug'] ) : '';
+		} elseif ( isset( $m['family'] ) && is_string( $m['family'] ) ) {
+			$fam_name = sanitize_text_field( $m['family'] );
+		} elseif ( isset( $specs['family'] ) && is_string( $specs['family'] ) ) {
+			$fam_name = $specs['family'];
+		}
+		if ( '' === $fam_slug ) $fam_slug = $fam_name ? sanitize_title( ( isset( $m['manufacturer'] ) ? $m['manufacturer'] : '' ) . '-' . $fam_name ) : $slug;
 
 		$wc = isset( $m['wc_product_url'] ) && $m['wc_product_url'] ? esc_url_raw( (string) $m['wc_product_url'] ) : '';
 		// `carried`: the model is linked to a DP product (we sell it), whether or not it has a store page yet.
@@ -130,7 +144,8 @@ function j5_armor_ref_normalize( $category, $body ) {
 			'image'          => $image,
 			'manufacturer'   => isset( $m['manufacturer'] ) ? sanitize_text_field( (string) $m['manufacturer'] ) : '',
 			'model'          => isset( $m['model'] ) ? sanitize_text_field( (string) $m['model'] ) : $slug,
-			'family'         => isset( $m['family'] ) ? sanitize_text_field( (string) $m['family'] ) : ( isset( $specs['family'] ) ? (string) $specs['family'] : '' ),
+			'family'         => $fam_name,
+			'family_slug'    => $fam_slug,
 			'specs'          => $specs,
 			'spec_sheet'     => $sheet,
 			'wc_product_url' => $wc ? $wc : null,
@@ -226,6 +241,67 @@ add_action( 'rest_api_init', function () {
 } );
 
 /* -------------------------------------------------------------------------
+ * "Report incorrect information": public POST, emailed to the store and kept
+ * (last 200) in an option for J5 Apps > Armor Comparison.
+ * ---------------------------------------------------------------------- */
+
+const J5_ARMOR_REF_REPORTS = 'j5_armor_ref_reports';
+
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'j5/v1', '/armor-reference-report', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'j5_armor_ref_report',
+	) );
+} );
+
+function j5_armor_ref_report( WP_REST_Request $r ) {
+	if ( '' !== trim( (string) $r->get_param( 'website' ) ) ) return rest_ensure_response( array( 'ok' => true ) ); // honeypot
+	$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	$key = 'j5ar_rep_' . md5( $ip );
+	$n   = (int) get_transient( $key );
+	if ( $n >= 8 ) return new WP_Error( 'j5_armor_ref_rate', 'Too many reports from this connection. Try again in an hour.', array( 'status' => 429 ) );
+	set_transient( $key, $n + 1, HOUR_IN_SECONDS );
+
+	$issue = trim( sanitize_textarea_field( (string) $r->get_param( 'issue' ) ) );
+	if ( strlen( $issue ) < 5 ) return new WP_Error( 'j5_armor_ref_empty', 'Tell us what is wrong.', array( 'status' => 400 ) );
+	$rep = array(
+		'at'           => gmdate( 'c' ),
+		'category'     => sanitize_key( (string) $r->get_param( 'category' ) ),
+		'slug'         => sanitize_title( (string) $r->get_param( 'slug' ) ),
+		'model'        => sanitize_text_field( (string) $r->get_param( 'model' ) ),
+		'manufacturer' => sanitize_text_field( (string) $r->get_param( 'manufacturer' ) ),
+		'field'        => sanitize_text_field( (string) $r->get_param( 'field' ) ),
+		'issue'        => mb_substr( $issue, 0, 2000 ),
+		'email'        => sanitize_email( (string) $r->get_param( 'email' ) ),
+		'page'         => esc_url_raw( (string) $r->get_param( 'page' ) ),
+		'ip'           => $ip,
+		'status'       => 'new',
+	);
+
+	$list = get_option( J5_ARMOR_REF_REPORTS, array() );
+	if ( ! is_array( $list ) ) $list = array();
+	array_unshift( $list, $rep );
+	update_option( J5_ARMOR_REF_REPORTS, array_slice( $list, 0, 200 ), false );
+
+	$settings = function_exists( 'j5_armor_ref_settings' ) ? j5_armor_ref_settings() : array();
+	$to = ! empty( $settings['report_email'] ) && is_email( $settings['report_email'] ) ? $settings['report_email'] : get_option( 'admin_email' );
+	$subject = sprintf( '[J5 Armor Compare] Spec report: %s %s', $rep['manufacturer'], $rep['model'] );
+	$body = "Someone flagged a spec in the Armor Comparison Tool.\n\n"
+		. "Model: {$rep['manufacturer']} {$rep['model']} ({$rep['category']} / {$rep['slug']})\n"
+		. ( $rep['field'] ? "Spec: {$rep['field']}\n" : '' )
+		. "What they said:\n{$rep['issue']}\n\n"
+		. ( $rep['email'] ? "Reply to: {$rep['email']}\n" : "No contact email given.\n" )
+		. ( $rep['page'] ? "Page: {$rep['page']}\n" : '' )
+		. "\nReview: " . admin_url( 'admin.php?page=j5-armor-compare#reports' ) . "\n";
+	$headers = $rep['email'] ? array( 'Reply-To: ' . $rep['email'] ) : array();
+	wp_mail( $to, $subject, $body, $headers );
+	do_action( 'j5_armor_reference_report', $rep );
+
+	return rest_ensure_response( array( 'ok' => true ) );
+}
+
+/* -------------------------------------------------------------------------
  * Cache
  * ---------------------------------------------------------------------- */
 
@@ -319,7 +395,8 @@ function j5_armor_ref_sizes( array $m, array $all ) {
 	if ( ! empty( $m['family'] ) ) {
 		$list = array();
 		foreach ( $all as $o ) {
-			if ( ! empty( $o['family'] ) && strcasecmp( $o['family'], $m['family'] ) === 0 && strcasecmp( $o['manufacturer'], $m['manufacturer'] ) === 0 ) {
+			$same = ! empty( $m['family_slug'] ) && ! empty( $o['family_slug'] ) ? $o['family_slug'] === $m['family_slug'] : ( ! empty( $o['family'] ) && strcasecmp( $o['family'], $m['family'] ) === 0 && strcasecmp( $o['manufacturer'], $m['manufacturer'] ) === 0 );
+			if ( $same ) {
 				$dims = j5_armor_ref_dims( $o['specs'] );
 				$list[] = $dims ? j5_armor_ref_fmt( $dims[0] ) . 'x' . j5_armor_ref_fmt( $dims[1] ) : ( isset( $o['specs']['size'] ) ? (string) $o['specs']['size'] : $o['model'] );
 			}
@@ -386,7 +463,24 @@ function j5_armor_ref_shortcode( $atts ) {
 
 	ob_start();
 	?>
-	<div class="j5ac" data-j5ac data-quote="<?php echo esc_url( $quote_base ); ?>">
+	<div class="j5ac" data-j5ac data-quote="<?php echo esc_url( $quote_base ); ?>" data-report-url="<?php echo esc_url( rest_url( 'j5/v1/armor-reference-report' ) ); ?>">
+		<div class="j5ac-modal" data-j5ac-modal hidden>
+			<form class="j5ac-modal-box" data-j5ac-report-form role="dialog" aria-modal="true" aria-labelledby="j5ac-report-title">
+				<button type="button" class="j5ac-modal-x" data-j5ac-modal-close aria-label="Close">&times;</button>
+				<h3 id="j5ac-report-title">Report incorrect information</h3>
+				<p class="j5ac-modal-model" data-j5ac-report-model></p>
+				<input type="hidden" name="category"><input type="hidden" name="slug"><input type="hidden" name="model"><input type="hidden" name="manufacturer">
+				<input type="text" name="website" tabindex="-1" autocomplete="off" class="j5ac-hp" aria-hidden="true">
+				<label>Which spec? <span>(optional)</span><input type="text" name="field" maxlength="80" placeholder="Weight, viewport, level..."></label>
+				<label>What is wrong?<textarea name="issue" rows="4" required minlength="5" maxlength="2000" placeholder="What the sheet or manufacturer actually says, and where you saw it."></textarea></label>
+				<label>Your email <span>(optional, if you want a reply)</span><input type="email" name="email" maxlength="190"></label>
+				<p class="j5ac-modal-msg" data-j5ac-report-msg hidden></p>
+				<div class="j5ac-modal-actions">
+					<button type="submit" class="j5ac-btn j5ac-btn--buy">Send report</button>
+					<button type="button" class="j5ac-modal-cancel" data-j5ac-modal-close>Cancel</button>
+				</div>
+			</form>
+		</div>
 		<?php if ( count( $cats ) > 1 ) : ?>
 		<nav class="j5ac-cats" aria-label="Armor category">
 			<?php foreach ( $cats as $c ) :
@@ -551,7 +645,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 						$d  = j5_armor_ref_derived( $m['specs'] );
 						$sz = j5_armor_ref_sizes( $m, $models );
 						if ( $sz ) { $d['size_count'] = $sz['count']; $d['size_list'] = implode( ', ', $sz['list'] ); }
-						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'], 'carried' => $m['carried'], 'family' => $m['family'], 'image' => isset( $m['image'] ) ? $m['image'] : '' );
+						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'], 'carried' => $m['carried'], 'family' => $m['family'], 'fslug' => isset( $m['family_slug'] ) ? $m['family_slug'] : $m['slug'], 'image' => isset( $m['image'] ) ? $m['image'] : '' );
 						?>
 						<tr data-slug="<?php echo esc_attr( $m['slug'] ); ?>" data-row="<?php echo esc_attr( wp_json_encode( $row, JSON_UNESCAPED_SLASHES ) ); ?>"<?php echo $m['carried'] ? ' class="is-carried"' : ''; ?>>
 							<td class="j5ac-td--pick"><input type="checkbox" class="j5ac-pick" value="<?php echo esc_attr( $m['slug'] ); ?>" aria-label="Compare <?php echo esc_attr( $m['manufacturer'] . ' ' . $m['model'] ); ?>"></td>
@@ -565,7 +659,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 							<?php endforeach; ?>
 							<?php if ( $any_eff ) : ?><td class="is-num j5ac-td--eff" data-label="Oz / sq in"><?php echo isset( $d['oz_per_sqin'] ) ? esc_html( number_format( $d['oz_per_sqin'], 3 ) ) : '<span class="j5ac-na">not listed</span>'; ?></td><?php endif; ?>
 							<?php if ( $any_sizes ) : ?><td class="is-num" data-label="Sizes"><?php echo $sz ? '<span title="' . esc_attr( $d['size_list'] ) . '">' . (int) $sz['count'] . '</span>' : '1'; ?></td><?php endif; ?>
-							<td class="j5ac-td--sheet"><?php if ( $m['spec_sheet']['url'] ) : ?><a href="<?php echo esc_url( $m['spec_sheet']['url'] ); ?>" target="_blank" rel="noopener">PDF</a><?php endif; ?></td>
+							<td class="j5ac-td--sheet"><?php if ( $m['spec_sheet']['url'] ) : ?><a href="<?php echo esc_url( $m['spec_sheet']['url'] ); ?>" target="_blank" rel="noopener">PDF</a><?php endif; ?> <button type="button" class="j5ac-report" data-j5ac-report="<?php echo esc_attr( $m['slug'] ); ?>" title="Report incorrect information">Report</button></td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
