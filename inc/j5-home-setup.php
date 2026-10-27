@@ -88,7 +88,7 @@ function j5_render_product_card( $product, $context = '' ) {
 
     $permalink  = $product->get_permalink();
     $name       = $product->get_name();
-    $sku        = $product->get_sku() ? $product->get_sku() : '#' . $product->get_id();
+    $sku        = function_exists( 'j5_display_sku' ) ? j5_display_sku( $product ) : (string) $product->get_sku(); // J5-SKU-DISPLAY
     $price_html = $product->get_price_html();
     $image_id   = $product->get_image_id();
     $image_url  = $image_id
@@ -136,7 +136,7 @@ function j5_render_product_card( $product, $context = '' ) {
             <?php endif; ?>
             <a href="<?php echo esc_url( $permalink ); ?>" class="j5-prod-name"><?php echo esc_html( $name ); ?></a>
             <div class="j5-prod-meta">
-                <span class="j5-prod-sku">SKU: <?php echo esc_html( strtoupper( $sku ) ); ?></span>
+                <?php if ( $sku ) : ?><span class="j5-prod-sku">SKU: <?php echo esc_html( strtoupper( $sku ) ); ?></span><?php endif; ?>
                 <?php if ( $rating > 0 ) : ?>
                     <span class="j5-prod-rating">
                         <?php

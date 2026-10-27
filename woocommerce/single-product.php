@@ -56,7 +56,7 @@ $j5_shop_url      = wc_get_page_permalink( 'shop' );
 
 // Product info
 $name           = $product->get_name();
-$sku            = $product->get_sku() ? $product->get_sku() : '#' . $product->get_id();
+$sku            = function_exists( 'j5_display_sku' ) ? j5_display_sku( $product ) : (string) $product->get_sku(); // J5-SKU-DISPLAY
 $price_html     = $product->get_price_html();
 $description    = $product->get_description();
 $short_desc     = $product->get_short_description();
@@ -167,7 +167,7 @@ get_header();
                         </span>
                     <?php endif; ?>
                     <span class="j5-product-sku">
-                        <?php if ( $sku ) : ?>SKU: <?php echo esc_html( strtoupper( $sku ) ); ?><span class="j5-product-sku__sep" aria-hidden="true">&nbsp;&middot;&nbsp;</span><?php endif; ?>ID: <?php echo esc_html( $product->get_id() ); ?>
+                        <span class="j5-product-sku__wrap"<?php echo $sku ? '' : ' hidden'; ?>>SKU: <span class="j5-product-sku__val" data-j5-base-sku="<?php echo esc_attr( strtoupper( $sku ) ); ?>"><?php echo esc_html( strtoupper( $sku ) ); ?></span><span class="j5-product-sku__sep" aria-hidden="true">&nbsp;&middot;&nbsp;</span></span>ID: <?php echo esc_html( $product->get_id() ); ?>
                     </span>
                 </div>
 

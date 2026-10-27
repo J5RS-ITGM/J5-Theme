@@ -500,8 +500,24 @@
         if ( window.jQuery ) {
             var $form = window.jQuery( form );
 
+            /* J5-SKU-DISPLAY: the SKU line shows the selected variation's
+             * full DP SKU; the parent stem comes back on reset. */
+            var skuVal  = document.querySelector( '.j5-product-sku__val' );
+            var skuWrap = document.querySelector( '.j5-product-sku__wrap' );
+            function writeSku( txt ) {
+                if ( ! skuVal ) { return; }
+                txt = ( txt || '' ).toString().trim().toUpperCase();
+                skuVal.textContent = txt;
+                if ( skuWrap ) { skuWrap.hidden = ! txt; }
+            }
+            function resetSku() {
+                if ( skuVal ) { writeSku( skuVal.getAttribute( 'data-j5-base-sku' ) ); }
+            }
+            $form.on( 'hide_variation reset_data', resetSku );
+
             $form.on( 'found_variation', function ( event, v ) {
                 if ( ! v ) { return; }
+                writeSku( v.sku || ( skuVal ? skuVal.getAttribute( 'data-j5-base-sku' ) : '' ) );
                 var vf = v.j5_fulfillment;
                 var vState = v.j5_stock_state || ( v.is_in_stock ? 'in' : 'out' );
                 /* J5-VAR-FULFILLMENT-1: the variation's own DP status wins,

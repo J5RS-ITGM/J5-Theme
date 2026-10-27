@@ -425,7 +425,7 @@ function j5_render_shop_product_card( $product, $compact = false ) {
     }
 
     $name       = $product->get_name();
-    $sku        = $product->get_sku() ? $product->get_sku() : '#' . $product->get_id();
+    $sku        = function_exists( 'j5_display_sku' ) ? j5_display_sku( $product ) : (string) $product->get_sku(); // J5-SKU-DISPLAY
     $price_html = $product->get_price_html();
     $image_id   = $product->get_image_id();
     $image_url  = $image_id
@@ -518,7 +518,7 @@ function j5_render_shop_product_card( $product, $compact = false ) {
                     <?php echo esc_html( $product->is_type( 'simple' ) && $product->is_purchasable() ? 'Add' : 'Options' ); ?>
                 </a>
             </div>
-            <div class="j5-prod-sku">SKU: <?php echo esc_html( strtoupper( $sku ) ); ?></div>
+            <?php if ( $sku ) : ?><div class="j5-prod-sku">SKU: <?php echo esc_html( strtoupper( $sku ) ); ?></div><?php endif; ?>
         </div>
     </article>
     <?php

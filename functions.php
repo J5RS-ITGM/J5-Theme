@@ -102,6 +102,9 @@ require_once get_stylesheet_directory() . '/inc/j5-spec-sheets.php';
 require_once get_stylesheet_directory() . '/inc/j5-nij-certified.php';
 // === J5-CAT-CONTENT-REQUIRES-END ===
 
+// Storefront SKU display (real DP SKUs, never the WC ID). J5-SKU-DISPLAY
+require_once get_stylesheet_directory() . '/inc/j5-sku-display.php';
+
 // J5 Home Template setup
 require_once get_stylesheet_directory() . '/inc/j5-home-setup.php';
 require_once get_stylesheet_directory() . '/inc/j5-typeahead-endpoint.php';
