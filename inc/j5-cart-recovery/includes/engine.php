@@ -344,6 +344,19 @@ function j5cr_coupon_preview( $row, $st ) {
  * ====================================================================== */
 
 function j5cr_run_failed( $s ) {
+	// J5CR-ONCE-1: never let two cron runs work the same orders at once.
+	if ( get_transient( 'j5cr_failed_lock' ) ) {
+		return;
+	}
+	set_transient( 'j5cr_failed_lock', 1, 5 * MINUTE_IN_SECONDS );
+	try {
+		j5cr_run_failed_inner( $s );
+	} finally {
+		delete_transient( 'j5cr_failed_lock' );
+	}
+}
+
+function j5cr_run_failed_inner( $s ) {
 	$before = time() - 60 * (int) $s['failed_delay'];
 	$orders = wc_get_orders( array(
 		'status'       => array( 'pending', 'failed', 'cancelled' ),
@@ -355,6 +368,12 @@ function j5cr_run_failed( $s ) {
 	) );
 	$seen = array();
 	foreach ( $orders as $order ) {
+		// J5CR-ONCE-1: the meta_query above is not reliably honored (order
+		// #98357 was alerted 59 times with the stamp in place), so check the
+		// order itself and the recovery table before doing anything.
+		if ( j5cr_failed_already_handled( $order ) ) {
+			continue;
+		}
 		// Several failed attempts by one customer: only the newest gets a follow-up.
 		$key = strtolower( $order->get_billing_email() );
 		if ( isset( $seen[ $key ] ) ) {
@@ -401,6 +420,22 @@ function j5cr_run_failed( $s ) {
 		$seen[ $key ] = 1;
 		j5cr_handle_failed( $order, $s );
 	}
+}
+
+/** J5CR-ONCE-1: stamped, or a follow-up record already exists for this order. */
+function j5cr_failed_already_handled( $order ) {
+	global $wpdb;
+	if ( '' !== (string) $order->get_meta( '_j5cr_failed_done', true ) ) {
+		return true;
+	}
+	$has_row = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . j5cr_table() . " WHERE order_id = %d AND source = 'failed'", $order->get_id() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	if ( $has_row ) {
+		// Repair the missing stamp so the next run skips it cheaply.
+		$order->update_meta_data( '_j5cr_failed_done', 'repaired' );
+		$order->save();
+		return true;
+	}
+	return false;
 }
 
 /** True when a note on the order contains $needle. */
@@ -492,6 +527,11 @@ function j5cr_record_from_order( $order ) {
 }
 
 function j5cr_handle_failed( $order, $s ) {
+	// J5CR-ONCE-1: claim the order first. If anything below fails, it is
+	// never retried (one missed alert beats an inbox flood).
+	$order->update_meta_data( '_j5cr_failed_done', 'claimed ' . gmdate( 'c' ) );
+	$order->save();
+
 	$row   = j5cr_record_from_order( $order );
 	$error = j5cr_last_error_note( $order );
 	$sent  = false;
