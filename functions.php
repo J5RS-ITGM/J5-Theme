@@ -94,6 +94,8 @@ require_once get_stylesheet_directory() . '/inc/j5-rich-category.php';
 require_once get_stylesheet_directory() . '/inc/j5-brands.php';
 // Brand logos and facts pushed from the dealer portal (PUT /j5/v1/brands). J5-BRANDS-HUB
 require_once get_stylesheet_directory() . '/inc/j5-brands-hub.php';
+// DP 404 monitor: Rank Math 404 log out, 301s in via Redirection (WC_404_REDIRECTS_CONTRACT_1). J5-DP404
+require_once get_stylesheet_directory() . '/inc/j5-dp-404.php';
 // N/A variation attributes + Law Enforcement Only flag. J5-FLAGS
 require_once get_stylesheet_directory() . '/inc/j5-product-flags.php';
 // Spec Sheets tab (PDF links to the B2 Media bucket). J5-SPECSHEETS
