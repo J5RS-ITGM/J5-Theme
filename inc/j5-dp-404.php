@@ -3,7 +3,8 @@
  * J5 DP 404 monitor feed: WC_404_REDIRECTS_CONTRACT_1 (Oct 28, 2026).
  *
  *   GET /wp-json/j5/v1/404s?days=7&limit=1000
- *       Rank Math 404 Monitor log, grouped by URI, newest first.
+ *       Redirection plugin's 404 log (fallback: Rank Math 404 Monitor),
+ *       grouped by path, newest first.
  *       {"rows": [{path, hits, last_seen, referer, user_agent}]}
  *
  *   PUT /wp-json/j5/v1/redirects
@@ -54,10 +55,34 @@ function j5_dp404_get_log( WP_REST_Request $request ) {
 	global $wpdb;
 	$days  = max( 1, min( 365, (int) $request->get_param( 'days' ) ) );
 	$limit = max( 1, min( 5000, (int) $request->get_param( 'limit' ) ) );
-	$t     = $wpdb->prefix . 'rank_math_404_logs';
+	// Both logs write their dates in site time (current_time('mysql')).
+	$cut = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - $days * DAY_IN_SECONDS );
 
-	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $t ) ) ) !== $t ) {
-		return rest_ensure_response( array( 'rows' => array(), 'note' => 'Rank Math 404 Monitor table not found (module off?)' ) );
+	// Source 1: Redirection's 404 log (one row per hit). This is the log that
+	// is actually running; Rank Math's monitor stopped writing on 2026-07-20.
+	$t = $wpdb->prefix . 'redirection_404';
+	if ( j5_dp404_table_exists( $t ) ) {
+		$cols = $wpdb->get_col( "SHOW COLUMNS FROM `{$t}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		foreach ( array( 'id', 'url', 'created' ) as $need ) {
+			if ( ! in_array( $need, $cols, true ) ) {
+				return new WP_Error( 'j5_dp404_schema', 'Redirection 404 log is missing column ' . $need . '. Columns: ' . implode( ', ', $cols ), array( 'status' => 500 ) );
+			}
+		}
+		$ref = in_array( 'referrer', $cols, true ) ? 'l.referrer' : "''";
+		$ua  = in_array( 'agent', $cols, true ) ? 'l.agent' : "''";
+		$sql = "SELECT l.url AS path, g.hits, g.last_seen, {$ref} AS referer, {$ua} AS user_agent
+			FROM `{$t}` l
+			JOIN ( SELECT url, COUNT(*) AS hits, MAX(created) AS last_seen, MAX(id) AS mid
+			       FROM `{$t}` WHERE created >= %s GROUP BY url ) g ON l.id = g.mid
+			ORDER BY g.last_seen DESC
+			LIMIT %d";
+		return rest_ensure_response( array( 'rows' => j5_dp404_rows( $wpdb->get_results( $wpdb->prepare( $sql, $cut, $limit ), ARRAY_A ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	}
+
+	// Source 2 (fallback): Rank Math 404 Monitor.
+	$t = $wpdb->prefix . 'rank_math_404_logs';
+	if ( ! j5_dp404_table_exists( $t ) ) {
+		return rest_ensure_response( array( 'rows' => array(), 'note' => 'No 404 log found (Redirection 404 logging and Rank Math 404 Monitor both off).' ) );
 	}
 	$cols = $wpdb->get_col( "SHOW COLUMNS FROM `{$t}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	foreach ( array( 'id', 'uri', 'accessed', 'times_accessed' ) as $need ) {
@@ -67,20 +92,21 @@ function j5_dp404_get_log( WP_REST_Request $request ) {
 	}
 	$ref = in_array( 'referer', $cols, true ) ? 'l.referer' : "''";
 	$ua  = in_array( 'user_agent', $cols, true ) ? 'l.user_agent' : "''";
-
-	// Rank Math writes `accessed` in site time.
-	$cut = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - $days * DAY_IN_SECONDS );
-
-	// Grouped by uri so Simple (one row per uri) and Advanced (one row per hit)
-	// modes both come out as one row per path; referer/agent from the latest hit.
 	$sql = "SELECT l.uri AS path, g.hits, g.last_seen, {$ref} AS referer, {$ua} AS user_agent
 		FROM `{$t}` l
 		JOIN ( SELECT uri, SUM(times_accessed) AS hits, MAX(accessed) AS last_seen, MAX(id) AS mid
 		       FROM `{$t}` WHERE accessed >= %s GROUP BY uri ) g ON l.id = g.mid
 		ORDER BY g.last_seen DESC
 		LIMIT %d";
-	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $cut, $limit ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	return rest_ensure_response( array( 'rows' => j5_dp404_rows( $wpdb->get_results( $wpdb->prepare( $sql, $cut, $limit ), ARRAY_A ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+}
 
+function j5_dp404_table_exists( $t ) {
+	global $wpdb;
+	return $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $t ) ) ) === $t;
+}
+
+function j5_dp404_rows( $rows ) {
 	$out = array();
 	foreach ( (array) $rows as $r ) {
 		$out[] = array(
@@ -91,7 +117,7 @@ function j5_dp404_get_log( WP_REST_Request $request ) {
 			'user_agent' => (string) $r['user_agent'],
 		);
 	}
-	return rest_ensure_response( array( 'rows' => $out ) );
+	return $out;
 }
 
 /* -------------------------------------------------------------------------
