@@ -524,7 +524,7 @@
                  * even over a parent lock (it is the more specific truth).
                  * Variations without one yet use the stock_status path below. */
                 if ( vf && vf.state && vf.label ) {
-                    writeBanner( vf.state, vf.label, vf.note || '' );
+                    writeBanner( vf.tone || vf.state, vf.label, vf.note || '' ); /* J5-IN-PRODUCTION-1: tone = banner look (info = blue) */
                 } else if ( vState === 'special' && v.j5_lead_text ) {
                     /* J5-FACTORY-ORDER-1 fallback; normally vf above covers it. */
                     writeBanner( 'special', 'FACTORY ORDER', v.j5_lead_text );

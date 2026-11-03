@@ -171,7 +171,7 @@ function j5_spec_tables_render( $product_or_id ) {
 		if ( '' !== $t['note'] || ( '' !== $t['source']['url'] ) ) {
 			$out .= '<figcaption class="j5-spec-table-foot">';
 			if ( '' !== $t['note'] ) {
-				$out .= '<p class="j5-spec-table-note">' . nl2br( esc_html( $t['note'] ) ) . '</p>';
+				$out .= '<p class="j5-spec-table-note j5-spec-note">' . nl2br( esc_html( $t['note'] ) ) . '</p>';
 			}
 			if ( '' !== $t['source']['url'] ) {
 				$label = '' !== $t['source']['label'] ? $t['source']['label'] : 'Manufacturer data';

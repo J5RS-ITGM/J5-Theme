@@ -16,8 +16,11 @@
  * Meta contract (published by the hub to WC product meta):
  *   _j5_fulfillment            string  status slug ('' / absent = normal)
  *                                      Built-in slugs: in_stock, special,
- *                                      made_to_order, final_stock, out,
- *                                      discontinued.
+ *                                      made_to_order, on_order, in_production,
+ *                                      final_stock, out, discontinued.
+ *                                      Unknown slugs render as special.
+ *   _j5_fulfillment_arrival    string  in_production arrival window,
+ *                                      start|end as YYYY-MM-DD|YYYY-MM-DD
  *                                      Custom slugs may be added via
  *                                      Settings → J5 Fulfillment.
  *   _j5_fulfillment_note       string  optional sublabel override
@@ -121,6 +124,18 @@ function j5_fulfillment_default_types() {
 			'banner_lock'  => true,
 			'ack'          => '',
 		),
+		// J5-IN-PRODUCTION-1: DP vendor confirmed the build; arrival window in
+		// _j5_fulfillment_arrival. Same logic as special (buyable on backorder,
+		// special_order ack, BackOrder schema); only the banner is blue.
+		'in_production' => array(
+			'state'        => 'special',
+			'label'        => 'IN PRODUCTION',
+			'note'         => 'being built now · arrival date to follow',
+			'buyable'      => true,
+			'replacements' => false,
+			'banner_lock'  => false,
+			'ack'          => 'special_order',
+		),
 		'final_stock' => array(
 			'state'        => 'special',
 			'label'        => 'FINAL STOCK',
@@ -178,6 +193,7 @@ function j5_fulfillment_types() {
 	$ack_seed     = array(
 		'special'       => 'special_order',
 		'made_to_order' => 'made_to_order',
+		'in_production' => 'special_order',
 	);
 	$clean        = array();
 
@@ -238,7 +254,18 @@ function j5_fulfillment_types() {
 		);
 	}
 
-	return ! empty( $clean ) ? $clean : j5_fulfillment_default_types();
+	if ( empty( $clean ) ) {
+		return j5_fulfillment_default_types();
+	}
+
+	// J5-IN-PRODUCTION-1: saved status lists predate in_production; add it so a
+	// DP push never resolves to nothing. Saving J5 Apps -> Fulfillment keeps it.
+	if ( ! isset( $clean['in_production'] ) ) {
+		$defaults               = j5_fulfillment_default_types();
+		$clean['in_production'] = $defaults['in_production'];
+	}
+
+	return $clean;
 }
 
 /**
@@ -298,6 +325,60 @@ function j5_format_eta( $iso ) {
 }
 
 /**
+ * J5-IN-PRODUCTION-1: parse _j5_fulfillment_arrival "YYYY-MM-DD|YYYY-MM-DD"
+ * (start|end, same day twice for a one-day window). Bad input = null.
+ *
+ * @return array{start: string, end: string}|null
+ */
+function j5_parse_arrival( $raw ) {
+	$raw = trim( (string) $raw );
+	if ( '' === $raw ) {
+		return null;
+	}
+	$parts = array_map( 'trim', explode( '|', $raw ) );
+	$start = $parts[0];
+	$end   = isset( $parts[1] ) && '' !== $parts[1] ? $parts[1] : $start;
+	$ok    = function ( $d ) {
+		return (bool) preg_match( '/^\d{4}-\d{2}-\d{2}$/', $d ) && checkdate( (int) substr( $d, 5, 2 ), (int) substr( $d, 8, 2 ), (int) substr( $d, 0, 4 ) );
+	};
+	if ( ! $ok( $start ) || ! $ok( $end ) ) {
+		return null;
+	}
+	if ( $end < $start ) {
+		list( $start, $end ) = array( $end, $start );
+	}
+	return array( 'start' => $start, 'end' => $end );
+}
+
+/**
+ * "Est. arrival Nov 11 to Nov 13, 2026" / "Est. arrival Nov 11, 2026" /
+ * "Est. arrival Dec 30, 2026 to Jan 2, 2027".
+ */
+function j5_arrival_text( $start, $end ) {
+	$s = strtotime( $start . ' 12:00:00 UTC' );
+	$e = strtotime( $end . ' 12:00:00 UTC' );
+	if ( $start === $end ) {
+		$text = 'Est. arrival ' . gmdate( 'M j, Y', $s );
+	} elseif ( gmdate( 'Y', $s ) === gmdate( 'Y', $e ) ) {
+		$text = 'Est. arrival ' . gmdate( 'M j', $s ) . ' to ' . gmdate( 'M j, Y', $e );
+	} else {
+		$text = 'Est. arrival ' . gmdate( 'M j, Y', $s ) . ' to ' . gmdate( 'M j, Y', $e );
+	}
+	return apply_filters( 'j5_arrival_text', $text, $start, $end );
+}
+
+/**
+ * Banner look for a resolved status: its tone when set (in_production = info,
+ * blue), else its state. Display only; logic keeps using 'state'.
+ */
+function j5_fulfillment_banner_state( $f ) {
+	if ( ! is_array( $f ) ) {
+		return '';
+	}
+	return ! empty( $f['tone'] ) ? $f['tone'] : $f['state'];
+}
+
+/**
  * Resolve the active fulfillment override for a product, if any.
  *
  * Returns an array (type, state, label, note, buyable, replacements,
@@ -326,8 +407,17 @@ function j5_get_fulfillment( $product ) {
 		$type = 'special';
 	}
 
-	if ( '' === $type || ! isset( $types[ $type ] ) ) {
+	if ( '' === $type ) {
 		return null;
+	}
+	// J5-IN-PRODUCTION-1: a slug this theme doesn't know yet (a new DP state)
+	// renders as a special order instead of disappearing.
+	$raw_type = $type;
+	if ( ! isset( $types[ $type ] ) ) {
+		if ( ! isset( $types['special'] ) ) {
+			return null;
+		}
+		$type = 'special';
 	}
 
 	$def  = $types[ $type ];
@@ -367,14 +457,30 @@ function j5_get_fulfillment( $product ) {
 	// replaces the label and note. State, buyability and ack stay those of
 	// the status (special), so the banner color, cart and schema don't change.
 	$label = $def['label'];
-	if ( null !== $lead ) {
+	$tone  = '';
+	if ( 'in_production' === $type ) {
+		// J5-IN-PRODUCTION-1: blue banner; note from DP, else the arrival window.
+		$tone    = 'info';
+		$arrival = j5_parse_arrival( $product->get_meta( '_j5_fulfillment_arrival', true ) );
+		if ( $arrival && $arrival['end'] < current_time( 'Y-m-d' ) ) {
+			$resolved_note = 'In production, arriving soon';
+		} elseif ( '' !== $note ) {
+			$resolved_note = $note;
+		} elseif ( $arrival ) {
+			$resolved_note = j5_arrival_text( $arrival['start'], $arrival['end'] );
+		} else {
+			$resolved_note = $def['note'];
+		}
+	} elseif ( null !== $lead ) {
 		$label         = j5_factory_label();
 		$resolved_note = $lead['text'];
 	}
 
 	return array(
 		'type'         => $type,
+		'raw_type'     => $raw_type,
 		'state'        => $def['state'],
+		'tone'         => $tone,
 		'label'        => $label,
 		'note'         => $resolved_note,
 		'lead'         => $lead,
@@ -529,6 +635,7 @@ add_filter( 'woocommerce_available_variation', function ( $data, $product, $vari
 	$data['j5_fulfillment'] = array(
 		'type'  => $f['type'],
 		'state' => $f['state'],
+		'tone'  => $f['tone'],
 		'label' => $f['label'],
 		'note'  => $f['note'],
 	);

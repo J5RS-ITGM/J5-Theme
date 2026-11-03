@@ -246,7 +246,7 @@ get_header();
                     if ( $j5_mixed ) {
                         $j5_banner_state = 'select';
                     } elseif ( $j5_banner_lock ) {
-                        $j5_banner_state = $j5_fulfillment['state'];
+                        $j5_banner_state = j5_fulfillment_banner_state( $j5_fulfillment );
                     } else {
                         $j5_banner_state = $product->is_in_stock() ? 'select' : 'out';
                     }
@@ -257,7 +257,7 @@ get_header();
                             <span class="label">SELECT OPTIONS</span>
                             <span class="qty"><?php echo esc_html( '' !== $j5_mix['summary'] ? $j5_mix['summary'] : 'availability shown per configuration' ); ?></span>
                         <?php elseif ( $j5_banner_lock ) : ?>
-                            <span class="dot <?php echo esc_attr( $j5_fulfillment['state'] ); ?>"></span>
+                            <span class="dot <?php echo esc_attr( j5_fulfillment_banner_state( $j5_fulfillment ) ); ?>"></span>
                             <span class="label"><?php echo esc_html( $j5_fulfillment['label'] ); ?></span>
                             <span class="qty"><?php echo esc_html( $j5_fulfillment['note'] ); ?></span>
                         <?php elseif ( $product->is_in_stock() ) : ?>
@@ -273,9 +273,9 @@ get_header();
                         <?php if ( function_exists( 'j5fs_render_line' ) ) { j5fs_render_line( $product ); } /* J5 factory order savings, no number (inc/j5-factory-savings.php) */ ?>
                     </div>
                 <?php else : ?>
-                    <div class="j5-product-stock"<?php echo $j5_fulfillment ? ' data-j5-fulfillment="' . esc_attr( $j5_fulfillment['type'] ) . '"' : ''; ?>>
+                    <div class="j5-product-stock"<?php echo $j5_fulfillment ? ' data-state="' . esc_attr( j5_fulfillment_banner_state( $j5_fulfillment ) ) . '" data-j5-fulfillment="' . esc_attr( $j5_fulfillment['type'] ) . '"' : ''; ?>>
                         <?php if ( $j5_fulfillment ) : ?>
-                            <span class="dot <?php echo esc_attr( $j5_fulfillment['state'] ); ?>"></span>
+                            <span class="dot <?php echo esc_attr( j5_fulfillment_banner_state( $j5_fulfillment ) ); ?>"></span>
                             <span class="label"><?php echo esc_html( $j5_fulfillment['label'] ); ?></span>
                             <span class="qty"><?php echo esc_html( $j5_fulfillment['note'] ); ?></span>
                         <?php elseif ( $product->is_on_backorder() ) : ?>

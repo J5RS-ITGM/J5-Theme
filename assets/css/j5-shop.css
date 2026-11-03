@@ -1541,3 +1541,10 @@ body.j5-shop-template .j5-container {
 	.j5-spec-table-scroll.is-wide + .j5-spec-table-hint { display: block; }
 	.j5-spec-table thead th, .j5-spec-table tbody th, .j5-spec-table td { padding: 10px 14px; }
 }
+
+/* ==========================================================================
+ * J5-IN-PRODUCTION-1 (2026-11-03): "In production" banner, calm blue (info).
+ * Logic is the special state; only the banner look differs.
+ * ======================================================================== */
+.j5-product-stock .dot.info { background: #5b9bd5; box-shadow: 0 0 8px rgba(91, 155, 213, 0.6); animation: none; }
+.j5-product-stock[data-state="info"] { border-left-color: #5b9bd5; }
