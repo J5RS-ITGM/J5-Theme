@@ -45,6 +45,8 @@ require_once get_stylesheet_directory() . '/inc/j5-quote-mode.php';
 require_once get_stylesheet_directory() . '/inc/j5-closeout.php';
 // [j5_threat_matrix]: DP armor spec (_j5_armor_spec) on product pages (Specifications tab).
 require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
+// [j5_spec_tables]: DP verified spec tables (_j5_spec_tables) on the Specifications tab + Product additionalProperty. J5-SPEC-TABLES
+require_once get_stylesheet_directory() . '/inc/j5-spec-tables.php';
 // DP product options / add-ons (_j5_options): product page, cart price, order line meta for the DP.
 require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 // Factory order savings: page line (no number) + auto-applied virtual coupon in cart (DP _j5_factory_discount).

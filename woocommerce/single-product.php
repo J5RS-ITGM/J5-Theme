@@ -501,6 +501,8 @@ get_header();
                     $j5_sizes_html = function_exists( 'j5tm_render_sizes' ) ? j5tm_render_sizes( $product ) : '';
                     echo $j5_sizes_html; // escaped inside
                     $j5_specs_extra = function_exists( 'j5_render_product_specs' ) ? j5_render_product_specs( $product ) : '';
+                    // DP verified spec tables, above [j5_techspecs]. J5-SPEC-TABLES
+                    $j5_spec_tables = function_exists( 'j5_spec_tables_for_specs_tab' ) ? j5_spec_tables_for_specs_tab( $product ) : '';
                     if ( ! empty( $attr_display ) ) :
                     ?>
                         <table class="j5-specs-table">
@@ -530,9 +532,10 @@ get_header();
                                 </tr>
                             <?php endif; ?>
                         </table>
-                    <?php elseif ( $j5_specs_extra === '' && $j5_sizes_html === '' ) : ?>
+                    <?php elseif ( $j5_specs_extra === '' && $j5_sizes_html === '' && $j5_spec_tables === '' ) : ?>
                         <p class="j5-tab-empty">No additional specifications listed.</p>
                     <?php endif; ?>
+                    <?php echo $j5_spec_tables; // escaped inside j5_spec_tables_render() ?>
                     <?php if ( $j5_specs_extra !== '' ) { echo $j5_specs_extra; } // already wp_kses_post()'d in renderer ?>
                 </div>
 

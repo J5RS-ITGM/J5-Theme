@@ -1471,3 +1471,73 @@ body.j5-shop-template .j5-container {
 .j5-product-stock .j5-fs-line { flex: 0 0 100%; text-align: right; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--j5-gold); }
 .j5-product-stock .j5-fs-line[hidden] { display: none; }
 @media (max-width: 480px) { .j5-product-stock .j5-fs-line { text-align: left; padding-left: 20px; } }
+
+/* ==========================================================================
+ * J5-SPEC-TABLES (2026-11-03): DP verified spec tables, inc/j5-spec-tables.php
+ * Same look as .j5-specs-table; wide tables scroll sideways on phones.
+ * ======================================================================== */
+.j5-spec-tables { margin: 0 0 32px; }
+.j5-spec-table-wrap { margin: 0 0 32px; padding: 0; }
+.j5-spec-tables { font-family: 'Barlow', system-ui, sans-serif; }
+.j5-spec-table-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	/* scroll shadows: a dark edge shows on whichever side has more columns */
+	background:
+		linear-gradient(90deg, var(--j5-bg, #0a0b0d) 30%, rgba(10, 11, 13, 0)) left center / 32px 100% no-repeat local,
+		linear-gradient(270deg, var(--j5-bg, #0a0b0d) 30%, rgba(10, 11, 13, 0)) right center / 32px 100% no-repeat local,
+		radial-gradient(farthest-side at 0 50%, rgba(212, 160, 68, 0.35), rgba(212, 160, 68, 0)) left center / 12px 100% no-repeat scroll,
+		radial-gradient(farthest-side at 100% 50%, rgba(212, 160, 68, 0.35), rgba(212, 160, 68, 0)) right center / 12px 100% no-repeat scroll;
+}
+.j5-spec-table-scroll:focus-visible { outline: 2px solid var(--j5-gold); outline-offset: 2px; }
+.j5-spec-table { width: 100%; max-width: 900px; border-collapse: collapse; }
+.j5-spec-table caption {
+	caption-side: top;
+	text-align: left;
+	padding: 0 0 12px;
+	font-family: 'Barlow', sans-serif;
+	font-weight: 600;
+	font-size: 18px;
+	color: var(--j5-bone);
+}
+.j5-spec-table tr { border-bottom: 1px solid var(--j5-border); }
+.j5-spec-table thead th {
+	text-align: left;
+	padding: 12px 18px;
+	font-family: 'Barlow Condensed', sans-serif;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	color: var(--j5-gold);
+	background: var(--j5-bg-elev);
+	vertical-align: bottom;
+	white-space: nowrap;
+}
+.j5-spec-table tbody th {
+	text-align: left;
+	padding: 12px 18px;
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--j5-bone);
+	background: var(--j5-bg-elev);
+	white-space: nowrap;
+}
+.j5-spec-table td {
+	padding: 12px 18px;
+	color: var(--j5-ink);
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.j5-spec-na { color: var(--j5-ink-mute); }
+.j5-spec-table-foot { margin-top: 10px; }
+.j5-spec-table-note { color: var(--j5-ink-dim); font-size: 14px; line-height: 1.55; max-width: 760px; margin: 0 0 6px; }
+.j5-spec-table-source { color: var(--j5-ink-mute); font-size: 13px; margin: 0; }
+.j5-spec-table-source a { color: var(--j5-gold); text-decoration: underline; }
+.j5-spec-table-hint { display: none; margin: 8px 0 0; font-size: 13px; color: var(--j5-gold); }
+@media (max-width: 760px) {
+	.j5-spec-table-scroll.is-wide + .j5-spec-table-hint { display: block; }
+	.j5-spec-table thead th, .j5-spec-table tbody th, .j5-spec-table td { padding: 10px 14px; }
+}

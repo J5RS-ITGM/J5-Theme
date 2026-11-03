@@ -77,5 +77,7 @@ if ( $has_structured ) {
 $rendered = do_shortcode( $description );
 return '<div class="j5-product-description j5-desc-structured">' . wp_kses_post( $rendered ) . '</div>';
 }
-return '<div class="j5-product-description j5-desc-legacy">' . wp_kses_post( wpautop( $description ) ) . '</div>';
+$legacy = wpautop( $description );
+if ( function_exists( 'j5_spec_tables_expand_in' ) ) { $legacy = j5_spec_tables_expand_in( $legacy ); } // J5-SPEC-TABLES
+return '<div class="j5-product-description j5-desc-legacy">' . wp_kses_post( $legacy ) . '</div>';
 }

@@ -578,6 +578,10 @@ function j5_schema_is_product_node( $node ) {
  * @return array
  */
 function j5_schema_rewrite_node( $node, $product ) {
+	// DP spec-table properties as additionalProperty (inc/j5-spec-tables.php). J5-SPEC-TABLES
+	if ( function_exists( 'j5_spec_tables_merge_props' ) ) {
+		$node = j5_spec_tables_merge_props( $node, $product );
+	}
 	if ( $product->is_type( 'variable' ) ) {
 		return j5_schema_product_group( $node, $product );
 	}
