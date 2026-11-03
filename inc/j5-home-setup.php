@@ -30,15 +30,7 @@ function j5_home_enqueue_assets() {
         'j5-home',
         get_stylesheet_directory_uri() . '/assets/css/j5-home.css',
         array(),
-        (string) filemtime( get_stylesheet_directory() . '/assets/css/j5-home.css' )
-    );
-
-    // Nov 2026 home rebuild (template-j5-home.php, .j5h-*). J5-HOME2
-    wp_enqueue_style(
-        'j5-home2',
-        get_stylesheet_directory_uri() . '/assets/css/j5-home2.css',
-        array( 'j5-home' ),
-        (string) filemtime( get_stylesheet_directory() . '/assets/css/j5-home2.css' )
+        '1.0.0'
     );
 }
 add_action( 'wp_enqueue_scripts', 'j5_home_enqueue_assets' );
