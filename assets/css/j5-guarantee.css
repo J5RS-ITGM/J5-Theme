@@ -1,0 +1,29 @@
+/* Life Safety Replacement Guarantee page (page 83814, inc/j5-guarantee-page.php) */
+.j5-page__content { max-width: 900px; }
+.j5-page__content .j5-lsg-seal { float: left; margin: 4px 28px 12px 0; }
+.j5-page__content .j5-lsg-seal img { width: 180px; height: auto; border-radius: 50%; background: #fff; display: block; }
+.j5-page__content .j5-lsg-lead { font-size: 22px; line-height: 1.4; color: var(--j5-bone, #f5f1e8); margin-top: 18px; }
+.j5-page__content h2.wp-block-heading { clear: both; font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif; font-weight: 400; font-size: 34px; letter-spacing: .03em; color: var(--j5-bone, #f5f1e8); margin: 40px 0 12px; padding-top: 18px; border-top: 1px solid var(--j5-border-hi, #333842); }
+.j5-page__content h3.wp-block-heading { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: .12em; text-transform: uppercase; color: var(--j5-gold, #d4a044); margin: 26px 0 8px; }
+.j5-page__content .wp-block-list { padding-left: 1.2em; }
+.j5-page__content .wp-block-list li { margin: 0 0 8px; line-height: 1.55; }
+.j5-page__content .wp-block-list li::marker { color: var(--j5-gold, #d4a044); }
+.j5-lsg-table { margin: 8px 0 12px; overflow-x: auto; }
+.j5-lsg-table table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.j5-lsg-table th { text-align: left; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--j5-ink-mute, #8a8a80); padding: 0 14px 10px 0; border-bottom: 1px solid var(--j5-border-hi, #333842); }
+.j5-lsg-table td { vertical-align: top; padding: 14px 14px 14px 0; border-bottom: 1px solid var(--j5-border, #23272f); line-height: 1.45; }
+.j5-lsg-table td:first-child { white-space: nowrap; color: var(--j5-bone, #f5f1e8); }
+.j5-lsg-table td:last-child { color: var(--j5-gold, #d4a044); }
+@media (max-width: 720px) {
+	.j5-page__content .j5-lsg-seal { float: none; margin: 0 auto 8px; }
+	.j5-page__content .j5-lsg-seal img { margin: 0 auto; width: 150px; }
+	.j5-page__content .j5-lsg-lead { text-align: center; }
+	.j5-lsg-table thead { display: none; }
+	.j5-lsg-table table, .j5-lsg-table tbody, .j5-lsg-table tr, .j5-lsg-table td { display: block; width: auto; }
+	.j5-lsg-table tr { padding: 12px 0; border-bottom: 1px solid var(--j5-border-hi, #333842); }
+	.j5-lsg-table td { border: 0; padding: 3px 0; white-space: normal; }
+	.j5-lsg-table td:first-child { font-size: 17px; padding-bottom: 6px; }
+	.j5-lsg-table td:nth-child(2)::before { content: "Replacement: "; color: var(--j5-ink-mute, #8a8a80); }
+	.j5-lsg-table td:nth-child(3)::before { content: "Send: "; color: var(--j5-ink-mute, #8a8a80); }
+	.j5-lsg-table td:nth-child(4)::before { content: "Window: "; color: var(--j5-ink-mute, #8a8a80); }
+}

@@ -59,6 +59,7 @@ function j5_product_badges( $product ) {
 			'key'    => 'guarantee',
 			'label'  => 'Life Safety<br>Guarantee',
 			'detail' => 'Eligible for the Life Safety Replacement Guarantee.',
+			'href'   => function_exists( 'j5_guarantee_page_url' ) ? j5_guarantee_page_url() : '',
 			'icon'   => '<span class="j5-badge__seal" aria-hidden="true"><img src="' . esc_url( get_stylesheet_directory_uri() . '/assets/img/badges/life-safety-guarantee.jpg' ) . '" alt="" width="62" height="62" loading="lazy" decoding="async"></span>',
 		);
 	}
@@ -73,10 +74,13 @@ function j5_render_product_badges( $product ) {
 	<ul class="j5-badges" aria-label="Product credentials">
 		<?php foreach ( $badges as $i => $b ) :
 			$id = 'j5-badge-' . sanitize_key( $b['key'] ) . '-' . (int) $i; ?>
-			<li class="j5-badge j5-badge--<?php echo esc_attr( $b['key'] ); ?>" tabindex="0" aria-describedby="<?php echo esc_attr( $id ); ?>">
-				<?php echo $b['icon']; // built above from fixed markup ?>
-				<span class="j5-badge__label"><?php echo wp_kses( $b['label'], array( 'br' => array() ) ); ?></span>
-				<span class="j5-badge__tip" id="<?php echo esc_attr( $id ); ?>" role="tooltip"><?php echo esc_html( $b['detail'] ); ?></span>
+			<?php $tag = ! empty( $b['href'] ) ? 'a' : 'span'; ?>
+			<li class="j5-badges__item">
+				<<?php echo $tag; ?> class="j5-badge j5-badge--<?php echo esc_attr( $b['key'] ); ?>"<?php echo 'a' === $tag ? ' href="' . esc_url( $b['href'] ) . '"' : ' tabindex="0"'; ?> aria-describedby="<?php echo esc_attr( $id ); ?>">
+					<?php echo $b['icon']; // built above from fixed markup ?>
+					<span class="j5-badge__label"><?php echo wp_kses( $b['label'], array( 'br' => array() ) ); ?></span>
+					<span class="j5-badge__tip" id="<?php echo esc_attr( $id ); ?>" role="tooltip"><?php echo esc_html( $b['detail'] ); ?><?php echo 'a' === $tag ? ' See the details.' : ''; ?></span>
+				</<?php echo $tag; ?>>
 			</li>
 		<?php endforeach; ?>
 	</ul>
