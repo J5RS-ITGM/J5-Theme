@@ -1020,6 +1020,14 @@
 		});
 		if (by === 'level') order.sort(function (a, b) { var x = LEVEL_ORDER.indexOf(a.key), y = LEVEL_ORDER.indexOf(b.key); return (x === -1 ? 99 : x) - (y === -1 ? 99 : y); });
 		if (by === 'maker' || by === 'cut') order.sort(function (a, b) { return a.key.localeCompare(b.key); });
+		// J5-AC-SIDE: side plates get their own sub heading under each group, after the full-size plates.
+		if (this.config.category === 'plate') order.forEach(function (g) {
+			var full = g.items.filter(function (f) { return !isSidePlate(f); }), side = g.items.filter(isSidePlate);
+			if (!side.length) return;
+			g.items = full.concat(side);
+			if (full.length) full[0].subHead = { t: 'Full-size plates', n: full.length };
+			side[0].subHead = { t: 'Side plates', n: side.length };
+		});
 		return order;
 	};
 
@@ -1066,6 +1074,19 @@
 			w.appendChild(c);
 		});
 		return w;
+	}
+	/** Side plate: named as one (HESCO "-SP", "side plate"), or every size is 8 in or smaller on both sides. */
+	function isSidePlate(f) {
+		var hay = [f.name, f.d.model, f.d.family].join(' ');
+		if (/-SP\b|\bside\s*plates?\b/i.test(hay)) return true;
+		var dims = f.members.map(function (r) { return sizeOf(r.data); }).filter(function (z) { return z && z.w; });
+		return dims.length > 0 && dims.every(function (z) { return Math.max(z.w, z.h) <= 8; });
+	}
+	function vsubhead(h) {
+		var d = el('div', 'j5ac-vsubh');
+		d.appendChild(el('h4', 'j5ac-vsubh-t', h.t));
+		d.appendChild(el('span', 'j5ac-vsubh-n', h.n + (h.n === 1 ? ' listing' : ' listings')));
+		return d;
 	}
 	function vwhy(f) {
 		var p = el('p', 'j5ac-why');
@@ -1123,6 +1144,7 @@
 				var sec = el('section', 'j5ac-vsec');
 				if (g.title) sec.appendChild(vhead(g, g.items.length));
 				g.items.forEach(function (f) {
+					if (f.subHead) sec.appendChild(vsubhead(f.subHead));
 					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
 					row.setAttribute('data-j5ac-item', f.key);
 					var nm = el('div', 'j5ac-vname');
@@ -1154,6 +1176,7 @@
 				if (g.title) sec.appendChild(vhead(g, g.items.length));
 				var grid = el('div', 'j5ac-vgrid');
 				g.items.forEach(function (f) {
+					if (f.subHead) { var shc = vsubhead(f.subHead); shc.classList.add('j5ac-vsubh--grid'); grid.appendChild(shc); }
 					var c = el('article', 'j5ac-vcard' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
 					c.setAttribute('data-j5ac-item', f.key);
 					if (f.d.image) { var im = el('img', 'j5ac-vcard-img'); im.src = f.d.image; im.alt = f.d.manufacturer + ' ' + f.name; im.loading = 'lazy'; c.appendChild(im); }
@@ -1216,6 +1239,7 @@
 				if (g.title) { var gh = vhead(g, g.items.length); gh.classList.add('j5ac-vgroup--chart'); wrap.appendChild(gh); }
 				g.items.forEach(function (f) {
 					var r = f[meta.get];
+					if (f.subHead) { var shr = vsubhead(f.subHead); shr.classList.add('j5ac-vsubh--chart'); wrap.appendChild(shr); }
 					var row = el('div', 'j5ac-crow' + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
 					if (f.why.length) row.title = 'Not an equal comparison to your selected models. ' + f.why.join('. ');
 					row.setAttribute('data-j5ac-item', f.key);

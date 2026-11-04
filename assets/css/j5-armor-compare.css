@@ -547,3 +547,10 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1840px; }
 .j5ac-mtx-r { font-family: var(--cond); font-weight: 600; font-size: 15px; color: var(--bone); text-align: left; padding: 10px 12px 10px 0; border-top: 1px solid var(--line); }
 .j5ac-mtx-r.is-ap { color: #ff8a98; }
 .j5ac-mtx-g th { padding: 14px 0 6px; border-top: 0; font-family: var(--cond); font-weight: 600; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--g); text-align: left; }
+
+/* === J5-AC-SIDE (2026-11-04): Full-size plates / Side plates sub headings === */
+.j5ac-vsubh { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 0; padding: 8px 0 6px 12px; border-left: 3px solid var(--line-hi); border-bottom: 1px solid var(--line); }
+.j5ac-vsubh-t { margin: 0; font-family: var(--cond); font-weight: 600; font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--bone); }
+.j5ac-vsubh-n { font-size: 13px; color: var(--dim); }
+.j5ac-vsubh--grid { grid-column: 1 / -1; margin-top: 6px; }
+.j5ac-vsubh--chart { margin-top: 10px; }
