@@ -42,6 +42,10 @@ add_filter( 'body_class', function ( $classes ) {
 		}
 		if ( 'classic' !== $style ) {
 			$classes[] = 'j5-hero-photo';
+			// Which photo: wp option update j5_home_hero_image thanksgiving|standard
+			if ( 'thanksgiving' === (string) get_option( 'j5_home_hero_image', 'thanksgiving' ) ) {
+				$classes[] = 'j5-hero-img-thanksgiving';
+			}
 		}
 	}
 	return $classes;
@@ -53,15 +57,15 @@ add_filter( 'body_class', function ( $classes ) {
 
 // Eight category tiles on the homepage (matches your current homepage layout)
 $j5_categories = array(
-        array( 'name' => 'Ballistic Armor',      'sub' => 'Hard plates, soft armor, shields, helmets', 'url' => site_url( '/armor/' ),                       'icon' => 'shield' ),
-        array( 'name' => 'Nylon Gear',           'sub' => 'Carriers, pouches, packs & placards',       'url' => site_url( '/nylon-gear/' ),                  'icon' => 'pouch'  ),
-        array( 'name' => 'Accessories & Tools',  'sub' => 'Knives, multi-tools, breaching kits',       'url' => site_url( '/tools-knives/' ),                'icon' => 'tool'   ),
-        array( 'name' => 'Med Kit Supplies',     'sub' => 'IFAK & aid bag components',                 'url' => site_url( '/medical/' ),                     'icon' => 'cross'  ),
-        array( 'name' => 'Medical Bags',         'sub' => 'Jump bags, aid bags, MCI packs',            'url' => site_url( '/bags-cases/' ),                  'icon' => 'bag'    ),
-        array( 'name' => 'Optics',               'sub' => 'Sights, scopes, mounts & rails',            'url' => site_url( '/optics-weapon-accessories/' ),   'icon' => 'comms'  ),
-        array( 'name' => 'Less-Lethal',          'sub' => 'Launchers, projectiles, TASER',             'url' => site_url( '/less-lethal/' ),                 'icon' => 'bolt'   ),
-        array( 'name' => 'Lights',               'sub' => 'Handheld, WML, helmet, scene',              'url' => site_url( '/lights/' ),                      'icon' => 'light'  ),
-        array( 'name' => 'Firearms Parts',       'sub' => 'Components, parts & accessories',           'url' => site_url( '/firearms-parts/' ),              'icon' => 'tool'   ),
+        array( 'name' => 'Ballistic Armor',      'sub' => 'Hard plates, soft armor, shields, helmets', 'url' => site_url( '/armor/' ),                       'icon' => 'shield', 'img' => 'armor' ),
+        array( 'name' => 'Nylon Gear',           'sub' => 'Carriers, pouches, packs & placards',       'url' => site_url( '/nylon-gear/' ),                  'icon' => 'pouch' , 'img' => 'nylon' ),
+        array( 'name' => 'Accessories & Tools',  'sub' => 'Knives, multi-tools, breaching kits',       'url' => site_url( '/tools-knives/' ),                'icon' => 'tool'  , 'img' => 'tools' ),
+        array( 'name' => 'Med Kit Supplies',     'sub' => 'IFAK & aid bag components',                 'url' => site_url( '/medical/' ),                     'icon' => 'cross' , 'img' => 'med' ),
+        array( 'name' => 'Medical Bags',         'sub' => 'Jump bags, aid bags, MCI packs',            'url' => site_url( '/bags-cases/' ),                  'icon' => 'bag'   , 'img' => 'bags' ),
+        array( 'name' => 'Optics',               'sub' => 'Sights, scopes, mounts & rails',            'url' => site_url( '/optics-weapon-accessories/' ),   'icon' => 'comms' , 'img' => 'optics' ),
+        array( 'name' => 'Less-Lethal',          'sub' => 'Launchers, projectiles, TASER',             'url' => site_url( '/less-lethal/' ),                 'icon' => 'bolt'  , 'img' => 'lesslethal' ),
+        array( 'name' => 'Lights',               'sub' => 'Handheld, WML, helmet, scene',              'url' => site_url( '/lights/' ),                      'icon' => 'light' , 'img' => 'lights' ),
+        array( 'name' => 'Firearms Parts',       'sub' => 'Components, parts & accessories',           'url' => site_url( '/firearms-parts/' ),              'icon' => 'tool'  , 'img' => 'parts' ),
 );
 
 // ============================================================================
@@ -109,7 +113,7 @@ get_header();
 			<div>
 				<h1 class="j5-hero-title">
 					MISSION-READY GEAR.<br/>
-					<span class="j5-hero-rotator-lead">Trusted By</span> <span class="rotator" data-j5-rotator='["Professionals","Enthusiasts","The Prepared"]'>Professionals</span>
+					<span class="j5-hero-sub2">Armor. Medical. Tactical.</span>
 				</h1>
 				<p class="j5-hero-desc">
 					Specially curated medical, rescue, and tactical equipment.
@@ -231,7 +235,15 @@ get_header();
 				<?php foreach ( $j5_categories as $i => $cat ) : ?>
 					<a href="<?php echo esc_url( $cat['url'] ); ?>" class="j5-cat-card">
 						<div class="j5-cat-num"><?php echo esc_html( str_pad( $i + 1, 2, '0', STR_PAD_LEFT ) ); ?> / <?php echo count( $j5_categories ); ?></div>
+						<?php
+						// J5-CAT-PHOTOS (2026-11-04): product photo per card, icon as fallback.
+						$j5_cat_img = isset( $cat['img'] ) ? '/assets/img/home/cat-' . $cat['img'] . '.jpg' : '';
+						if ( $j5_cat_img && file_exists( get_stylesheet_directory() . $j5_cat_img ) ) :
+							?>
+							<div class="j5-cat-photo"><img src="<?php echo esc_url( get_stylesheet_directory_uri() . $j5_cat_img . '?v=' . filemtime( get_stylesheet_directory() . $j5_cat_img ) ); ?>" alt="" width="960" height="540" loading="lazy"></div>
+						<?php else : ?>
 						<div class="j5-cat-icon"><?php echo function_exists( 'j5_category_icon' ) ? j5_category_icon( $cat['icon'] ) : ''; ?></div>
+						<?php endif; ?>
 						<div>
 							<div class="j5-cat-name"><?php echo esc_html( $cat['name'] ); ?></div>
 							<div class="j5-cat-sub"><?php echo esc_html( $cat['sub'] ); ?></div>

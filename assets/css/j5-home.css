@@ -2017,3 +2017,40 @@ body.j5-home-template.j5-hero-photo .j5-hero::before { display: none; }
 			url('../img/home/hero-1000.jpg') 58% 20% / cover no-repeat #0a0b0d;
 	}
 }
+
+/* Seasonal hero photo (option j5_home_hero_image = thanksgiving) */
+body.j5-home-template.j5-hero-photo.j5-hero-img-thanksgiving .j5-hero {
+	background:
+		linear-gradient(90deg, rgba(10, 11, 13, 0.92) 0%, rgba(10, 11, 13, 0.75) 40%, rgba(10, 11, 13, 0.2) 75%),
+		linear-gradient(0deg, rgba(10, 11, 13, 0.85) 0%, rgba(10, 11, 13, 0) 40%),
+		url('../img/home/hero-thanksgiving.jpg') center 22% / cover no-repeat #0a0b0d;
+}
+@media (max-width: 760px) {
+	body.j5-home-template.j5-hero-photo.j5-hero-img-thanksgiving .j5-hero {
+		background:
+			linear-gradient(0deg, rgba(10, 11, 13, 0.95) 0%, rgba(10, 11, 13, 0.75) 55%, rgba(10, 11, 13, 0.35) 100%),
+			url('../img/home/hero-thanksgiving-1000.jpg') 58% 18% / cover no-repeat #0a0b0d;
+	}
+}
+
+/* J5-HERO-TEXT-2 (2026-11-04): static second line, replaces "Trusted By" + rotator */
+body.j5-home-template .j5-hero-title .j5-hero-sub2 {
+	display: block;
+	margin-top: 14px;
+	color: var(--j5-gold) !important; /* beats the old body.j5-home-template span:not(...) color reset */
+	font-size: 0.48em;
+	letter-spacing: 0.08em;
+}
+
+/* ============================================================================
+   J5-CAT-PHOTOS (2026-11-04): product photo across the top of each category
+   card (assets/img/home/cat-*.jpg, shield backdrop). Cards without a photo
+   keep the line icon.
+   ========================================================================== */
+.j5-cat-card:has(.j5-cat-photo) { padding: 0 0 28px; justify-content: flex-start; }
+.j5-cat-card:has(.j5-cat-photo) .j5-cat-num { position: absolute; top: 16px; left: 18px; z-index: 2; }
+.j5-cat-photo { display: block; aspect-ratio: 16 / 9; overflow: hidden; margin-bottom: 24px; background: #0a0b0d; }
+.j5-cat-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.j5-cat-card:hover .j5-cat-photo img { transform: scale(1.05); }
+.j5-cat-card:has(.j5-cat-photo) > div:last-child { padding: 0 28px; }
+@media (prefers-reduced-motion: reduce) { .j5-cat-photo img { transition: none; } }
