@@ -29,7 +29,11 @@ do_action( 'woocommerce_before_customer_login_form' );
                 <span class="j5-account-title-accent">/</span>
                 <?php esc_html_e( 'Register', 'woocommerce' ); ?>
         </h1>
+        <?php if ( 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) ) : ?>
         <p class="j5-account-subtitle">Access order history, saved addresses, and faster checkout. Already have an account? Sign in below. New here? Set one up in under a minute.</p>
+        <?php else : ?>
+        <p class="j5-account-subtitle">Access order history, saved addresses, and faster checkout. New customers get an account when they place their first order.</p>
+        <?php endif; ?>
 </div>
 
 <div class="j5-login-wrapper">
@@ -69,6 +73,9 @@ do_action( 'woocommerce_before_customer_login_form' );
                                 <p class="woocommerce-LostPassword lost_password">
                                         <a class="j5-lost-password" href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php esc_html_e( 'Lost your password?', 'woocommerce' ); ?></a>
                                 </p>
+                                <?php if ( 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) ) : ?>
+                                <p class="j5-new-here">New here? <a href="#j5-register">Create an account</a></p>
+                                <?php endif; ?>
 
                                 <?php do_action( 'woocommerce_login_form_end' ); ?>
 
@@ -77,7 +84,7 @@ do_action( 'woocommerce_before_customer_login_form' );
 
                 <?php if ( 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) ) : ?>
 
-                        <div class="j5-register-card">
+                        <div class="j5-register-card" id="j5-register">
 
                                 <div class="j5-card-eyebrow">New Customer</div>
                                 <h2 class="j5-card-title"><?php esc_html_e( 'Register', 'woocommerce' ); ?></h2>

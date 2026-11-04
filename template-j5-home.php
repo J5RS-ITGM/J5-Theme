@@ -33,6 +33,16 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 add_filter( 'body_class', function ( $classes ) {
 	if ( is_page_template( 'template-j5-home.php' ) || ( is_front_page() && get_page_template_slug() === 'template-j5-home.php' ) ) {
 		$classes[] = 'j5-home-template';
+		// J5-HERO-PHOTO (2026-11-03): photo behind the hero. Old look is one
+		// setting away: wp option update j5_home_hero_style classic
+		// Admins can preview either with ?j5_hero=photo or ?j5_hero=classic.
+		$style = (string) get_option( 'j5_home_hero_style', 'photo' );
+		if ( isset( $_GET['j5_hero'] ) && current_user_can( 'manage_options' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$style = sanitize_key( wp_unslash( $_GET['j5_hero'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+		if ( 'classic' !== $style ) {
+			$classes[] = 'j5-hero-photo';
+		}
 	}
 	return $classes;
 } );

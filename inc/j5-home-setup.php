@@ -30,7 +30,7 @@ function j5_home_enqueue_assets() {
         'j5-home',
         get_stylesheet_directory_uri() . '/assets/css/j5-home.css',
         array(),
-        '1.0.0'
+        (string) filemtime( get_stylesheet_directory() . '/assets/css/j5-home.css' ) // auto cache-bust
     );
 }
 add_action( 'wp_enqueue_scripts', 'j5_home_enqueue_assets' );

@@ -1175,3 +1175,61 @@ body.woocommerce-account .woocommerce-info a {
         text-align: center !important;
     }
 }
+
+/* ============================================================================
+   J5-ACCOUNT-FIX-1 (2026-11-03)
+   - WC 10's password toggle is <button class="show-password-input"> (icon via
+     background-image). The rules above set background: transparent, which
+     hid the icon and left an empty dark box. Give it the same Show / Hide
+     text as the WP button; WC adds .display-password while it's shown.
+   - Remove the WooCommerce box drawn around the forms inside each card.
+   - Align the cards with the page header; one card sits on the left.
+   - Registration spam-guard honeypot stays off screen.
+   ============================================================================ */
+body.woocommerce-account .password-input button.show-password-input {
+    background: #1d1d1d !important;
+    background-image: none !important;
+    border: 1px solid #4a4a4a !important;
+    color: #C8A84E !important;
+    font-size: 0 !important;
+    min-height: 30px !important;
+}
+body.woocommerce-account .password-input button.show-password-input::after {
+    content: 'Show' !important;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    display: inline-block !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    background: none !important;
+}
+body.woocommerce-account .password-input button.show-password-input.display-password::after { content: 'Hide' !important; }
+body.woocommerce-account .password-input button.show-password-input::before { display: none !important; }
+body.woocommerce-account .password-input button.show-password-input:hover {
+    background: #C8A84E !important;
+    color: #0B0B0B !important;
+    border-color: #C8A84E !important;
+}
+
+body.woocommerce-account .j5-login-card form.login,
+body.woocommerce-account .j5-register-card form.register,
+body.woocommerce-account .j5-login-card .woocommerce-form-login,
+body.woocommerce-account .j5-register-card .woocommerce-form-register {
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 24px 0 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+.j5-login-card--full { margin: 0 !important; }
+
+.j5-new-here { margin: 18px 0 0; padding-top: 18px; border-top: 1px solid #2A2A2A; color: #B0B0B0; font-size: 15px; }
+.j5-new-here a { color: #C8A84E; font-weight: 600; text-decoration: underline; }
+@media (min-width: 901px) { .j5-new-here { display: none; } } /* both cards visible side by side */
+
+.j5rg-trap { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
+.j5-register-card { scroll-margin-top: 110px; }

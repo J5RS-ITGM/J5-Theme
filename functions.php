@@ -47,6 +47,8 @@ require_once get_stylesheet_directory() . '/inc/j5-closeout.php';
 require_once get_stylesheet_directory() . '/inc/j5-threat-matrix.php';
 // [j5_spec_tables]: DP verified spec tables (_j5_spec_tables) on the Specifications tab + Product additionalProperty. J5-SPEC-TABLES
 require_once get_stylesheet_directory() . '/inc/j5-spec-tables.php';
+// My Account registration spam guard: honeypot, time trap, per-IP limit. J5-REGISTER-GUARD
+require_once get_stylesheet_directory() . '/inc/j5-register-guard.php';
 // DP product options / add-ons (_j5_options): product page, cart price, order line meta for the DP.
 require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 // Factory order savings: page line (no number) + auto-applied virtual coupon in cart (DP _j5_factory_discount).

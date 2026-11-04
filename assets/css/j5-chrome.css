@@ -309,3 +309,7 @@ body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-templat
 		letter-spacing: 0.05em;
 	}
 }
+
+/* J5-SIGNIN-LABEL (2026-11-03): visible "Sign in" next to the account icon when logged out */
+body.j5-custom-chrome .j5-icon-btn--account { gap: 7px; }
+body.j5-custom-chrome .j5-icon-btn__label { font-family: var(--j5c-body); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }

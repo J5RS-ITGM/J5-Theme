@@ -1997,3 +1997,23 @@ body.j5-home-template .j5-hero {
 	min-height: auto;
 }
 /* J5-HERO-MINHEIGHT-FIX-END */
+
+/* ============================================================================
+   J5-HERO-PHOTO (2026-11-03): entry-team photo behind the hero.
+   On when body has .j5-hero-photo (option j5_home_hero_style, default photo).
+   Old look: wp option update j5_home_hero_style classic
+   ========================================================================== */
+body.j5-home-template.j5-hero-photo .j5-hero {
+	background:
+		linear-gradient(90deg, rgba(10, 11, 13, 0.92) 0%, rgba(10, 11, 13, 0.75) 40%, rgba(10, 11, 13, 0.2) 75%),
+		linear-gradient(0deg, rgba(10, 11, 13, 0.85) 0%, rgba(10, 11, 13, 0) 40%),
+		url('../img/home/hero.jpg') center 25% / cover no-repeat #0a0b0d;
+}
+body.j5-home-template.j5-hero-photo .j5-hero::before { display: none; }
+@media (max-width: 760px) {
+	body.j5-home-template.j5-hero-photo .j5-hero {
+		background:
+			linear-gradient(0deg, rgba(10, 11, 13, 0.95) 0%, rgba(10, 11, 13, 0.75) 55%, rgba(10, 11, 13, 0.35) 100%),
+			url('../img/home/hero-1000.jpg') 58% 20% / cover no-repeat #0a0b0d;
+	}
+}
