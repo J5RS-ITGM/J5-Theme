@@ -176,17 +176,20 @@ get_header();
                 if ( function_exists( 'j5_render_le_only_banner' ) ) {
                     j5_render_le_only_banner( $product );
                 }
-                // BADGES: NIJ Certified, Made in the USA, Life Safety Guarantee (inc/j5-product-badges.php) J5-BADGES
+                ?>
+
+                <?php if ( $short_desc ) : ?>
+                    <div class="j5-product-short-desc"><?php echo wp_kses_post( $short_desc ); ?></div>
+                <?php endif; ?>
+
+                <?php
+                // BADGES under the short description: NIJ Certified, Made in the USA, Life Safety Guarantee (inc/j5-product-badges.php) J5-BADGES
                 if ( function_exists( 'j5_render_product_badges' ) ) {
                     j5_render_product_badges( $product );
                 } elseif ( function_exists( 'j5_render_nij_certified_tag' ) ) {
                     j5_render_nij_certified_tag( $product );
                 }
                 ?>
-
-                <?php if ( $short_desc ) : ?>
-                    <div class="j5-product-short-desc"><?php echo wp_kses_post( $short_desc ); ?></div>
-                <?php endif; ?>
 
                 <?php
                 /*

@@ -60,7 +60,7 @@ function j5_product_badges( $product ) {
 			'label'  => 'Life Safety<br>Guarantee',
 			'detail' => 'Eligible for the Life Safety Replacement Guarantee.',
 			'href'   => function_exists( 'j5_guarantee_page_url' ) ? j5_guarantee_page_url() : '',
-			'icon'   => '<span class="j5-badge__seal" aria-hidden="true"><img src="' . esc_url( get_stylesheet_directory_uri() . '/assets/img/badges/life-safety-guarantee.jpg' ) . '" alt="" width="62" height="62" loading="lazy" decoding="async"></span>',
+			'icon'   => '<span class="j5-badge__seal" aria-hidden="true"><img src="' . esc_url( get_stylesheet_directory_uri() . '/assets/img/badges/life-safety-guarantee.jpg' ) . '" alt="" width="40" height="40" loading="lazy" decoding="async"></span>',
 		);
 	}
 	return apply_filters( 'j5_product_badges', $out, $product );

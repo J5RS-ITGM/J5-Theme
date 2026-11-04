@@ -1593,3 +1593,19 @@ body.j5-shop-template .j5-container {
 .j5-badges__item { margin: 0; padding: 0; }
 a.j5-badge { text-decoration: none; cursor: pointer; transition: border-color .12s, transform .12s; }
 a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
+
+/* J5-BADGES v2 (2026-11-04): under the short description, smaller, all the same height */
+.j5-product-short-desc + .j5-badges { margin: 16px 0 22px; }
+.j5-badges { align-items: stretch; gap: 8px; }
+.j5-badges__item { display: flex; }
+.j5-badge { width: 118px; height: 100px; min-height: 0; gap: 7px; padding: 10px 8px; font-size: 12.5px; line-height: 1.12; letter-spacing: 0.08em; }
+.j5-badge__ico { width: 46px; height: 46px; flex: 0 0 46px; }
+.j5-badge__ico--nij { font-size: 19px; }
+.j5-badge__ico--usa svg { width: 32px; height: 22px; }
+.j5-badge__seal { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 6px; padding: 3px; box-sizing: border-box; }
+.j5-badge__seal img { width: 40px; height: 40px; object-fit: contain; }
+.j5-badge__label { display: flex; align-items: center; min-height: 2.24em; }
+@media (max-width: 480px) {
+	.j5-badges__item { flex: 1 1 0; }
+	.j5-badge { width: 100%; height: 96px; font-size: 11.5px; padding: 8px 4px; }
+}
