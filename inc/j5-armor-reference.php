@@ -715,6 +715,29 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				</label>
 				<button type="button" class="j5ac-dir" data-j5ac-dir aria-label="Reverse sort order" title="Reverse sort order">&#9650;</button>
 			</div>
+			<?php if ( 'shield' !== $cat ) : // J5-AC-VIEWS: Rows / Cards / Chart over the same filtered listings ?>
+			<div class="j5ac-tb-row j5ac-tb-row--view">
+				<div class="j5ac-views" role="group" aria-label="View">
+					<button type="button" class="j5ac-vbtn" data-j5ac-vbtn="rows" aria-pressed="true">Rows</button>
+					<button type="button" class="j5ac-vbtn" data-j5ac-vbtn="cards" aria-pressed="false">Cards</button>
+					<button type="button" class="j5ac-vbtn" data-j5ac-vbtn="chart" aria-pressed="false">Chart</button>
+				</div>
+				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Group by</span>
+					<select class="j5ac-sort" data-j5ac-group>
+						<option value="level">Protection level</option>
+						<?php if ( in_array( 'cut', $fkeys, true ) ) : ?><option value="cut">Cut</option><?php endif; ?>
+						<option value="maker">Manufacturer</option>
+						<option value="none">No grouping</option>
+					</select>
+				</label>
+				<label class="j5ac-sortwrap" data-j5ac-measurewrap hidden><span class="j5ac-lbl">Chart</span>
+					<select class="j5ac-sort" data-j5ac-measure>
+						<option value="weight_lb">Weight (lb)</option>
+						<?php if ( $any_eff ) : ?><option value="oz_per_sqin">Oz per sq in</option><option value="area_sqin">Coverage (sq in)</option><?php endif; ?>
+					</select>
+				</label>
+			</div>
+			<?php endif; ?>
 			<div class="j5ac-tb-row j5ac-tb-row--active">
 				<span class="j5ac-count" data-j5ac-count><?php echo count( $models ); ?> of <?php echo count( $models ); ?></span>
 				<div class="j5ac-active" data-j5ac-active aria-label="Active filters"></div>
@@ -724,6 +747,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 
 		<?php if ( 'shield' === $cat ) : ?><div class="j5ac-cards-list" data-j5ac-cardlist hidden></div><?php endif; ?>
 		<div class="j5ac-table-wrap<?php echo 'shield' === $cat ? ' j5ac-table-wrap--cards' : ''; ?>">
+			<?php if ( 'shield' !== $cat ) : ?><div class="j5ac-view" data-j5ac-view></div><?php endif; ?>
 			<table class="j5ac-table" data-j5ac-table>
 				<thead>
 					<tr>

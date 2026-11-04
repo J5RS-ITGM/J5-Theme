@@ -119,7 +119,9 @@
 		this.config.fields.forEach(function (f) { this.fieldsByKey[f.key] = f; }, this);
 		this.tbody = section.querySelector('tbody');
 		this.rows = Array.prototype.map.call(this.tbody.querySelectorAll('tr[data-row]'), function (tr) {
-			return { tr: tr, data: JSON.parse(tr.getAttribute('data-row')) };
+			var r = { tr: tr, data: JSON.parse(tr.getAttribute('data-row')) };
+			tr._j5r = r;
+			return r;
 		});
 		this.cardList = section.querySelector('[data-j5ac-cardlist]');
 		this.form = section.querySelector('[data-j5ac-filters]');
@@ -134,6 +136,7 @@
 		this.steps = STEPS[this.config.category] || ['threat'];
 		this.guideBox = section.querySelector('[data-j5ac-guide]');
 		this.listWrap = section.querySelector('.j5ac-table-wrap');
+		this.viewInit();
 		this.bind();
 		this.renderGuide();
 		this.ready = true;
@@ -563,10 +566,7 @@
 		});
 		this.count.textContent = order.length + ' of ' + Object.keys(total).length;
 	};
-	Panel.prototype.rowByTr = function (tr) {
-		for (var i = 0; i < this.rows.length; i++) if (this.rows[i].tr === tr) return this.rows[i];
-		return null;
-	};
+	Panel.prototype.rowByTr = function (tr) { return tr._j5r || null; };
 
 	/** Detail overlay for one listing: key specs, every size with its weight, the spec sheet, buy or quote. */
 	Panel.prototype.openDetail = function (famKey, opener) {
@@ -720,8 +720,310 @@
 		if (modal._opener && modal._opener.focus) modal._opener.focus();
 	}
 
+	/* ---------------------------------------------------------------------
+	 * J5-AC-VIEWS: Rows / Cards / Chart, all drawn from the filtered table
+	 * rows (one entry per listing). The table stays in the page as the data
+	 * source and for search engines; CSS hides it while a view is on.
+	 * ------------------------------------------------------------------- */
+	var LEVEL_ORDER = ['IV', 'RF3', 'RF2', 'RF1', 'III+', 'III', 'IIIA', 'HG2', 'HG1', 'II', 'IIA'];
+	function levelTitle(l) { l = String(l || ''); return /^(II|III|IV)A?\+?$/.test(l) || l === 'IIA' ? 'Level ' + l : (l || 'Level not listed'); }
+	function tierColor(l) { return { hg: '#8fb5c9', rifle: '#f0bc5a', rf: '#f07a52', ap: '#ff5a6e', other: '#a4a49a' }[tier(l)]; }
+	function rangeText(lo, hi, places, unit) {
+		if (lo === null) return null;
+		var f = function (n) { return places !== undefined ? n.toFixed(places) : fmt(n); };
+		return (lo === hi ? f(lo) : f(lo) + '–' + f(hi)) + (unit ? ' ' + unit : '');
+	}
+	function niceStep(raw) {
+		var p = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), n = raw / p;
+		return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+	}
+
+	Panel.prototype.viewInit = function () {
+		this.viewBox = this.section.querySelector('[data-j5ac-view]');
+		if (!this.viewBox) return;
+		var self = this;
+		this.famTotal = {};
+		this.rows.forEach(function (r) { var k = r.tr.getAttribute('data-fam'); self.famTotal[k] = (self.famTotal[k] || 0) + 1; });
+		var saved = null;
+		try { saved = window.localStorage.getItem('j5ac-view-' + this.config.category); } catch (e) {}
+		this.view = saved === 'cards' || saved === 'chart' ? saved : 'rows';
+		this.vbtns = this.section.querySelectorAll('[data-j5ac-vbtn]');
+		this.groupSel = this.section.querySelector('[data-j5ac-group]');
+		this.measureSel = this.section.querySelector('[data-j5ac-measure]');
+		this.measureWrap = this.section.querySelector('[data-j5ac-measurewrap]');
+		Array.prototype.forEach.call(this.vbtns, function (b) {
+			b.addEventListener('click', function () {
+				self.view = b.getAttribute('data-j5ac-vbtn');
+				try { window.localStorage.setItem('j5ac-view-' + self.config.category, self.view); } catch (e) {}
+				self.renderView();
+			});
+		});
+		this.section.classList.add('has-view');
+		this.viewBox.addEventListener('click', function (e) {
+			var t = e.target;
+			if (!t.closest) return;
+			var open = t.closest('[data-j5ac-fam]');
+			if (!open && t.closest('input, a, button, label, select')) return;
+			var item = open || t.closest('[data-j5ac-item]');
+			if (!item) return;
+			self.openDetail(item.getAttribute(open ? 'data-j5ac-fam' : 'data-j5ac-item'), item.querySelector('[data-j5ac-fam]') || item);
+		});
+		this.viewBox.addEventListener('change', function (e) {
+			var cb = e.target;
+			if (!cb.classList || !cb.classList.contains('j5ac-vpick')) return;
+			var k = cb.getAttribute('data-fam'), slug = cb.value;
+			if (cb.checked) {
+				var r = self.rowBySlug(slug), tcb = r && r.tr.querySelector('.j5ac-pick');
+				if (tcb) tcb.checked = true;
+				self.pick(slug, true, tcb);
+			} else {
+				self.picked.slice().forEach(function (s) {
+					var r = self.rowBySlug(s);
+					if (r && r.tr.getAttribute('data-fam') === k) { r.tr.querySelector('.j5ac-pick').checked = false; self.pick(s, false, null); }
+				});
+			}
+		});
+	};
+
+	/** Visible listings in the current sort order: { key, rep, members[] }. */
+	Panel.prototype.viewFamilies = function () {
+		var fams = {}, order = [];
+		Array.prototype.forEach.call(this.tbody.querySelectorAll('tr[data-row]'), function (tr) {
+			if (tr.classList.contains('is-hidden')) return;
+			var k = tr.getAttribute('data-fam') || tr.getAttribute('data-slug'), r = tr._j5r;
+			if (!fams[k]) { fams[k] = { key: k, rep: null, members: [] }; order.push(fams[k]); }
+			fams[k].members.push(r);
+			if (!tr.classList.contains('is-sib')) fams[k].rep = r;
+		});
+		var self = this;
+		return order.map(function (f) {
+			if (!f.rep) f.rep = f.members[0];
+			f.members.sort(function (a, b) { var x = sizeSortKey(a.data), y = sizeSortKey(b.data); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+			return self.famSummary(f);
+		});
+	};
+
+	Panel.prototype.famSummary = function (f) {
+		var d = f.rep.data, m = f.members, self = this;
+		var range = function (get) {
+			var n = m.map(get).map(num).filter(function (x) { return x !== null; });
+			return n.length ? [Math.min.apply(null, n), Math.max.apply(null, n)] : [null, null];
+		};
+		var sizes = [];
+		m.forEach(function (r) {
+			var sz = sizeOf(r.data), lab = sz && sz.w ? (sz.sub ? sz.sub.replace('Medium', 'M').replace('Small', 'S').replace('Large', 'L') : sz.label.replace(' in', '')) : null;
+			if (lab && sizes.indexOf(lab) === -1) sizes.push(lab);
+		});
+		if (!sizes.length && d.specs.sizes) sizes = String(d.specs.sizes).split(/[,\/;|]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+		if (!sizes.length && d.specs.size) sizes = [String(d.specs.size)];
+		var cuts = [];
+		m.forEach(function (r) { var c = r.data.specs.cut; if (c && cuts.indexOf(String(c)) === -1) cuts.push(String(c)); });
+		var wc = null; m.forEach(function (r) { if (!wc && r.data.wc) wc = r.data.wc; });
+		var picked = m.some(function (r) { return self.picked.indexOf(r.data.slug) !== -1; });
+		return {
+			key: f.key, rep: f.rep, members: m, d: d,
+			name: (this.famTotal[f.key] || 1) > 1 && d.family ? famName(d) : d.model,
+			weight: range(function (r) { return r.data.specs.weight_lb; }),
+			eff: range(function (r) { return r.data.derived ? r.data.derived.oz_per_sqin : null; }),
+			area: range(function (r) { return r.data.derived ? r.data.derived.area_sqin : null; }),
+			sizes: sizes, cut: cuts.join(' + '), cert: stepValue(d, 'nij'),
+			stock: d.carried ? (wc ? 'Sold by J5' : 'Quote from J5') : 'Reference only',
+			carried: !!d.carried, picked: picked,
+			locked: f.rep.tr.classList.contains('is-locked') && !picked
+		};
+	};
+
+	Panel.prototype.viewGroups = function (fams) {
+		var by = this.groupSel ? this.groupSel.value : 'level', groups = {}, order = [];
+		fams.forEach(function (f) {
+			var k, title, color = null;
+			if (by === 'level') { k = String(f.d.specs.level || ''); title = levelTitle(k); color = tierColor(k); }
+			else if (by === 'cut') { k = f.cut || 'Cut not listed'; title = k; }
+			else if (by === 'maker') { k = f.d.manufacturer || 'Manufacturer not listed'; title = k; }
+			else { k = '*'; title = ''; }
+			if (!groups[k]) { groups[k] = { key: k, title: title, color: color, items: [] }; order.push(groups[k]); }
+			groups[k].items.push(f);
+		});
+		if (by === 'level') order.sort(function (a, b) { var x = LEVEL_ORDER.indexOf(a.key), y = LEVEL_ORDER.indexOf(b.key); return (x === -1 ? 99 : x) - (y === -1 ? 99 : y); });
+		if (by === 'maker' || by === 'cut') order.sort(function (a, b) { return a.key.localeCompare(b.key); });
+		return order;
+	};
+
+	function vpick(f) {
+		var lab = el('label', 'j5ac-check j5ac-vcheck'), cb = el('input');
+		cb.type = 'checkbox'; cb.className = 'j5ac-vpick'; cb.value = f.rep.data.slug; cb.setAttribute('data-fam', f.key);
+		cb.checked = f.picked; cb.disabled = f.locked;
+		cb.setAttribute('aria-label', 'Compare ' + f.d.manufacturer + ' ' + f.name);
+		if (f.locked) lab.title = 'Different size from your first pick. Clear the selection to compare this one.';
+		lab.appendChild(cb);
+		return lab;
+	}
+	function vname(f, cls) {
+		var b = el('button', 'j5ac-model j5ac-open ' + (cls || ''), f.name);
+		b.type = 'button'; b.setAttribute('data-j5ac-fam', f.key); b.setAttribute('aria-haspopup', 'dialog');
+		return b;
+	}
+	function vkv(k, v, cls) { var w = el('div', 'j5ac-kv' + (cls ? ' ' + cls : '')); w.appendChild(el('span', 'j5ac-k', k)); w.appendChild(el('span', 'j5ac-v', v === null || v === undefined || v === '' ? 'not listed' : v)); return w; }
+	function vsizes(f) {
+		var w = el('div', 'j5ac-vsizes');
+		w.appendChild(el('span', 'j5ac-k', f.sizes.length > 1 ? f.sizes.length + ' sizes' : (f.sizes.length ? '1 size' : 'Size')));
+		var c = el('div', 'j5ac-vchips');
+		f.sizes.forEach(function (s) { c.appendChild(el('span', 'j5ac-vchip', s)); });
+		if (!f.sizes.length) c.appendChild(el('span', 'j5ac-na', 'not listed'));
+		w.appendChild(c);
+		return w;
+	}
+	function vstock(f) { return el('span', 'j5ac-vstock' + (f.carried ? '' : ' is-ref'), f.stock); }
+	function vhead(g, count) {
+		var h = el('div', 'j5ac-vgroup');
+		if (g.color) { var dot = el('span', 'j5ac-vgroup-dot'); dot.style.background = g.color; dot.setAttribute('aria-hidden', 'true'); h.appendChild(dot); }
+		var t = el('h3', 'j5ac-vgroup-t', g.title); if (g.color) t.style.color = g.color;
+		h.appendChild(t);
+		h.appendChild(el('span', 'j5ac-vgroup-n', count + (count === 1 ? ' listing' : ' listings')));
+		if (g.color) h.style.borderBottomColor = g.color;
+		return h;
+	}
+
+	Panel.prototype.renderView = function () {
+		if (!this.viewBox) return;
+		var self = this, cfg = this.config, view = this.view;
+		Array.prototype.forEach.call(this.vbtns, function (b) { var on = b.getAttribute('data-j5ac-vbtn') === view; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('is-on', on); });
+		if (this.measureWrap) this.measureWrap.hidden = view !== 'chart';
+		var fams = this.viewFamilies(), groups = this.viewGroups(fams);
+		var box = this.viewBox;
+		box.textContent = '';
+		box.className = 'j5ac-view j5ac-view--' + view;
+		if (!fams.length) return;
+		var hasCert = !!this.fieldsByKey.nij_certified, hasCut = !!this.fieldsByKey.cut, hasStd = !!this.fieldsByKey.standard;
+
+		if (view === 'rows') {
+			groups.forEach(function (g) {
+				var sec = el('section', 'j5ac-vsec');
+				if (g.title) sec.appendChild(vhead(g, g.items.length));
+				g.items.forEach(function (f) {
+					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.locked ? ' is-locked' : ''));
+					row.setAttribute('data-j5ac-item', f.key);
+					row.appendChild(vpick(f));
+					var nm = el('div', 'j5ac-vname');
+					nm.appendChild(vname(f));
+					var sub = el('div', 'j5ac-vsub');
+					sub.appendChild(el('span', 'j5ac-maker', f.d.manufacturer));
+					if (f.d.specs.standalone) sub.appendChild(el('span', 'j5ac-tag', f.d.specs.standalone));
+					sub.appendChild(vstock(f));
+					nm.appendChild(sub);
+					row.appendChild(nm);
+					var specs = el('div', 'j5ac-vspecs');
+					if (!g.color && f.d.specs.level) { var lv = el('div', 'j5ac-kv'); lv.appendChild(el('span', 'j5ac-k', 'Level')); var lvv = el('span', 'j5ac-v'); lvv.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(f.d.specs.level), f.d.specs.level)); lv.appendChild(lvv); specs.appendChild(lv); }
+					if (hasStd) specs.appendChild(vkv('Standard', f.d.specs.standard));
+					if (hasCert) specs.appendChild(vkv('NIJ certified', f.cert === 'yes' ? 'Yes' : (f.cert === 'no' ? 'No' : null), f.cert === 'yes' ? 'is-yes' : ''));
+					if (hasCut) specs.appendChild(vkv('Cut', f.cut));
+					specs.appendChild(vkv('Weight', rangeText(f.weight[0], f.weight[1], undefined, 'lb'), 'is-strong'));
+					if (cfg.eff) specs.appendChild(vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3)));
+					row.appendChild(specs);
+					row.appendChild(vsizes(f));
+					sec.appendChild(row);
+				});
+				box.appendChild(sec);
+			});
+		} else if (view === 'cards') {
+			groups.forEach(function (g) {
+				var sec = el('section', 'j5ac-vsec');
+				if (g.title) sec.appendChild(vhead(g, g.items.length));
+				var grid = el('div', 'j5ac-vgrid');
+				g.items.forEach(function (f) {
+					var c = el('article', 'j5ac-vcard' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.locked ? ' is-locked' : ''));
+					c.setAttribute('data-j5ac-item', f.key);
+					if (f.d.image) { var im = el('img', 'j5ac-vcard-img'); im.src = f.d.image; im.alt = f.d.manufacturer + ' ' + f.name; im.loading = 'lazy'; c.appendChild(im); }
+					var body = el('div', 'j5ac-vcard-b');
+					var top = el('div', 'j5ac-vcard-top');
+					var tl = el('div');
+					tl.appendChild(vname(f));
+					tl.appendChild(el('span', 'j5ac-maker', f.d.manufacturer));
+					top.appendChild(tl);
+					if (f.d.specs.level) top.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(f.d.specs.level), f.d.specs.level));
+					body.appendChild(top);
+					var tags = el('div', 'j5ac-vtags');
+					if (f.d.specs.standalone) tags.appendChild(el('span', 'j5ac-tag', f.d.specs.standalone));
+					if (f.cut) tags.appendChild(el('span', 'j5ac-tag', f.cut));
+					if (f.cert === 'yes') tags.appendChild(el('span', 'j5ac-tag j5ac-tag--ok', 'NIJ certified'));
+					if (tags.firstChild) body.appendChild(tags);
+					var st = el('div', 'j5ac-vcard-stats');
+					st.appendChild(vkv('Weight', rangeText(f.weight[0], f.weight[1], undefined, 'lb'), 'is-strong'));
+					st.appendChild(cfg.eff ? vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3)) : vkv('Standard', f.d.specs.standard));
+					body.appendChild(st);
+					body.appendChild(vsizes(f));
+					var foot = el('div', 'j5ac-vcard-foot');
+					var pk = vpick(f); pk.appendChild(el('span', null, 'Compare'));
+					foot.appendChild(pk);
+					foot.appendChild(vstock(f));
+					body.appendChild(foot);
+					c.appendChild(body);
+					grid.appendChild(c);
+				});
+				sec.appendChild(grid);
+				box.appendChild(sec);
+			});
+		} else {
+			var key = this.measureSel ? this.measureSel.value : 'weight_lb';
+			var meta = { weight_lb: { lab: 'Weight across each listing’s sizes', unit: 'lb', get: 'weight' }, oz_per_sqin: { lab: 'Ounces per square inch, lower is lighter for the coverage', unit: '', places: 3, get: 'eff' }, area_sqin: { lab: 'Coverage across each listing’s sizes', unit: 'sq in', get: 'area' } }[key] || { lab: 'Weight', unit: 'lb', get: 'weight' };
+			var hi = 0;
+			fams.forEach(function (f) { if (f[meta.get][1] !== null) hi = Math.max(hi, f[meta.get][1]); });
+			if (!(hi > 0)) hi = 1;
+			var step = niceStep(hi / 6), max = Math.ceil(hi / step) * step;
+			var wrap = el('div', 'j5ac-chart');
+			var head = el('div', 'j5ac-chart-h');
+			head.appendChild(el('h3', null, meta.lab));
+			head.appendChild(el('p', null, 'Each bar runs from the smallest size to the largest. Click a model to see every size.'));
+			wrap.appendChild(head);
+			var axis = el('div', 'j5ac-crow j5ac-crow--axis');
+			axis.appendChild(el('span', 'j5ac-k', 'Model'));
+			var ax = el('div', 'j5ac-ctrack');
+			for (var v = 0; v <= max + 1e-9; v += step) { var t = el('span', 'j5ac-ctick', (meta.places ? v.toFixed(2) : fmt(Math.round(v * 100) / 100))); t.style.left = (v / max * 100) + '%'; ax.appendChild(t); }
+			axis.appendChild(ax);
+			axis.appendChild(el('span', 'j5ac-k', meta.unit ? meta.unit : ''));
+			wrap.appendChild(axis);
+			groups.forEach(function (g) {
+				if (g.title) { var gh = vhead(g, g.items.length); gh.classList.add('j5ac-vgroup--chart'); wrap.appendChild(gh); }
+				g.items.forEach(function (f) {
+					var r = f[meta.get];
+					var row = el('div', 'j5ac-crow' + (f.picked ? ' is-picked' : ''));
+					row.setAttribute('data-j5ac-item', f.key);
+					var nm = el('div', 'j5ac-cname');
+					nm.appendChild(vname(f));
+					var sub = el('div', 'j5ac-vsub');
+					sub.appendChild(el('span', 'j5ac-maker', f.d.manufacturer));
+					if (f.cert === 'yes') sub.appendChild(el('span', 'j5ac-tag j5ac-tag--ok', 'NIJ'));
+					nm.appendChild(sub);
+					row.appendChild(nm);
+					var tr = el('div', 'j5ac-ctrack');
+					tr.style.backgroundSize = (step / max * 100) + '% 100%';
+					if (r[0] === null) tr.appendChild(el('span', 'j5ac-na j5ac-cnone', 'not listed'));
+					else {
+						var bar = el('span', 'j5ac-cbar');
+						bar.style.left = (r[0] / max * 100) + '%';
+						bar.style.width = ((r[1] - r[0]) / max * 100) + '%';
+						bar.style.background = tierColor(f.d.specs.level);
+						tr.appendChild(bar);
+						var val = el('span', 'j5ac-cval', rangeText(r[0], r[1], meta.places, meta.unit));
+						val.style.left = 'calc(' + (r[1] / max * 100) + '% + 12px)';
+						if (r[1] / max > .78) { val.style.left = 'auto'; val.style.right = 'calc(' + (100 - r[0] / max * 100) + '% + 12px)'; }
+						tr.appendChild(val);
+					}
+					row.appendChild(tr);
+					var end = el('div', 'j5ac-cend');
+					end.appendChild(el('span', null, f.sizes.length > 1 ? f.sizes.length + ' sizes' : '1 size'));
+					end.appendChild(vstock(f));
+					row.appendChild(end);
+					wrap.appendChild(row);
+				});
+			});
+			box.appendChild(wrap);
+		}
+	};
+
 	Panel.prototype.renderCards = function () {
 		this.collapseFamilies();
+		this.renderView();
 		if (!this.cardList) return;
 		var self = this, cfg = this.config;
 		this.cardList.textContent = '';
