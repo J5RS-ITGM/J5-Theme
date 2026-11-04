@@ -597,7 +597,9 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 
 	$featured = function_exists( 'j5_armor_ref_featured_makers' ) ? j5_armor_ref_featured_makers( $cat ) : array();
 	$sgroups  = ( 'plate' === $cat && function_exists( 'j5_armor_ref_size_group_settings' ) ) ? j5_armor_ref_size_group_settings() : array( 'order' => array(), 'hidden' => array() );
-	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes, 'cards' => 'shield' === $cat, 'type_order' => $tset['order'], 'featured' => $featured, 'size_groups' => $sgroups, 'size_group_labels' => function_exists( 'j5_armor_ref_size_groups' ) ? j5_armor_ref_size_groups() : (object) array() );
+	$config = array( 'category' => $cat, 'label' => $feed['label'], 'fields' => $fields, 'eff' => $any_eff, 'sizes' => $any_sizes, 'cards' => 'shield' === $cat, 'type_order' => $tset['order'], 'featured' => $featured, 'size_groups' => $sgroups, 'size_group_labels' => function_exists( 'j5_armor_ref_size_groups' ) ? j5_armor_ref_size_groups() : (object) array(),
+		// J5-AC-EQUAL: how far apart coverage and weight can be before a model is marked "not an equal comparison" (0.2 = 20%).
+		'unequal' => apply_filters( 'j5_armor_ref_unequal_thresholds', array( 'size' => 0.2, 'weight' => 0.3 ), $cat ) );
 
 	// Sort options: the efficiency metric first where it exists, then every numeric field, then name.
 	$sorts = array();

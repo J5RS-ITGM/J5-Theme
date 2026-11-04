@@ -555,13 +555,22 @@
 			if (!groups[k]) { groups[k] = []; order.push(k); }
 			groups[k].push(tr);
 		});
-		var picked = this.picked, lockKey = null;
-		if (picked.length && this.config.category === 'plate') { var f = this.rowBySlug(picked[0]); if (f) lockKey = sizeKey(f.data); }
-		var self = this;
+		var picked = this.picked, self = this, sel = this.famSel || (this.famSel = {}), uneq = this.unequal || {};
+		// Shown size: a picked one, else the one the viewer chose on the listing, else the closest match to the
+		// picks, else 10 x 12, else SAPI Medium, else the first.
+		var pref = function (tr) { var z = sizeOf(tr._j5r.data); if (!z) return 2; if (z.key === '10x12') return 0; if (z.sub === 'SAPI Medium') return 1; return 2; };
 		order.forEach(function (k) {
 			var trs = groups[k], rep = null;
 			trs.forEach(function (tr) { if (!rep && picked.indexOf(tr.getAttribute('data-slug')) !== -1) rep = tr; });
-			if (!rep && lockKey) trs.forEach(function (tr) { if (!rep && sizeKey(self.rowByTr(tr).data) === lockKey) rep = tr; });
+			if (!rep && sel[k]) trs.forEach(function (tr) { if (!rep && tr.getAttribute('data-slug') === sel[k]) rep = tr; });
+			if (!rep) {
+				var best = null, bs = Infinity;
+				trs.forEach(function (tr) {
+					var sc = (picked.length ? (uneq[tr.getAttribute('data-slug')] || []).length * 10 : 0) + pref(tr);
+					if (sc < bs) { bs = sc; best = tr; }
+				});
+				rep = best;
+			}
 			if (!rep) rep = trs[0];
 			trs.forEach(function (tr) { if (tr !== rep) tr.classList.add('is-sib'); });
 		});
@@ -652,9 +661,20 @@
 		});
 		function sync() {
 			boxes.forEach(function (b) {
-				var on = self.picked.indexOf(b.m.data.slug) !== -1, locked = b.m.tr.classList.contains('is-locked') && !on;
+				var on = self.picked.indexOf(b.m.data.slug) !== -1, why = !on && self.unequal ? (self.unequal[b.m.data.slug] || []) : [];
 				var z = sizeOf(b.m.data), lab = b.m.data.manufacturer + ' ' + famName(b.m.data) + (z ? ' ' + (z.sub || z.label) : '');
-				var btn = cmpBtn(on, locked, lab);
+				var btn = cmpBtn(on, false, lab, why.length > 0);
+				b.td.parentNode.classList.toggle('is-unequal', why.length > 0);
+				if (b.whyRow) { b.whyRow.parentNode.removeChild(b.whyRow); b.whyRow = null; }
+				if (why.length) {
+					var wr = el('tr', 'j5ac-det-why'), wd = el('td');
+					wd.colSpan = b.td.parentNode.children.length;
+					wd.appendChild(el('strong', null, 'Not an equal comparison to your selected models. '));
+					wd.appendChild(document.createTextNode(why.join('  \u00b7  ')));
+					wr.appendChild(wd);
+					b.td.parentNode.parentNode.insertBefore(wr, b.td.parentNode.nextSibling);
+					b.whyRow = wr;
+				}
 				btn.addEventListener('click', function () {
 					var tcb = b.m.tr.querySelector('.j5ac-pick'), nowOn = self.picked.indexOf(b.m.data.slug) === -1;
 					tcb.checked = nowOn;
@@ -779,13 +799,13 @@
 			var sapi = sz.sub && SAPI_SHORT[sz.sub], cut = String(r.data.specs.cut || '');
 			var label = sapi ? 'SAPI' : (/shoot/i.test(cut) ? cut : '');
 			var name = sapi ? SAPI_SHORT[sz.sub] : sz.label.replace(' in', '');
-			if (idx[label] === undefined) { idx[label] = groups.length; groups.push({ label: label, sizes: [] }); }
+			if (idx[label] === undefined) { idx[label] = groups.length; groups.push({ label: label, sizes: [], items: [] }); }
 			var g = groups[idx[label]];
-			if (g.sizes.indexOf(name) === -1) g.sizes.push(name);
+			if (g.sizes.indexOf(name) === -1) { g.sizes.push(name); g.items.push({ n: name, slug: r.data.slug }); }
 		});
 		if (!groups.length) {
 			var list = d.specs.sizes ? String(d.specs.sizes).split(/[,\/;|]+/).map(function (x) { return x.trim(); }).filter(Boolean) : (d.specs.size ? [String(d.specs.size)] : []);
-			if (list.length) groups.push({ label: '', sizes: list });
+			if (list.length) groups.push({ label: '', sizes: list, items: list.map(function (n) { return { n: n, slug: null }; }) });
 		}
 		return groups;
 	}
@@ -858,6 +878,10 @@
 		this.viewBox.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t.closest) return;
+			var szb = t.closest('[data-j5ac-size]');
+			if (szb) { self.famSel = self.famSel || {}; self.famSel[szb.getAttribute('data-fam')] = szb.getAttribute('data-j5ac-size'); self.renderCards(); var again = self.viewBox.querySelector('[data-j5ac-size="' + szb.getAttribute('data-j5ac-size') + '"]'); if (again) again.focus(); return; }
+			var clr = t.closest('[data-j5ac-clearpicks]');
+			if (clr) { self.clearPicks(); return; }
 			var cmp = t.closest('[data-j5ac-cmp]');
 			if (cmp) { if (!cmp.disabled) self.toggleFam(cmp.getAttribute('data-j5ac-cmp'), cmp.getAttribute('data-slug')); return; }
 			var open = t.closest('[data-j5ac-fam]');
@@ -918,7 +942,11 @@
 			sizes: sizes, sgroups: sgroups, cuts: cuts, cut: cuts.join(' & '), cert: stepValue(d, 'nij'),
 			stock: d.carried ? (wc ? 'Sold by J5' : 'Quote from J5') : 'Reference only',
 			carried: !!d.carried, picked: picked,
-			locked: f.rep.tr.classList.contains('is-locked') && !picked
+			locked: false,
+			why: !picked && this.unequal ? (this.unequal[f.rep.data.slug] || []) : [],
+			shownLabel: (function () { var z = sizeOf(d); return z && z.w ? (z.sub || z.label.replace(' in', '')) : ''; })(),
+			shownW: num(d.specs.weight_lb),
+			shownEff: d.derived && typeof d.derived.oz_per_sqin === 'number' ? d.derived.oz_per_sqin : null
 		};
 	};
 
@@ -939,18 +967,18 @@
 	};
 
 	/** Compare pill: "+ Compare" / "✓ Comparing". */
-	function cmpBtn(on, locked, label) {
-		var b = el('button', 'j5ac-cmp' + (on ? ' is-on' : ''));
+	function cmpBtn(on, locked, label, anyway) {
+		var b = el('button', 'j5ac-cmp' + (on ? ' is-on' : '') + (anyway && !on ? ' is-anyway' : ''));
 		b.type = 'button';
 		b.setAttribute('aria-pressed', on ? 'true' : 'false');
 		b.setAttribute('aria-label', (on ? 'Remove from compare: ' : 'Compare ') + label);
 		b.appendChild(el('span', 'j5ac-cmp-i'));
-		b.appendChild(el('span', 'j5ac-cmp-t', on ? 'Comparing' : 'Compare'));
+		b.appendChild(el('span', 'j5ac-cmp-t', on ? 'Comparing' : (anyway ? 'Compare anyway' : 'Compare')));
 		if (locked) { b.disabled = true; b.title = 'Different size from your first pick. Clear the selection to compare this one.'; }
 		return b;
 	}
 	function vpick(f) {
-		var b = cmpBtn(f.picked, f.locked, f.d.manufacturer + ' ' + f.name);
+		var b = cmpBtn(f.picked, false, f.d.manufacturer + ' ' + f.name, f.why.length > 0);
 		b.setAttribute('data-j5ac-cmp', f.key);
 		b.setAttribute('data-slug', f.rep.data.slug);
 		return b;
@@ -968,10 +996,37 @@
 		f.sgroups.forEach(function (g) {
 			var c = el('div', 'j5ac-vchips');
 			if (g.label) c.appendChild(el('span', 'j5ac-vchips-l', g.label));
-			g.sizes.forEach(function (s) { c.appendChild(el('span', 'j5ac-vchip', s)); });
+			(g.items || g.sizes.map(function (n) { return { n: n, slug: null }; })).forEach(function (it) {
+				if (!it.slug || f.members.length < 2) { c.appendChild(el('span', 'j5ac-vchip' + (it.slug && it.slug === f.rep.data.slug && f.members.length > 1 ? ' is-on' : ''), it.n)); return; }
+				var b = el('button', 'j5ac-vchip' + (it.slug === f.rep.data.slug ? ' is-on' : ''), it.n);
+				b.type = 'button';
+				b.setAttribute('data-j5ac-size', it.slug);
+				b.setAttribute('data-fam', f.key);
+				b.setAttribute('aria-pressed', it.slug === f.rep.data.slug ? 'true' : 'false');
+				b.setAttribute('aria-label', 'Show ' + f.name + ' ' + it.n);
+				c.appendChild(b);
+			});
 			w.appendChild(c);
 		});
 		return w;
+	}
+	function vwhy(f) {
+		var p = el('p', 'j5ac-why');
+		p.appendChild(el('span', 'j5ac-why-i'));
+		p.appendChild(el('strong', null, 'Not an equal comparison to your selected models.'));
+		p.appendChild(el('span', 'j5ac-why-r', f.why.join('  \u00b7  ')));
+		return p;
+	}
+	function vweight(f) {
+		if (f.members.length < 2 || !f.shownLabel) return vkv('Weight', rangeText(f.weight[0], f.weight[1], undefined, 'lb'), 'is-strong');
+		var w = vkv('Weight \u00b7 ' + f.shownLabel, f.shownW !== null ? fmt(f.shownW) + ' lb' : null, 'is-strong');
+		var r = rangeText(f.weight[0], f.weight[1], undefined, 'lb');
+		if (r && f.weight[0] !== f.weight[1]) w.appendChild(el('span', 'j5ac-vsm', r + ', all sizes'));
+		return w;
+	}
+	function veff(f) {
+		if (f.members.length < 2 || !f.shownLabel) return vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3));
+		return vkv('Oz / sq in', f.shownEff !== null ? f.shownEff.toFixed(3) : null);
 	}
 	function vstock(f) { return el('span', 'j5ac-vstock' + (f.carried ? '' : ' is-ref'), f.stock); }
 	function vhead(g, count) {
@@ -993,6 +1048,16 @@
 		var box = this.viewBox;
 		box.textContent = '';
 		box.className = 'j5ac-view j5ac-view--' + view;
+		if (this.picked.length) {
+			var p0 = this.rowBySlug(this.picked[0]), bd = p0 ? p0.data : null, bsz = bd ? sizeOf(bd) : null;
+			var bar = el('div', 'j5ac-cmpbar'); bar.setAttribute('role', 'status');
+			bar.appendChild(el('span', 'j5ac-cmpbar-h', 'Comparing ' + this.picked.length));
+			var facts = bd ? [bd.specs.level, bd.specs.standard, bsz ? (bsz.sub || bsz.label) : null, bd.specs.weight_lb !== undefined ? fmt(bd.specs.weight_lb) + ' lb' : null].filter(Boolean).join(' \u00b7 ') : '';
+			bar.appendChild(el('span', 'j5ac-cmpbar-t', (facts ? facts + '. ' : '') + 'Models that differ in size, threat level, standard or weight are marked with the reason. You can still add them.'));
+			var cl = el('button', 'j5ac-cmpbar-x', 'Clear selection'); cl.type = 'button'; cl.setAttribute('data-j5ac-clearpicks', '');
+			bar.appendChild(cl);
+			box.appendChild(bar);
+		}
 		if (!fams.length) return;
 		var hasCert = !!this.fieldsByKey.nij_certified, hasCut = !!this.fieldsByKey.cut, hasStd = !!this.fieldsByKey.standard;
 
@@ -1001,7 +1066,7 @@
 				var sec = el('section', 'j5ac-vsec');
 				if (g.title) sec.appendChild(vhead(g, g.items.length));
 				g.items.forEach(function (f) {
-					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.locked ? ' is-locked' : ''));
+					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
 					row.setAttribute('data-j5ac-item', f.key);
 					var nm = el('div', 'j5ac-vname');
 					nm.appendChild(vname(f));
@@ -1016,11 +1081,12 @@
 					if (hasStd) specs.appendChild(vkv('Standard', f.d.specs.standard));
 					if (hasCert) specs.appendChild(vkv('NIJ certified', f.cert === 'yes' ? 'Yes' : (f.cert === 'no' ? 'No' : null), f.cert === 'yes' ? 'is-yes' : ''));
 					if (hasCut) specs.appendChild(vkv('Cut', f.cuts.length ? f.cuts.join(' &\n') : null, 'is-cut'));
-					specs.appendChild(vkv('Weight', rangeText(f.weight[0], f.weight[1], undefined, 'lb'), 'is-strong'));
-					if (cfg.eff) specs.appendChild(vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3)));
+					specs.appendChild(vweight(f));
+					if (cfg.eff) specs.appendChild(veff(f));
 					row.appendChild(specs);
 					row.appendChild(vsizes(f));
 					row.appendChild(vpick(f));
+					if (f.why.length) row.appendChild(vwhy(f));
 					sec.appendChild(row);
 				});
 				box.appendChild(sec);
@@ -1031,7 +1097,7 @@
 				if (g.title) sec.appendChild(vhead(g, g.items.length));
 				var grid = el('div', 'j5ac-vgrid');
 				g.items.forEach(function (f) {
-					var c = el('article', 'j5ac-vcard' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.locked ? ' is-locked' : ''));
+					var c = el('article', 'j5ac-vcard' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
 					c.setAttribute('data-j5ac-item', f.key);
 					if (f.d.image) { var im = el('img', 'j5ac-vcard-img'); im.src = f.d.image; im.alt = f.d.manufacturer + ' ' + f.name; im.loading = 'lazy'; c.appendChild(im); }
 					var body = el('div', 'j5ac-vcard-b');
@@ -1048,10 +1114,11 @@
 					if (f.cert === 'yes') tags.appendChild(el('span', 'j5ac-tag j5ac-tag--ok', 'NIJ certified'));
 					if (tags.firstChild) body.appendChild(tags);
 					var st = el('div', 'j5ac-vcard-stats');
-					st.appendChild(vkv('Weight', rangeText(f.weight[0], f.weight[1], undefined, 'lb'), 'is-strong'));
-					st.appendChild(cfg.eff ? vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3)) : vkv('Standard', f.d.specs.standard));
+					st.appendChild(vweight(f));
+					st.appendChild(cfg.eff ? veff(f) : vkv('Standard', f.d.specs.standard));
 					body.appendChild(st);
 					body.appendChild(vsizes(f));
+					if (f.why.length) body.appendChild(vwhy(f));
 					var foot = el('div', 'j5ac-vcard-foot');
 					foot.appendChild(vstock(f));
 					foot.appendChild(vpick(f));
@@ -1085,7 +1152,8 @@
 				if (g.title) { var gh = vhead(g, g.items.length); gh.classList.add('j5ac-vgroup--chart'); wrap.appendChild(gh); }
 				g.items.forEach(function (f) {
 					var r = f[meta.get];
-					var row = el('div', 'j5ac-crow' + (f.picked ? ' is-picked' : ''));
+					var row = el('div', 'j5ac-crow' + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
+					if (f.why.length) row.title = 'Not an equal comparison to your selected models. ' + f.why.join('. ');
 					row.setAttribute('data-j5ac-item', f.key);
 					var nm = el('div', 'j5ac-cname');
 					nm.appendChild(vname(f));
@@ -1301,18 +1369,45 @@
 		});
 	}
 
+	/**
+	 * J5-AC-EQUAL: nothing is locked any more. Every model that differs from the picked ones in
+	 * coverage (more than 20%), protection level, test standard or weight (more than 30%) is marked
+	 * with the reasons, and can still be compared ("Compare anyway").
+	 */
 	Panel.prototype.lockSizes = function () {
-		var first = this.picked.length ? this.rowBySlug(this.picked[0]) : null;
-		var key = first && this.config.category === 'plate' ? sizeKey(first.data) : null;
+		var self = this, picks = this.picked.slice(0, 1).map(this.rowBySlug, this).filter(Boolean).map(function (r) { return r.data; }); // the first pick is the reference
+		this.unequal = {};
 		this.rows.forEach(function (row) {
-			var lock = key !== null && sizeKey(row.data) !== key;
-			row.tr.classList.toggle('is-locked', lock);
+			var why = picks.length && self.picked.indexOf(row.data.slug) === -1 ? unequalReasons(row.data, picks, self.config.unequal) : [];
+			if (why.length) self.unequal[row.data.slug] = why;
+			row.tr.classList.toggle('is-unequal', why.length > 0);
+			row.tr.classList.remove('is-locked');
 			var cb = row.tr.querySelector('.j5ac-pick');
-			cb.disabled = lock;
-			cb.title = lock ? 'Different size from your first pick. Clear the selection to compare this one.' : '';
+			cb.disabled = false;
+			cb.title = why.length ? 'Not an equal comparison to your selected models. ' + why.join('. ') : '';
 		});
-		return key;
+		return null;
 	};
+	function sizeName(sz) { return sz.sub ? sz.sub + ' (' + sz.label + ')' : sz.label; }
+	function unequalReasons(d, picks, th) {
+		th = th || {};
+		var sizeT = th.size !== undefined ? th.size : 0.2, wT = th.weight !== undefined ? th.weight : 0.3;
+		var out = [], seen = {}, sz = sizeOf(d), w = num(d.specs.weight_lb);
+		var add = function (k, t) { if (!seen[k]) { seen[k] = 1; out.push(t); } };
+		picks.forEach(function (p) {
+			var ps = sizeOf(p), pw = num(p.specs.weight_lb);
+			if (sz && ps && sz.w && ps.w) {
+				var a = sz.w * sz.h, b = ps.w * ps.h;
+				if (Math.max(a, b) / Math.min(a, b) - 1 > sizeT) add('size', 'Size: ' + sizeName(sz) + ' vs your ' + sizeName(ps));
+			}
+			if (d.specs.level && p.specs.level && String(d.specs.level) !== String(p.specs.level)) add('level', 'Threat level: ' + d.specs.level + ' vs your ' + p.specs.level);
+			if (d.specs.standard && p.specs.standard && String(d.specs.standard) !== String(p.specs.standard)) add('std', 'Standard: ' + d.specs.standard + ' vs your ' + p.specs.standard);
+			if (w && pw && Math.abs(w - pw) / Math.min(w, pw) > wT) {
+				add('wt', 'Weight: ' + fmt(w) + ' lb vs your ' + fmt(pw) + ' lb, ' + Math.round(Math.abs(w - pw) / pw * 100) + '% ' + (w < pw ? 'lighter' : 'heavier'));
+			}
+		});
+		return out;
+	}
 
 	Panel.prototype.rowBySlug = function (slug) {
 		for (var i = 0; i < this.rows.length; i++) if (this.rows[i].data.slug === slug) return this.rows[i];
@@ -1335,11 +1430,8 @@
 		if (row) row.tr.classList.toggle('is-picked', on);
 		var key = this.lockSizes();
 		this.renderCards();
-		var first = this.picked.length ? this.rowBySlug(this.picked[0]).data : null;
-		var fsz = first ? sizeOf(first) : null;
-		var sizeText = fsz && key ? fsz.label + (fsz.sub ? ', ' + fsz.sub : '') : '';
 		this.hint.textContent = this.picked.length
-			? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Check up to ' + MAX_PICK + (sizeText ? ', same size only (' + sizeText + ').' : '.') : 'Comparing ' + MAX_PICK + '.')
+			? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Add up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.')
 			: 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = this.picked.length === 0;
 		this.compare(on && this.picked.length === 1);
