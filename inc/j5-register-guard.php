@@ -30,7 +30,7 @@ const J5RG_PER_HOUR    = 3;
 add_action( 'woocommerce_register_form', function () {
 	$t = time();
 	?>
-	<div class="j5rg-trap" aria-hidden="true">
+	<div class="j5rg-trap" aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
 		<label for="j5rg_website">Leave this field empty</label>
 		<input type="text" name="j5rg_website" id="j5rg_website" value="" tabindex="-1" autocomplete="off">
 	</div>

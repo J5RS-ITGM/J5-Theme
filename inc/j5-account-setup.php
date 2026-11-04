@@ -31,7 +31,7 @@ function j5_account_is_my_account_page() {
 add_action( 'wp_enqueue_scripts', function () {
         if ( ! j5_account_is_my_account_page() ) { return; }
 
-        $version = '2.0.0';
+        $version = (string) filemtime( get_stylesheet_directory() . '/assets/css/j5-account.css' ); // auto cache-bust (was a fixed '2.0.0', so CSS changes never reached browsers)
 
         $deps = array();
         foreach ( array( 'woocommerce-general', 'woocommerce-layout' ) as $handle ) {

@@ -93,7 +93,7 @@ function j5_cart_checkout_enqueue_assets() {
 		'j5-shop',
 		get_stylesheet_directory_uri() . '/assets/css/j5-shop.css',
 		array(),
-		'1.0.0'
+		(string) filemtime( get_stylesheet_directory() . '/assets/css/j5-shop.css' )
 	);
 
 	// Shop chrome part 2 — header/nav component styles live in j5-home.css
@@ -104,7 +104,7 @@ function j5_cart_checkout_enqueue_assets() {
 		'j5-home',
 		get_stylesheet_directory_uri() . '/assets/css/j5-home.css',
 		array(),
-		'1.0.0'
+		(string) filemtime( get_stylesheet_directory() . '/assets/css/j5-home.css' )
 	);
 
 	// Our cart/checkout-specific overrides + components
