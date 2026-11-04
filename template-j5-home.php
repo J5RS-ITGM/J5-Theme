@@ -24,6 +24,21 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
+ * J5-HERO-THANKSGIVING (2026-11-04): Thanksgiving hero photo + headline + gold
+ * line, on through Thanksgiving Day (11-26, site time), then the standard hero
+ * comes back on its own.
+ *   wp option update j5_home_hero_image standard   <- turn it off early
+ */
+if ( ! function_exists( 'j5_home_is_thanksgiving' ) ) {
+	function j5_home_is_thanksgiving() {
+		if ( 'thanksgiving' !== (string) get_option( 'j5_home_hero_image', 'thanksgiving' ) ) {
+			return false;
+		}
+		return current_time( 'm-d' ) <= '11-26';
+	}
+}
+
+/**
  * Preserve the legacy body class `j5-home-template` so the existing
  * assets/css/j5-home.css styles (which scope everything under
  * `body.j5-home-template`) still match. Without this, hero + LE banner +
@@ -43,7 +58,7 @@ add_filter( 'body_class', function ( $classes ) {
 		if ( 'classic' !== $style ) {
 			$classes[] = 'j5-hero-photo';
 			// Which photo: wp option update j5_home_hero_image thanksgiving|standard
-			if ( 'thanksgiving' === (string) get_option( 'j5_home_hero_image', 'thanksgiving' ) ) {
+			if ( j5_home_is_thanksgiving() ) {
 				$classes[] = 'j5-hero-img-thanksgiving';
 			}
 		}
@@ -130,8 +145,13 @@ get_header();
 
 			<div>
 				<h1 class="j5-hero-title">
+					<?php if ( j5_home_is_thanksgiving() ) : /* J5-HERO-THANKSGIVING */ ?>
+					WE&rsquo;RE THANKFUL<br/>FOR GOOD GEAR.<br/>
+					<span class="j5-hero-sub2">Stock up before the holiday season!</span>
+					<?php else : ?>
 					MISSION-READY GEAR.<br/>
 					<span class="j5-hero-sub2">Armor. Medical. Tactical.</span>
+					<?php endif; ?>
 				</h1>
 				<p class="j5-hero-desc">
 					Specially curated medical, rescue, and tactical equipment.
