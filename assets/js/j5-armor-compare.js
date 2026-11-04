@@ -369,6 +369,15 @@
 		});
 		this.syncOutputs();
 
+		this.tbody.addEventListener('click', function (e) {
+			var t = e.target;
+			if (!t.closest) return;
+			var open = t.closest('[data-j5ac-open]');
+			if (!open && t.closest('input, a, button, label, select')) return;
+			var tr = t.closest('tr[data-row]');
+			if (!tr) return;
+			self.openDetail(tr.getAttribute('data-fam') || tr.getAttribute('data-slug'), open || tr.querySelector('[data-j5ac-open]'));
+		});
 		this.tbody.addEventListener('change', function (e) {
 			if (!e.target.classList.contains('j5ac-pick')) return;
 			self.pick(e.target.value, e.target.checked, e.target);
@@ -528,7 +537,191 @@
 		return best;
 	}
 
+	/**
+	 * J5-AC-FAMILY: one table row per listing. Of the sizes that pass the filters, show a picked one,
+	 * else one matching the compare lock size, else the first in sort order. The rest are hidden siblings.
+	 */
+	Panel.prototype.collapseFamilies = function () {
+		var groups = {}, order = [], total = {};
+		Array.prototype.forEach.call(this.tbody.querySelectorAll('tr[data-row]'), function (tr) {
+			var k = tr.getAttribute('data-fam') || tr.getAttribute('data-slug');
+			total[k] = 1;
+			tr.classList.remove('is-sib');
+			if (tr.classList.contains('is-hidden')) return;
+			if (!groups[k]) { groups[k] = []; order.push(k); }
+			groups[k].push(tr);
+		});
+		var picked = this.picked, lockKey = null;
+		if (picked.length && this.config.category === 'plate') { var f = this.rowBySlug(picked[0]); if (f) lockKey = sizeKey(f.data); }
+		var self = this;
+		order.forEach(function (k) {
+			var trs = groups[k], rep = null;
+			trs.forEach(function (tr) { if (!rep && picked.indexOf(tr.getAttribute('data-slug')) !== -1) rep = tr; });
+			if (!rep && lockKey) trs.forEach(function (tr) { if (!rep && sizeKey(self.rowByTr(tr).data) === lockKey) rep = tr; });
+			if (!rep) rep = trs[0];
+			trs.forEach(function (tr) { if (tr !== rep) tr.classList.add('is-sib'); });
+		});
+		this.count.textContent = order.length + ' of ' + Object.keys(total).length;
+	};
+	Panel.prototype.rowByTr = function (tr) {
+		for (var i = 0; i < this.rows.length; i++) if (this.rows[i].tr === tr) return this.rows[i];
+		return null;
+	};
+
+	/** Detail overlay for one listing: key specs, every size with its weight, the spec sheet, buy or quote. */
+	Panel.prototype.openDetail = function (famKey, opener) {
+		var self = this, cfg = this.config, root = this.root;
+		var members = this.rows.filter(function (r) { return (r.tr.getAttribute('data-fam') || r.tr.getAttribute('data-slug')) === famKey; });
+		if (!members.length) return;
+		members.sort(function (a, b) { var x = sizeSortKey(a.data), y = sizeSortKey(b.data); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+		var first = members[0].data, quote = root.getAttribute('data-quote') || '/request-a-quote/';
+
+		var modal = root.querySelector('[data-j5ac-detail]');
+		if (!modal) {
+			modal = el('div', 'j5ac-modal j5ac-detail'); modal.setAttribute('data-j5ac-detail', ''); modal.hidden = true;
+			var box0 = el('div', 'j5ac-modal-box j5ac-detail-box');
+			box0.setAttribute('role', 'dialog'); box0.setAttribute('aria-modal', 'true'); box0.setAttribute('aria-labelledby', 'j5ac-detail-title'); box0.tabIndex = -1;
+			modal.appendChild(box0);
+			root.appendChild(modal);
+			modal.addEventListener('click', function (e) { if (e.target === modal) closeDetail(root); });
+			document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) closeDetail(root); });
+		}
+		var box = modal.firstChild;
+		box.textContent = '';
+		var x = el('button', 'j5ac-modal-x', '\u00d7'); x.type = 'button'; x.setAttribute('aria-label', 'Close');
+		x.addEventListener('click', function () { closeDetail(root); });
+		box.appendChild(x);
+
+		// Header
+		var head = el('div', 'j5ac-det-head');
+		if (first.image) { var im = el('img', 'j5ac-det-img'); im.src = first.image; im.alt = famName(first); im.loading = 'lazy'; head.appendChild(im); }
+		var ht = el('div', 'j5ac-det-title');
+		var h = el('h3', null, members.length > 1 ? famName(first) : first.model); h.id = 'j5ac-detail-title';
+		ht.appendChild(h);
+		ht.appendChild(el('p', 'j5ac-maker', first.manufacturer));
+		var badges = el('div', 'j5ac-det-badges');
+		if (first.specs.level) badges.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(first.specs.level), first.specs.level));
+		var cert = stepValue(first, 'nij');
+		if (cert) badges.appendChild(el('span', 'j5ac-tag' + (cert === 'yes' ? ' j5ac-tag--ok' : ''), cert === 'yes' ? 'NIJ certified' : 'Not NIJ certified'));
+		if (first.specs.standalone) badges.appendChild(el('span', 'j5ac-tag', first.specs.standalone));
+		if (first.carried) badges.appendChild(el('span', 'j5ac-stock', first.wc ? 'Sold by J5' : 'Quote from J5'));
+		ht.appendChild(badges);
+		head.appendChild(ht);
+		box.appendChild(head);
+
+		// Which fields differ between sizes: those go in the sizes table, the rest in the spec list.
+		var perSize = { size: 1, width_in: 1, height_in: 1, weight_lb: 1, sizes: 1 };
+		var varies = {};
+		cfg.fields.forEach(function (f) {
+			var seen = {};
+			members.forEach(function (m) { var v = fmt(m.data.specs[f.key], f); if (v !== null) seen[v] = 1; });
+			if (Object.keys(seen).length > 1) varies[f.key] = f;
+		});
+
+		// Sizes
+		var sec1 = el('section', 'j5ac-det-sec');
+		sec1.appendChild(el('h4', null, members.length > 1 ? members.length + ' sizes' : 'Size'));
+		var wrap = el('div', 'j5ac-det-tw'), t = el('table', 'j5ac-det-table'), th = el('thead'), hr = el('tr');
+		var extra = Object.keys(varies).filter(function (k) { return !perSize[k]; });
+		var heads = ['Size', 'Weight'].concat(cfg.eff ? ['Oz / sq in', 'Coverage'] : []).concat(extra.map(function (k) { return varies[k].label; })).concat(['Compare']);
+		heads.forEach(function (lab) { var c = el('th', null, lab); c.scope = 'col'; hr.appendChild(c); });
+		th.appendChild(hr); t.appendChild(th);
+		var tb = el('tbody'), boxes = [];
+		members.forEach(function (m) {
+			var d = m.data, tr = el('tr'), sz = sizeOf(d);
+			var c0 = el('td'); c0.textContent = sz ? sz.label : (d.specs.sizes || d.model); if (sz && sz.sub) c0.appendChild(el('small', null, ' ' + sz.sub));
+			tr.appendChild(c0);
+			tr.appendChild(el('td', null, fmt(d.specs.weight_lb, { unit: 'lb' }) || 'not listed'));
+			if (cfg.eff) {
+				tr.appendChild(el('td', null, d.derived && typeof d.derived.oz_per_sqin === 'number' ? d.derived.oz_per_sqin.toFixed(3) : '\u2014'));
+				tr.appendChild(el('td', null, d.derived && d.derived.area_sqin ? fmt(d.derived.area_sqin) + ' sq in' : '\u2014'));
+			}
+			extra.forEach(function (k) { tr.appendChild(el('td', null, fmt(d.specs[k], varies[k]) || '\u2014')); });
+			var cc = el('td'), lab = el('label', 'j5ac-check'), cb = el('input');
+			cb.type = 'checkbox'; cb.checked = self.picked.indexOf(d.slug) !== -1;
+			cb.setAttribute('aria-label', 'Compare ' + d.manufacturer + ' ' + d.model);
+			cb.addEventListener('change', function () {
+				var tcb = m.tr.querySelector('.j5ac-pick'); tcb.checked = cb.checked;
+				self.pick(d.slug, cb.checked, tcb);
+				sync();
+			});
+			lab.appendChild(cb); lab.appendChild(el('span', null, 'Compare')); cc.appendChild(lab); tr.appendChild(cc);
+			boxes.push({ cb: cb, m: m });
+			tb.appendChild(tr);
+		});
+		function sync() {
+			boxes.forEach(function (b) {
+				b.cb.checked = self.picked.indexOf(b.m.data.slug) !== -1;
+				b.cb.disabled = b.m.tr.classList.contains('is-locked') && !b.cb.checked;
+				b.cb.parentNode.title = b.cb.disabled ? 'Different size from your first pick. Clear the selection to compare this one.' : '';
+			});
+		}
+		sync();
+		t.appendChild(tb); wrap.appendChild(t); sec1.appendChild(wrap);
+		box.appendChild(sec1);
+
+		// Specifications (same for every size)
+		var specs = [];
+		cfg.fields.forEach(function (f) {
+			if (perSize[f.key] || varies[f.key] || f.key === 'level' || f.key === 'standalone' || f.key === 'nij_certified') return;
+			var v = fmt(first.specs[f.key], f);
+			if (v !== null) specs.push([f.label, v]);
+		});
+		if (specs.length) {
+			var sec2 = el('section', 'j5ac-det-sec');
+			sec2.appendChild(el('h4', null, 'Specifications'));
+			var dl = el('dl', 'j5ac-det-specs');
+			specs.forEach(function (p) { dl.appendChild(el('dt', null, p[0])); dl.appendChild(el('dd', null, p[1])); });
+			sec2.appendChild(dl);
+			box.appendChild(sec2);
+		}
+
+		// Spec sheet(s)
+		var sheets = {}, sheetOrder = [];
+		members.forEach(function (m) { var sh = m.data.sheet; if (sh && sh.url && !sheets[sh.url]) { sheets[sh.url] = { sh: sh, sizes: [] }; sheetOrder.push(sh.url); } if (sh && sh.url) { var z = sizeOf(m.data); sheets[sh.url].sizes.push(z ? z.label.replace(' in', '') : m.data.model); } });
+		var sec3 = el('section', 'j5ac-det-sec');
+		sec3.appendChild(el('h4', null, 'Spec sheet'));
+		if (!sheetOrder.length) sec3.appendChild(el('p', 'j5ac-na', 'Spec sheet not on file.'));
+		sheetOrder.forEach(function (u) {
+			var s0 = sheets[u], pr = el('p', 'j5ac-det-sheet');
+			var a = el('a', 'j5ac-btn j5ac-btn--sheet', sheetOrder.length > 1 ? 'Spec sheet: ' + s0.sizes.join(', ') : 'Open spec sheet (PDF)');
+			a.href = u; a.target = '_blank'; a.rel = 'noopener';
+			pr.appendChild(a);
+			pr.appendChild(el('span', null, first.manufacturer + (s0.sh.pulled_at ? ', pulled ' + s0.sh.pulled_at : '')));
+			sec3.appendChild(pr);
+		});
+		box.appendChild(sec3);
+
+		// Buy, quote, or reference only
+		var act = el('div', 'j5ac-det-actions');
+		var wc = null; members.forEach(function (m) { if (!wc && m.data.wc) wc = m.data.wc; });
+		if (wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = wc; act.appendChild(buy); }
+		else if (first.carried) {
+			var q = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote');
+			q.href = quote + (quote.indexOf('?') === -1 ? '?' : '&') + 'item=' + encodeURIComponent(first.manufacturer + ' ' + famName(first)) + '&ref=armor-compare';
+			act.appendChild(q);
+		} else act.appendChild(el('p', 'j5ac-card-nocarry', 'Reference only. Not a J5 product.'));
+		var rp = el('button', 'j5ac-report', 'Report incorrect information'); rp.type = 'button';
+		rp.addEventListener('click', function () { closeDetail(root); openReport(root, cfg.category, first); });
+		act.appendChild(rp);
+		box.appendChild(act);
+
+		modal._opener = opener || null;
+		modal.hidden = false;
+		document.body.classList.add('j5ac-modal-open');
+		box.scrollTop = 0;
+		x.focus();
+	};
+	function closeDetail(root) {
+		var modal = root.querySelector('[data-j5ac-detail]');
+		if (!modal || modal.hidden) return;
+		modal.hidden = true;
+		document.body.classList.remove('j5ac-modal-open');
+		if (modal._opener && modal._opener.focus) modal._opener.focus();
+	}
+
 	Panel.prototype.renderCards = function () {
+		this.collapseFamilies();
 		if (!this.cardList) return;
 		var self = this, cfg = this.config;
 		this.cardList.textContent = '';

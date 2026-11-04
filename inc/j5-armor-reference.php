@@ -418,6 +418,55 @@ function j5_armor_ref_size_display( array $specs ) {
 	return $name ? $out . ' <small class="j5ac-sapi">' . esc_html( $name ) . '</small>' : $out;
 }
 
+/** Listing key: the DP family slug, else manufacturer + family name, else the model itself. */
+function j5_armor_ref_fam_key( array $m ) {
+	if ( ! empty( $m['family_slug'] ) ) return $m['family_slug'];
+	if ( ! empty( $m['family'] ) ) return sanitize_title( $m['manufacturer'] . '-' . $m['family'] );
+	return 'm-' . $m['slug'];
+}
+
+/** Members of a listing, smallest first (height, then width, then weight). */
+function j5_armor_ref_fam_sorted( array $fam ) {
+	usort( $fam, function ( $a, $b ) {
+		$da = j5_armor_ref_dims( $a['specs'] ) ?: array( 0, 0 ); $db = j5_armor_ref_dims( $b['specs'] ) ?: array( 0, 0 );
+		if ( $da[1] != $db[1] ) return $da[1] <=> $db[1];
+		if ( $da[0] != $db[0] ) return $da[0] <=> $db[0];
+		$wa = isset( $a['specs']['weight_lb'] ) ? (float) j5_armor_ref_num( $a['specs']['weight_lb'] ) : 0; $wb = isset( $b['specs']['weight_lb'] ) ? (float) j5_armor_ref_num( $b['specs']['weight_lb'] ) : 0;
+		return $wa <=> $wb;
+	} );
+	return $fam;
+}
+
+/** Table cell for a listing with several sizes, or null to show the row's own value. Returns HTML. */
+function j5_armor_ref_fam_cell( array $fam, array $f ) {
+	$fam = j5_armor_ref_fam_sorted( $fam );
+	if ( 'size' === $f['key'] || '_size' === $f['key'] ) {
+		$list = array();
+		foreach ( $fam as $o ) { $dims = j5_armor_ref_dims( $o['specs'] ); $list[] = $dims ? j5_armor_ref_fmt( $dims[0] ) . ' x ' . j5_armor_ref_fmt( $dims[1] ) : ( isset( $o['specs']['size'] ) ? (string) $o['specs']['size'] : '' ); }
+		$list = array_values( array_unique( array_filter( $list ) ) );
+		if ( count( $list ) < 2 ) return null;
+		return '<span class="j5ac-sizes"><span class="j5ac-sizes-n">' . count( $list ) . ' sizes</span> ' . esc_html( implode( ', ', $list ) ) . ' in</span>';
+	}
+	if ( 'number' === $f['type'] ) {
+		$nums = array();
+		foreach ( $fam as $o ) if ( isset( $o['specs'][ $f['key'] ] ) && null !== j5_armor_ref_num( $o['specs'][ $f['key'] ] ) ) $nums[] = (float) j5_armor_ref_num( $o['specs'][ $f['key'] ] );
+		if ( ! $nums || min( $nums ) === max( $nums ) ) return null;
+		$unit = 'weight_lb' === $f['key'] ? ' lb' : ( ! empty( $f['unit'] ) ? ' ' . $f['unit'] : '' );
+		return esc_html( j5_armor_ref_fmt( min( $nums ) ) . "\u{2013}" . j5_armor_ref_fmt( max( $nums ) ) . $unit );
+	}
+	$vals = array();
+	foreach ( $fam as $o ) if ( isset( $o['specs'][ $f['key'] ] ) ) $vals[ j5_armor_ref_fmt( $o['specs'][ $f['key'] ] ) ] = true;
+	return count( $vals ) > 1 ? '<span class="j5ac-na">Varies by size</span>' : null;
+}
+
+/** Oz per sq in across a listing's sizes ("0.112–0.120"), or null when they all match. */
+function j5_armor_ref_fam_eff( array $fam ) {
+	$nums = array();
+	foreach ( $fam as $o ) { $d = j5_armor_ref_derived( $o['specs'] ); if ( isset( $d['oz_per_sqin'] ) ) $nums[] = $d['oz_per_sqin']; }
+	if ( count( $nums ) < 2 || min( $nums ) === max( $nums ) ) return null;
+	return number_format( min( $nums ), 3 ) . "\u{2013}" . number_format( max( $nums ), 3 );
+}
+
 /** Display string for a spec value. */
 function j5_armor_ref_fmt( $v, $field = null ) {
 	if ( is_bool( $v ) ) return $v ? 'Yes' : 'No';
@@ -682,7 +731,6 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 						<th scope="col">Model</th>
 						<?php foreach ( $cols as $f ) : ?><th scope="col"<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?>><?php echo esc_html( $f['label'] ); ?></th><?php endforeach; ?>
 						<?php if ( $any_eff ) : ?><th scope="col" class="is-num">Oz / sq in</th><?php endif; ?>
-						<?php if ( $any_sizes ) : ?><th scope="col" class="is-num">Sizes</th><?php endif; ?>
 						<th scope="col" class="j5ac-th--sheet">Sheet</th>
 					</tr>
 				</thead>
@@ -699,24 +747,32 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 						}
 						return strcasecmp( $a['manufacturer'] . ' ' . $a['model'], $b['manufacturer'] . ' ' . $b['model'] );
 					} );
+					// J5-AC-FAMILY: one visible row per listing (family); the JS shows the best-matching size and hides the rest.
+					$fams = array();
+					foreach ( $models as $m ) $fams[ j5_armor_ref_fam_key( $m ) ][] = $m;
 					foreach ( $models as $m ) :
+						$fk   = j5_armor_ref_fam_key( $m );
+						$fam  = $fams[ $fk ];
+						$many = count( $fam ) > 1;
 						$d  = j5_armor_ref_derived( $m['specs'] );
 						$sz = j5_armor_ref_sizes( $m, $models );
 						if ( $sz ) { $d['size_count'] = $sz['count']; $d['size_list'] = implode( ', ', $sz['list'] ); }
 						$row = array( 'slug' => $m['slug'], 'model' => $m['model'], 'manufacturer' => $m['manufacturer'], 'specs' => (object) $m['specs'], 'derived' => (object) $d, 'sheet' => $m['spec_sheet'], 'wc' => $m['wc_product_url'], 'carried' => $m['carried'], 'family' => $m['family'], 'fslug' => isset( $m['family_slug'] ) ? $m['family_slug'] : $m['slug'], 'image' => isset( $m['image'] ) ? $m['image'] : '' );
 						?>
-						<tr data-slug="<?php echo esc_attr( $m['slug'] ); ?>" data-row="<?php echo esc_attr( wp_json_encode( $row, JSON_UNESCAPED_SLASHES ) ); ?>"<?php echo $m['carried'] ? ' class="is-carried"' : ''; ?>>
+						<tr data-slug="<?php echo esc_attr( $m['slug'] ); ?>" data-fam="<?php echo esc_attr( $fk ); ?>" data-row="<?php echo esc_attr( wp_json_encode( $row, JSON_UNESCAPED_SLASHES ) ); ?>"<?php echo $m['carried'] ? ' class="is-carried"' : ''; ?>>
 							<td class="j5ac-td--pick"><input type="checkbox" class="j5ac-pick" value="<?php echo esc_attr( $m['slug'] ); ?>" aria-label="Compare <?php echo esc_attr( $m['manufacturer'] . ' ' . $m['model'] ); ?>"></td>
 							<th scope="row" class="j5ac-td--model">
-								<span class="j5ac-model"><?php echo esc_html( $m['model'] ); ?></span>
+								<button type="button" class="j5ac-model j5ac-open" data-j5ac-open aria-haspopup="dialog"><?php echo esc_html( $many && $m['family'] ? $m['family'] : $m['model'] ); ?></button>
 								<span class="j5ac-maker"><?php echo esc_html( $m['manufacturer'] ); ?><?php if ( $tag_standalone && ! empty( $m['specs']['standalone'] ) ) : ?> <span class="j5ac-tag"><?php echo esc_html( $m['specs']['standalone'] ); ?></span><?php endif; ?><?php if ( $m['carried'] ) : ?> <span class="j5ac-stock"><?php echo $m['wc_product_url'] ? 'Sold by J5' : 'Quote from J5'; ?></span><?php endif; ?></span>
 							</th>
 							<?php foreach ( $cols as $f ) :
 								$v = '_size' === $f['key'] ? ( j5_armor_ref_dims( $m['specs'] ) ? true : null ) : ( isset( $m['specs'][ $f['key'] ] ) ? $m['specs'][ $f['key'] ] : null ); ?>
-								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php echo null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : ( 'size' === $f['key'] || '_size' === $f['key'] ? j5_armor_ref_size_display( $m['specs'] ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ) ); ?></td>
+								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php
+									$fcell = $many ? j5_armor_ref_fam_cell( $fam, $f ) : null;
+									echo null !== $fcell ? $fcell : ( null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : ( 'size' === $f['key'] || '_size' === $f['key'] ? j5_armor_ref_size_display( $m['specs'] ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ) ) );
+								?></td>
 							<?php endforeach; ?>
-							<?php if ( $any_eff ) : ?><td class="is-num j5ac-td--eff" data-label="Oz / sq in"><?php echo isset( $d['oz_per_sqin'] ) ? esc_html( number_format( $d['oz_per_sqin'], 3 ) ) : '<span class="j5ac-na">not listed</span>'; ?></td><?php endif; ?>
-							<?php if ( $any_sizes ) : ?><td class="is-num" data-label="Sizes"><?php echo $sz ? '<span title="' . esc_attr( $d['size_list'] ) . '">' . (int) $sz['count'] . '</span>' : '1'; ?></td><?php endif; ?>
+							<?php if ( $any_eff ) : ?><td class="is-num j5ac-td--eff" data-label="Oz / sq in"><?php $feff = $many ? j5_armor_ref_fam_eff( $fam ) : null; echo null !== $feff ? esc_html( $feff ) : ( isset( $d['oz_per_sqin'] ) ? esc_html( number_format( $d['oz_per_sqin'], 3 ) ) : '<span class="j5ac-na">not listed</span>' ); ?></td><?php endif; ?>
 							<td class="j5ac-td--sheet"><?php if ( $m['spec_sheet']['url'] ) : ?><a href="<?php echo esc_url( $m['spec_sheet']['url'] ); ?>" target="_blank" rel="noopener">PDF</a><?php endif; ?> <button type="button" class="j5ac-report" data-j5ac-report="<?php echo esc_attr( $m['slug'] ); ?>" title="Report incorrect information">Report</button></td>
 						</tr>
 					<?php endforeach; ?>
