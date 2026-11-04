@@ -13,20 +13,37 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 
 /**
+ * Category link by term ID or slug, shop page if the term is missing.
+ * Shared with template-j5-home.php (same function_exists guard there).
+ */
+if ( ! function_exists( 'j5_home_cat_url' ) ) {
+	function j5_home_cat_url( $term ) {
+		$t = is_numeric( $term ) ? get_term( (int) $term, 'product_cat' ) : get_term_by( 'slug', (string) $term, 'product_cat' );
+		if ( $t && ! is_wp_error( $t ) ) {
+			$link = get_term_link( $t );
+			if ( ! is_wp_error( $link ) ) {
+				return $link;
+			}
+		}
+		return function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+	}
+}
+
+/**
  * Returns a deterministic list of top-level category links for the
  * mobile drawer. Mirrors the homepage card list so the two stay in sync.
  */
 function j5_mobile_archive_nav_items() {
     return array(
-        array( 'name' => 'Ballistic Armor',     'url' => site_url( '/armor/' ) ),
-        array( 'name' => 'Nylon Gear',          'url' => site_url( '/nylon-gear/' ) ),
-        array( 'name' => 'Accessories & Tools', 'url' => site_url( '/tools-knives/' ) ),
-        array( 'name' => 'Med Kit Supplies',    'url' => site_url( '/medical/' ) ),
-        array( 'name' => 'Medical Bags',        'url' => site_url( '/bags-cases/' ) ),
-        array( 'name' => 'Optics',              'url' => site_url( '/optics-weapon-accessories/' ) ),
-        array( 'name' => 'Less-Lethal',         'url' => site_url( '/less-lethal/' ) ),
-        array( 'name' => 'Lights',              'url' => site_url( '/lights/' ) ),
-        array( 'name' => 'Firearms Parts',      'url' => site_url( '/firearms-parts/' ) ),
+        array( 'name' => 'Ballistic Armor',     'url' => j5_home_cat_url( 256 ) ),
+        array( 'name' => 'Nylon Gear',          'url' => j5_home_cat_url( 950 ) ),
+        array( 'name' => 'Accessories & Tools', 'url' => j5_home_cat_url( 'tools-knives' ) ),
+        array( 'name' => 'Med Kit Supplies',    'url' => j5_home_cat_url( 'medical' ) ),
+        array( 'name' => 'Medical Bags',        'url' => j5_home_cat_url( 343 ) ),
+        array( 'name' => 'Optics',              'url' => j5_home_cat_url( 321 ) ),
+        array( 'name' => 'Less-Lethal',         'url' => j5_home_cat_url( 'less-lethal' ) ),
+        array( 'name' => 'Lights',              'url' => j5_home_cat_url( 'lights' ) ),
+        array( 'name' => 'Firearms Parts',      'url' => j5_home_cat_url( 1060 ) ),
         array( 'name' => 'Shop All',            'url' => site_url( '/shop/' ) ),
     );
 }

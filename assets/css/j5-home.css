@@ -2054,3 +2054,55 @@ body.j5-home-template .j5-hero-title .j5-hero-sub2 {
 .j5-cat-card:hover .j5-cat-photo img { transform: scale(1.05); }
 .j5-cat-card:has(.j5-cat-photo) > div:last-child { padding: 0 28px; }
 @media (prefers-reduced-motion: reduce) { .j5-cat-photo img { transition: none; } }
+
+/* ============================================================================
+   J5-HERO-FEATHER (2026-11-04): photo sits on the right and fades out on the
+   left and top edges (no hard seam, hat brim not cut off at the header), the
+   text column gets breathing room and a soft scrim. Desktop only; phones keep
+   the full-bleed photo with the bottom fade above.
+   ========================================================================== */
+@media (min-width: 761px) {
+	body.j5-home-template.j5-hero-photo .j5-hero,
+	body.j5-home-template.j5-hero-photo.j5-hero-img-thanksgiving .j5-hero {
+		background: #0a0b0d;
+		--j5-hero-img: url('../img/home/hero.jpg');
+		--j5-hero-pos: center 25%;
+	}
+	body.j5-home-template.j5-hero-photo.j5-hero-img-thanksgiving .j5-hero {
+		--j5-hero-img: url('../img/home/hero-thanksgiving.jpg');
+		--j5-hero-pos: center 22%;
+	}
+	body.j5-home-template.j5-hero-photo .j5-hero::after {
+		content: "";
+		position: absolute;
+		top: 0; right: 0; bottom: 0;
+		width: 74%;
+		background: linear-gradient(0deg, rgba(10, 11, 13, 0.85) 0%, rgba(10, 11, 13, 0) 35%), var(--j5-hero-img) var(--j5-hero-pos) / cover no-repeat;
+		-webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.55) 22%, #000 48%), linear-gradient(to bottom, transparent 0%, #000 16%);
+		-webkit-mask-composite: source-in;
+		mask-image: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.55) 22%, #000 48%), linear-gradient(to bottom, transparent 0%, #000 16%);
+		mask-composite: intersect;
+		pointer-events: none;
+		z-index: 0;
+	}
+	/* Text: more room off the left edge and between lines/buttons, soft scrim behind */
+	body.j5-home-template.j5-hero-photo .j5-hero-grid {
+		padding-top: 96px;
+		padding-bottom: 72px;
+	}
+	body.j5-home-template.j5-hero-photo .j5-hero-grid > div:first-child {
+		padding: 8px 0 8px clamp(8px, 3vw, 48px);
+		position: relative;
+	}
+	body.j5-home-template.j5-hero-photo .j5-hero-grid > div:first-child::before {
+		content: "";
+		position: absolute;
+		inset: -40px -120px -40px -60px;
+		background: radial-gradient(ellipse at 30% 50%, rgba(10, 11, 13, 0.7) 0%, rgba(10, 11, 13, 0.35) 55%, transparent 75%);
+		pointer-events: none;
+		z-index: -1;
+	}
+	body.j5-home-template.j5-hero-photo .j5-hero-desc { margin-top: 18px; }
+	body.j5-home-template.j5-hero-photo .j5-hero-ctas { margin-top: 32px; }
+}
+/* === J5-HERO-FEATHER END === */

@@ -94,7 +94,7 @@ $j5_categories = array(
         array( 'name' => 'Nylon Gear',           'sub' => 'Carriers, pouches, packs & placards',       'url' => j5_home_cat_url( 950 ),                  'icon' => 'pouch' , 'img' => 'nylon' ),
         array( 'name' => 'Accessories & Tools',  'sub' => 'Knives, multi-tools, breaching kits',       'url' => j5_home_cat_url( 'tools-knives' ),                'icon' => 'tool'  , 'img' => 'tools' ),
         array( 'name' => 'Med Kit Supplies',     'sub' => 'IFAK & aid bag components',                 'url' => j5_home_cat_url( 'medical' ),                     'icon' => 'cross' , 'img' => 'med' ),
-        array( 'name' => 'Medical Bags',         'sub' => 'Jump bags, aid bags, MCI packs',            'url' => j5_home_cat_url( 'bags-cases' ),                  'icon' => 'bag'   , 'img' => 'bags' ),
+        array( 'name' => 'Medical Bags',         'sub' => 'Jump bags, aid bags, MCI packs',            'url' => j5_home_cat_url( 343 ), /* Medical & EMS Bags */ 'icon' => 'bag'   , 'img' => 'bags' ),
         array( 'name' => 'Optics',               'sub' => 'Sights, scopes, mounts & rails',            'url' => j5_home_cat_url( 321 ),   'icon' => 'comms' , 'img' => 'optics' ),
         array( 'name' => 'Less-Lethal',          'sub' => 'Launchers, projectiles, TASER',             'url' => j5_home_cat_url( 'less-lethal' ),                 'icon' => 'bolt'  , 'img' => 'lesslethal' ),
         array( 'name' => 'Lights',               'sub' => 'Handheld, WML, helmet, scene',              'url' => j5_home_cat_url( 'lights' ),                      'icon' => 'light' , 'img' => 'lights' ),
