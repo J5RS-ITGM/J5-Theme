@@ -130,12 +130,8 @@ get_header();
 
 			<div>
 				<h1 class="j5-hero-title">
-					<?php
-					// Seasonal headline + gold line follow the hero photo option (j5_home_hero_image).
-					$j5_holiday = 'thanksgiving' === (string) get_option( 'j5_home_hero_image', 'thanksgiving' );
-					echo $j5_holiday ? 'WE&rsquo;RE THANKFUL<br/>FOR GOOD GEAR.' : 'MISSION-READY GEAR.';
-					?><br/>
-					<span class="j5-hero-sub2"><?php echo $j5_holiday ? 'Stock up before the holiday season!' : 'Armor. Medical. Tactical.'; ?></span>
+					MISSION-READY GEAR.<br/>
+					<span class="j5-hero-sub2">Armor. Medical. Tactical.</span>
 				</h1>
 				<p class="j5-hero-desc">
 					Specially curated medical, rescue, and tactical equipment.

@@ -8,8 +8,9 @@
  *   _j5_factory_savings   on the variable parent: "yes" when any option has one.
  *
  * Plates carry MAP, so the product page, schema and feeds keep the regular
- * price. The page only says "Factory order savings, see price in cart"; the
- * number appears in the cart as an auto-applied virtual coupon
+ * price. The product page shows a callout under the stock banner, "save up to
+ * X%" (J5FS-CALLOUT-1, 2026-11-04: Eric chose to advertise the percent); the
+ * dollar amount appears in the cart as an auto-applied virtual coupon
  * (factory-order-savings) that lands in the order's coupon_lines and
  * discount_total. It stacks with any other coupon.
  *
@@ -65,37 +66,65 @@ function j5fs_parent_flag( $product ) {
 }
 
 /* =========================================================================
- * 2. PRODUCT PAGE (no number, ever)
+ * 2. PRODUCT PAGE: savings callout (J5FS-CALLOUT-1)
+ *    Percent shown, price never changed on the page (still regular price).
  * ====================================================================== */
 
-/** Variations JSON: a yes/no only. The percent never reaches the page. */
+/** "8" / "7.5" (no trailing zeros). */
+function j5fs_fmt( $pct ) {
+	return rtrim( rtrim( number_format( (float) $pct, 2, '.', '' ), '0' ), '.' );
+}
+
+/** Highest live percent across a variable product's options (or the simple product's own). */
+function j5fs_max_pct( $product ) {
+	if ( ! $product instanceof WC_Product ) {
+		return 0.0;
+	}
+	if ( ! $product->is_type( 'variable' ) ) {
+		return j5fs_pct( $product );
+	}
+	if ( ! j5fs_parent_flag( $product ) ) {
+		return 0.0;
+	}
+	$max = 0.0;
+	foreach ( $product->get_children() as $vid ) {
+		$max = max( $max, j5fs_pct( wc_get_product( $vid ) ) );
+	}
+	return $max;
+}
+
+/** Variations JSON: flag + percent, so the callout follows the selected option. */
 add_filter( 'woocommerce_available_variation', function ( $data, $product, $variation ) {
-	$data['j5_factory_savings'] = j5fs_pct( $variation ) > 0;
+	$pct = j5fs_pct( $variation );
+	$data['j5_factory_savings'] = $pct > 0;
+	$data['j5_factory_pct']     = $pct > 0 ? j5fs_fmt( $pct ) : '';
 	return $data;
 }, 22, 3 );
 
 /**
- * The savings line, printed inside the stock banner (both banner variants).
- * Shown up front when the parent flag / simple product qualifies; on variable
- * products the inline script then follows the selected variation.
+ * The callout, printed right after the stock banner (woocommerce/single-product.php).
+ * Variable products start at "Up to <max>%"; the inline script switches to the
+ * selected option's own percent, or hides the callout for options without one.
  *
  * @param WC_Product $product
  */
 function j5fs_render_line( $product ) {
-	if ( ! $product instanceof WC_Product ) {
+	$max = j5fs_max_pct( $product );
+	if ( $max <= 0 ) {
 		return;
 	}
-	$flag = j5fs_parent_flag( $product );
-	if ( ! $flag && ! $product->is_type( 'variable' ) ) {
-		return;
-	}
-	if ( $product->is_type( 'variable' ) && ! $flag ) {
-		return; // DP says no option has savings: nothing to toggle.
-	}
+	$m = esc_html( j5fs_fmt( $max ) );
 	printf(
-		'<span class="j5-fs-line" data-j5-fs data-parent="%s">%s</span>',
-		$flag ? '1' : '0',
-		esc_html( J5FS_LINE )
+		'<div class="j5-fs-callout" data-j5-fs data-max="%1$s">'
+			. '<div class="j5-fs-callout__badge" aria-hidden="true"><span data-j5-fs-upto>Up to</span><b><span data-j5-fs-pct>%1$s</span>%%</b><span>off</span></div>'
+			. '<div class="j5-fs-callout__body">'
+				. '<p class="j5-fs-callout__title">%2$s</p>'
+				. '<p class="j5-fs-callout__text">Order this as a <strong>factory order</strong> and save <strong><span data-j5-fs-upto>up to </span><span data-j5-fs-pct>%1$s</span>%%</strong>. It is built for you by the manufacturer, so it takes a little longer to ship.</p>'
+				. '<p class="j5-fs-callout__how">Your discount is applied automatically in the cart. No code needed.</p>'
+			. '</div>'
+		. '</div>',
+		$m,
+		esc_html( J5FS_LABEL )
 	);
 }
 
@@ -111,16 +140,20 @@ add_action( 'wp_enqueue_scripts', function () {
 ( function () {
 	if ( ! window.jQuery ) { return; }
 	jQuery( function ( $ ) {
-		var $line = $( '[data-j5-fs]' );
-		if ( ! $line.length ) { return; }
-		var parent = $line.attr( 'data-parent' ) === '1';
+		var $box = $( '[data-j5-fs]' );
+		if ( ! $box.length ) { return; }
+		var max = String( $box.attr( 'data-max' ) || '' );
+		function show( pct, upto ) {
+			$box.find( '[data-j5-fs-pct]' ).text( pct );
+			$box.find( '[data-j5-fs-upto]' ).prop( 'hidden', ! upto );
+			$box.prop( 'hidden', false );
+		}
 		$( '.j5-variations-form' )
 			.on( 'found_variation', function ( e, v ) {
-				$line.prop( 'hidden', ! ( v && v.j5_factory_savings ) );
+				if ( v && v.j5_factory_savings && v.j5_factory_pct ) { show( v.j5_factory_pct, false ); }
+				else { $box.prop( 'hidden', true ); }
 			} )
-			.on( 'hide_variation reset_data', function () {
-				$line.prop( 'hidden', ! parent );
-			} );
+			.on( 'hide_variation reset_data', function () { show( max, true ); } );
 	} );
 } )();
 JS;
