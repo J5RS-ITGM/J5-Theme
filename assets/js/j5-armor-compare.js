@@ -14,6 +14,7 @@
 	}
 	function fmt(v, field) {
 		if (v === null || v === undefined || v === '') return null;
+		if (typeof v === 'string' && /^\[.*\]$/.test(v.trim())) v = toList(v);
 		if (typeof v === 'boolean') return v ? 'Yes' : 'No';
 		if (Array.isArray(v)) return v.join(', ');
 		if (typeof v === 'number') {
@@ -573,7 +574,7 @@
 		var self = this, cfg = this.config, root = this.root;
 		var members = this.rows.filter(function (r) { return (r.tr.getAttribute('data-fam') || r.tr.getAttribute('data-slug')) === famKey; });
 		if (!members.length) return;
-		members.sort(function (a, b) { var x = sizeSortKey(a.data), y = sizeSortKey(b.data); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+		members.sort(bySizeOrder);
 		var first = members[0].data, quote = root.getAttribute('data-quote') || '/request-a-quote/';
 
 		var modal = root.querySelector('[data-j5ac-detail]');
@@ -601,16 +602,18 @@
 		ht.appendChild(el('p', 'j5ac-maker', first.manufacturer));
 		var badges = el('div', 'j5ac-det-badges');
 		if (first.specs.level) badges.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(first.specs.level), first.specs.level));
+		if (first.specs.standard) badges.appendChild(el('span', 'j5ac-tag', first.specs.standard));
 		var cert = stepValue(first, 'nij');
 		if (cert) badges.appendChild(el('span', 'j5ac-tag' + (cert === 'yes' ? ' j5ac-tag--ok' : ''), cert === 'yes' ? 'NIJ certified' : 'Not NIJ certified'));
 		if (first.specs.standalone) badges.appendChild(el('span', 'j5ac-tag', first.specs.standalone));
+		cutsOf(members).forEach(function (c) { badges.appendChild(el('span', 'j5ac-tag', /cut$/i.test(c) ? c : c + ' cut')); });
 		if (first.carried) badges.appendChild(el('span', 'j5ac-stock', first.wc ? 'Sold by J5' : 'Quote from J5'));
 		ht.appendChild(badges);
 		head.appendChild(ht);
 		box.appendChild(head);
 
 		// Which fields differ between sizes: those go in the sizes table, the rest in the spec list.
-		var perSize = { size: 1, width_in: 1, height_in: 1, weight_lb: 1, sizes: 1 };
+		var perSize = { size: 1, width_in: 1, height_in: 1, weight_lb: 1, sizes: 1, cut: 1 };
 		var varies = {};
 		cfg.fields.forEach(function (f) {
 			var seen = {};
@@ -623,47 +626,73 @@
 		sec1.appendChild(el('h4', null, members.length > 1 ? members.length + ' sizes' : 'Size'));
 		var wrap = el('div', 'j5ac-det-tw'), t = el('table', 'j5ac-det-table'), th = el('thead'), hr = el('tr');
 		var extra = Object.keys(varies).filter(function (k) { return !perSize[k]; });
-		var heads = ['Size', 'Weight'].concat(cfg.eff ? ['Oz / sq in', 'Coverage'] : []).concat(extra.map(function (k) { return varies[k].label; })).concat(['Compare']);
-		heads.forEach(function (lab) { var c = el('th', null, lab); c.scope = 'col'; hr.appendChild(c); });
+		var anySapi = members.some(function (m) { var z = sizeOf(m.data); return z && z.sub; });
+		var anyDims = members.some(function (m) { var z = sizeOf(m.data); return z && z.w; });
+		var heads = ['Size'].concat(anySapi && anyDims ? ['Dimensions'] : []).concat(['Weight']).concat(cfg.eff ? ['Oz / sq in', 'Coverage'] : []).concat(extra.map(function (k) { return varies[k].label; })).concat(['Compare']);
+		heads.forEach(function (lab) { var c = el('th', lab === 'Compare' ? 'is-cmp' : null, lab); c.scope = 'col'; hr.appendChild(c); });
 		th.appendChild(hr); t.appendChild(th);
 		var tb = el('tbody'), boxes = [];
 		members.forEach(function (m) {
 			var d = m.data, tr = el('tr'), sz = sizeOf(d);
-			var c0 = el('td'); c0.textContent = sz ? sz.label : (d.specs.sizes || d.model); if (sz && sz.sub) c0.appendChild(el('small', null, ' ' + sz.sub));
+			// SAPI plates are known by name ("SAPI Medium"); the inches go in Dimensions.
+			var c0 = el('td', 'j5ac-det-size');
+			c0.textContent = sz && sz.sub ? sz.sub : (sz ? sz.label : (d.specs.sizes || d.model));
 			tr.appendChild(c0);
+			if (anySapi && anyDims) tr.appendChild(el('td', 'j5ac-det-dim', sz && sz.w ? sz.label : '\u2014'));
 			tr.appendChild(el('td', null, fmt(d.specs.weight_lb, { unit: 'lb' }) || 'not listed'));
 			if (cfg.eff) {
 				tr.appendChild(el('td', null, d.derived && typeof d.derived.oz_per_sqin === 'number' ? d.derived.oz_per_sqin.toFixed(3) : '\u2014'));
 				tr.appendChild(el('td', null, d.derived && d.derived.area_sqin ? fmt(d.derived.area_sqin) + ' sq in' : '\u2014'));
 			}
 			extra.forEach(function (k) { tr.appendChild(el('td', null, fmt(d.specs[k], varies[k]) || '\u2014')); });
-			var cc = el('td'), lab = el('label', 'j5ac-check'), cb = el('input');
-			cb.type = 'checkbox'; cb.checked = self.picked.indexOf(d.slug) !== -1;
-			cb.setAttribute('aria-label', 'Compare ' + d.manufacturer + ' ' + d.model);
-			cb.addEventListener('change', function () {
-				var tcb = m.tr.querySelector('.j5ac-pick'); tcb.checked = cb.checked;
-				self.pick(d.slug, cb.checked, tcb);
-				sync();
-			});
-			lab.appendChild(cb); lab.appendChild(el('span', null, 'Compare')); cc.appendChild(lab); tr.appendChild(cc);
-			boxes.push({ cb: cb, m: m });
+			var cc = el('td', 'is-cmp');
+			boxes.push({ td: cc, m: m });
+			tr.appendChild(cc);
 			tb.appendChild(tr);
 		});
 		function sync() {
 			boxes.forEach(function (b) {
-				b.cb.checked = self.picked.indexOf(b.m.data.slug) !== -1;
-				b.cb.disabled = b.m.tr.classList.contains('is-locked') && !b.cb.checked;
-				b.cb.parentNode.title = b.cb.disabled ? 'Different size from your first pick. Clear the selection to compare this one.' : '';
+				var on = self.picked.indexOf(b.m.data.slug) !== -1, locked = b.m.tr.classList.contains('is-locked') && !on;
+				var z = sizeOf(b.m.data), lab = b.m.data.manufacturer + ' ' + famName(b.m.data) + (z ? ' ' + (z.sub || z.label) : '');
+				var btn = cmpBtn(on, locked, lab);
+				btn.addEventListener('click', function () {
+					var tcb = b.m.tr.querySelector('.j5ac-pick'), nowOn = self.picked.indexOf(b.m.data.slug) === -1;
+					tcb.checked = nowOn;
+					self.pick(b.m.data.slug, nowOn, tcb);
+					sync();
+					var again = b.td.querySelector('.j5ac-cmp'); if (again) again.focus();
+				});
+				b.td.textContent = '';
+				b.td.appendChild(btn);
 			});
 		}
 		sync();
 		t.appendChild(tb); wrap.appendChild(t); sec1.appendChild(wrap);
 		box.appendChild(sec1);
 
+		// Special threats, grouped by caliber
+		var tg = threatGroups(first.specs.special_threats);
+		if (tg.length && !varies.special_threats) {
+			var secT = el('section', 'j5ac-det-sec');
+			secT.appendChild(el('h4', null, (this.fieldsByKey.special_threats && this.fieldsByKey.special_threats.label) || 'Special threats listed'));
+			var tl = el('div', 'j5ac-thr');
+			tg.forEach(function (g) {
+				var row = el('div', 'j5ac-thr-row' + (g.rounds.some(function (r) { return r.ap; }) ? ' is-ap' : ''));
+				row.appendChild(el('span', 'j5ac-thr-cal', g.cal));
+				var rs = el('div', 'j5ac-thr-rds');
+				g.rounds.forEach(function (r) { rs.appendChild(el('span', 'j5ac-thr-rd' + (r.ap ? ' is-ap' : ''), r.name)); });
+				row.appendChild(rs);
+				tl.appendChild(row);
+			});
+			secT.appendChild(tl);
+			secT.appendChild(el('p', 'j5ac-thr-note', 'Grouped by caliber' + (tg.some(function (g) { return g.rounds.some(function (r) { return r.ap; }); }) ? '; armor piercing rounds in red' : '') + '. As listed on the manufacturer\u2019s spec sheet.'));
+			box.appendChild(secT);
+		}
+
 		// Specifications (same for every size)
 		var specs = [];
 		cfg.fields.forEach(function (f) {
-			if (perSize[f.key] || varies[f.key] || f.key === 'level' || f.key === 'standalone' || f.key === 'nij_certified') return;
+			if (perSize[f.key] || varies[f.key] || f.key === 'level' || f.key === 'standalone' || f.key === 'nij_certified' || f.key === 'standard' || f.key === 'special_threats') return;
 			var v = fmt(first.specs[f.key], f);
 			if (v !== null) specs.push([f.label, v]);
 		});
@@ -725,6 +754,73 @@
 	 * rows (one entry per listing). The table stays in the page as the data
 	 * source and for search engines; CSS hides it while a view is on.
 	 * ------------------------------------------------------------------- */
+	/* J5-AC-SIZES: Shooter's (and other dimensioned sizes) first by area, then SAPI XS to XL. */
+	var SAPI_SHORT = { 'SAPI XS': 'XS', 'SAPI Small': 'S', 'SAPI Medium': 'M', 'SAPI Large': 'L', 'SAPI XL': 'XL' };
+	var SAPI_RANK = { 'SAPI XS': 0, 'SAPI Small': 1, 'SAPI Medium': 2, 'SAPI Large': 3, 'SAPI XL': 4 };
+	function sizeOrder(d) {
+		var sz = sizeOf(d);
+		if (!sz) return [2, 0, 0];
+		if (sz.sub && SAPI_RANK[sz.sub] !== undefined) return [1, SAPI_RANK[sz.sub], 0];
+		return [0, (sz.w || 0) * (sz.h || 0), num(d.specs && d.specs.weight_lb) || 0];
+	}
+	function bySizeOrder(a, b) { var x = sizeOrder(a.data), y = sizeOrder(b.data); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; }
+	/** "Shooter's & SAPI": every distinct cut in a listing, in size order. */
+	function cutsOf(members) {
+		var c = [];
+		members.forEach(function (r) { var v = r.data.specs.cut; if (v && c.indexOf(String(v)) === -1) c.push(String(v)); });
+		return c;
+	}
+	/** Size chips grouped under a label: [{ label: "Shooter's", sizes: ['8 x 10', ...] }, { label: 'SAPI', sizes: ['S', 'M'] }]. */
+	function sizeGroups(members, d) {
+		var groups = [], idx = {};
+		members.forEach(function (r) {
+			var sz = sizeOf(r.data);
+			if (!sz || !sz.w) return;
+			var sapi = sz.sub && SAPI_SHORT[sz.sub], cut = String(r.data.specs.cut || '');
+			var label = sapi ? 'SAPI' : (/shoot/i.test(cut) ? cut : '');
+			var name = sapi ? SAPI_SHORT[sz.sub] : sz.label.replace(' in', '');
+			if (idx[label] === undefined) { idx[label] = groups.length; groups.push({ label: label, sizes: [] }); }
+			var g = groups[idx[label]];
+			if (g.sizes.indexOf(name) === -1) g.sizes.push(name);
+		});
+		if (!groups.length) {
+			var list = d.specs.sizes ? String(d.specs.sizes).split(/[,\/;|]+/).map(function (x) { return x.trim(); }).filter(Boolean) : (d.specs.size ? [String(d.specs.size)] : []);
+			if (list.length) groups.push({ label: '', sizes: list });
+		}
+		return groups;
+	}
+
+	/* J5-AC-THREATS: special threats as a list, grouped by caliber, armor piercing flagged. */
+	function toList(v) {
+		if (Array.isArray(v)) return v.map(String);
+		if (v === null || v === undefined || v === '') return [];
+		var s = String(v).trim();
+		if (/^\[.*\]$/.test(s)) s = s.slice(1, -1);
+		return s.split(/\s*[,;|]\s*/).map(function (x) { return x.replace(/^['"\s]+|['"\s]+$/g, ''); }).filter(Boolean);
+	}
+	var CALIBERS = [
+		{ name: '5.56 NATO', re: /5\.56|\.223|M193|M855|SS109|M995|MK\s?262/i, strip: /^(5\.56(x45)?(\s*NATO)?|\.223)\s+/i },
+		{ name: '5.45x39', re: /5\.45|7N6|7N10/i, strip: /^5\.45(x39)?\s+/i },
+		{ name: '7.62x39', re: /7\.62\s*x\s*39|M43\b|\bPS\b/i, strip: /^7\.62\s*x\s*39\s+/i },
+		{ name: '7.62x51 NATO', re: /7\.62\s*x\s*51|\.308|M80\b|M61\b|M993/i, strip: /^(7\.62\s*x\s*51(\s*NATO)?|\.308)\s+/i },
+		{ name: '7.62x54R', re: /7\.62\s*x\s*54|54R|\bLPS\b/i, strip: /^7\.62\s*x\s*54R?\s+/i },
+		{ name: '.30-06', re: /30[.\-]?06|M2\s?AP/i, strip: /^\.?30[.\-]?06\s+/i }
+	];
+	function threatGroups(v) {
+		var out = [], idx = {};
+		toList(v).forEach(function (raw) {
+			var cal = null;
+			for (var i = 0; i < CALIBERS.length; i++) if (CALIBERS[i].re.test(raw)) { cal = CALIBERS[i]; break; }
+			var name = cal ? raw.replace(cal.strip, '') : raw;
+			if (!name) name = raw;
+			name = name.replace(/^M2AP$/i, 'M2 AP');
+			var key = cal ? cal.name : 'Other';
+			if (idx[key] === undefined) { idx[key] = out.length; out.push({ cal: key, order: cal ? CALIBERS.indexOf(cal) : 99, rounds: [] }); }
+			out[idx[key]].rounds.push({ name: name, ap: /\bAP\b|M2\s?AP|M61\b|M993|M995|\bAPM2\b/i.test(raw) });
+		});
+		return out.sort(function (a, b) { return a.order - b.order; });
+	}
+
 	var LEVEL_ORDER = ['IV', 'RF3', 'RF2', 'RF1', 'III+', 'III', 'IIIA', 'HG2', 'HG1', 'II', 'IIA'];
 	function levelTitle(l) { l = String(l || ''); return /^(II|III|IV)A?\+?$/.test(l) || l === 'IIA' ? 'Level ' + l : (l || 'Level not listed'); }
 	function tierColor(l) { return { hg: '#8fb5c9', rifle: '#f0bc5a', rf: '#f07a52', ap: '#ff5a6e', other: '#a4a49a' }[tier(l)]; }
@@ -762,27 +858,26 @@
 		this.viewBox.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t.closest) return;
+			var cmp = t.closest('[data-j5ac-cmp]');
+			if (cmp) { if (!cmp.disabled) self.toggleFam(cmp.getAttribute('data-j5ac-cmp'), cmp.getAttribute('data-slug')); return; }
 			var open = t.closest('[data-j5ac-fam]');
 			if (!open && t.closest('input, a, button, label, select')) return;
 			var item = open || t.closest('[data-j5ac-item]');
 			if (!item) return;
 			self.openDetail(item.getAttribute(open ? 'data-j5ac-fam' : 'data-j5ac-item'), item.querySelector('[data-j5ac-fam]') || item);
 		});
-		this.viewBox.addEventListener('change', function (e) {
-			var cb = e.target;
-			if (!cb.classList || !cb.classList.contains('j5ac-vpick')) return;
-			var k = cb.getAttribute('data-fam'), slug = cb.value;
-			if (cb.checked) {
-				var r = self.rowBySlug(slug), tcb = r && r.tr.querySelector('.j5ac-pick');
-				if (tcb) tcb.checked = true;
-				self.pick(slug, true, tcb);
-			} else {
-				self.picked.slice().forEach(function (s) {
-					var r = self.rowBySlug(s);
-					if (r && r.tr.getAttribute('data-fam') === k) { r.tr.querySelector('.j5ac-pick').checked = false; self.pick(s, false, null); }
-				});
-			}
+	};
+	/** Compare on/off for a whole listing: on picks the shown size, off drops every picked size of it. */
+	Panel.prototype.toggleFam = function (k, slug) {
+		var self = this, any = false;
+		this.picked.slice().forEach(function (s) {
+			var r = self.rowBySlug(s);
+			if (r && r.tr.getAttribute('data-fam') === k) { any = true; r.tr.querySelector('.j5ac-pick').checked = false; self.pick(s, false, null); }
 		});
+		if (any) return;
+		var r = this.rowBySlug(slug), tcb = r && r.tr.querySelector('.j5ac-pick');
+		if (tcb) tcb.checked = true;
+		this.pick(slug, true, tcb);
 	};
 
 	/** Visible listings in the current sort order: { key, rep, members[] }. */
@@ -798,7 +893,7 @@
 		var self = this;
 		return order.map(function (f) {
 			if (!f.rep) f.rep = f.members[0];
-			f.members.sort(function (a, b) { var x = sizeSortKey(a.data), y = sizeSortKey(b.data); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+			f.members.sort(bySizeOrder);
 			return self.famSummary(f);
 		});
 	};
@@ -809,15 +904,9 @@
 			var n = m.map(get).map(num).filter(function (x) { return x !== null; });
 			return n.length ? [Math.min.apply(null, n), Math.max.apply(null, n)] : [null, null];
 		};
-		var sizes = [];
-		m.forEach(function (r) {
-			var sz = sizeOf(r.data), lab = sz && sz.w ? (sz.sub ? sz.sub.replace('Medium', 'M').replace('Small', 'S').replace('Large', 'L') : sz.label.replace(' in', '')) : null;
-			if (lab && sizes.indexOf(lab) === -1) sizes.push(lab);
-		});
-		if (!sizes.length && d.specs.sizes) sizes = String(d.specs.sizes).split(/[,\/;|]+/).map(function (s) { return s.trim(); }).filter(Boolean);
-		if (!sizes.length && d.specs.size) sizes = [String(d.specs.size)];
-		var cuts = [];
-		m.forEach(function (r) { var c = r.data.specs.cut; if (c && cuts.indexOf(String(c)) === -1) cuts.push(String(c)); });
+		var sgroups = sizeGroups(m, d), sizes = [];
+		sgroups.forEach(function (g) { g.sizes.forEach(function (x) { sizes.push(x); }); });
+		var cuts = cutsOf(m);
 		var wc = null; m.forEach(function (r) { if (!wc && r.data.wc) wc = r.data.wc; });
 		var picked = m.some(function (r) { return self.picked.indexOf(r.data.slug) !== -1; });
 		return {
@@ -826,7 +915,7 @@
 			weight: range(function (r) { return r.data.specs.weight_lb; }),
 			eff: range(function (r) { return r.data.derived ? r.data.derived.oz_per_sqin : null; }),
 			area: range(function (r) { return r.data.derived ? r.data.derived.area_sqin : null; }),
-			sizes: sizes, cut: cuts.join(' + '), cert: stepValue(d, 'nij'),
+			sizes: sizes, sgroups: sgroups, cuts: cuts, cut: cuts.join(' & '), cert: stepValue(d, 'nij'),
 			stock: d.carried ? (wc ? 'Sold by J5' : 'Quote from J5') : 'Reference only',
 			carried: !!d.carried, picked: picked,
 			locked: f.rep.tr.classList.contains('is-locked') && !picked
@@ -849,14 +938,22 @@
 		return order;
 	};
 
+	/** Compare pill: "+ Compare" / "✓ Comparing". */
+	function cmpBtn(on, locked, label) {
+		var b = el('button', 'j5ac-cmp' + (on ? ' is-on' : ''));
+		b.type = 'button';
+		b.setAttribute('aria-pressed', on ? 'true' : 'false');
+		b.setAttribute('aria-label', (on ? 'Remove from compare: ' : 'Compare ') + label);
+		b.appendChild(el('span', 'j5ac-cmp-i'));
+		b.appendChild(el('span', 'j5ac-cmp-t', on ? 'Comparing' : 'Compare'));
+		if (locked) { b.disabled = true; b.title = 'Different size from your first pick. Clear the selection to compare this one.'; }
+		return b;
+	}
 	function vpick(f) {
-		var lab = el('label', 'j5ac-check j5ac-vcheck'), cb = el('input');
-		cb.type = 'checkbox'; cb.className = 'j5ac-vpick'; cb.value = f.rep.data.slug; cb.setAttribute('data-fam', f.key);
-		cb.checked = f.picked; cb.disabled = f.locked;
-		cb.setAttribute('aria-label', 'Compare ' + f.d.manufacturer + ' ' + f.name);
-		if (f.locked) lab.title = 'Different size from your first pick. Clear the selection to compare this one.';
-		lab.appendChild(cb);
-		return lab;
+		var b = cmpBtn(f.picked, f.locked, f.d.manufacturer + ' ' + f.name);
+		b.setAttribute('data-j5ac-cmp', f.key);
+		b.setAttribute('data-slug', f.rep.data.slug);
+		return b;
 	}
 	function vname(f, cls) {
 		var b = el('button', 'j5ac-model j5ac-open ' + (cls || ''), f.name);
@@ -867,10 +964,13 @@
 	function vsizes(f) {
 		var w = el('div', 'j5ac-vsizes');
 		w.appendChild(el('span', 'j5ac-k', f.sizes.length > 1 ? f.sizes.length + ' sizes' : (f.sizes.length ? '1 size' : 'Size')));
-		var c = el('div', 'j5ac-vchips');
-		f.sizes.forEach(function (s) { c.appendChild(el('span', 'j5ac-vchip', s)); });
-		if (!f.sizes.length) c.appendChild(el('span', 'j5ac-na', 'not listed'));
-		w.appendChild(c);
+		if (!f.sgroups.length) { w.appendChild(el('span', 'j5ac-na', 'not listed')); return w; }
+		f.sgroups.forEach(function (g) {
+			var c = el('div', 'j5ac-vchips');
+			if (g.label) c.appendChild(el('span', 'j5ac-vchips-l', g.label));
+			g.sizes.forEach(function (s) { c.appendChild(el('span', 'j5ac-vchip', s)); });
+			w.appendChild(c);
+		});
 		return w;
 	}
 	function vstock(f) { return el('span', 'j5ac-vstock' + (f.carried ? '' : ' is-ref'), f.stock); }
@@ -903,7 +1003,6 @@
 				g.items.forEach(function (f) {
 					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.locked ? ' is-locked' : ''));
 					row.setAttribute('data-j5ac-item', f.key);
-					row.appendChild(vpick(f));
 					var nm = el('div', 'j5ac-vname');
 					nm.appendChild(vname(f));
 					var sub = el('div', 'j5ac-vsub');
@@ -916,11 +1015,12 @@
 					if (!g.color && f.d.specs.level) { var lv = el('div', 'j5ac-kv'); lv.appendChild(el('span', 'j5ac-k', 'Level')); var lvv = el('span', 'j5ac-v'); lvv.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(f.d.specs.level), f.d.specs.level)); lv.appendChild(lvv); specs.appendChild(lv); }
 					if (hasStd) specs.appendChild(vkv('Standard', f.d.specs.standard));
 					if (hasCert) specs.appendChild(vkv('NIJ certified', f.cert === 'yes' ? 'Yes' : (f.cert === 'no' ? 'No' : null), f.cert === 'yes' ? 'is-yes' : ''));
-					if (hasCut) specs.appendChild(vkv('Cut', f.cut));
+					if (hasCut) specs.appendChild(vkv('Cut', f.cuts.length ? f.cuts.join(' &\n') : null, 'is-cut'));
 					specs.appendChild(vkv('Weight', rangeText(f.weight[0], f.weight[1], undefined, 'lb'), 'is-strong'));
 					if (cfg.eff) specs.appendChild(vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3)));
 					row.appendChild(specs);
 					row.appendChild(vsizes(f));
+					row.appendChild(vpick(f));
 					sec.appendChild(row);
 				});
 				box.appendChild(sec);
@@ -944,7 +1044,7 @@
 					body.appendChild(top);
 					var tags = el('div', 'j5ac-vtags');
 					if (f.d.specs.standalone) tags.appendChild(el('span', 'j5ac-tag', f.d.specs.standalone));
-					if (f.cut) tags.appendChild(el('span', 'j5ac-tag', f.cut));
+					f.cuts.forEach(function (c) { tags.appendChild(el('span', 'j5ac-tag', c)); });
 					if (f.cert === 'yes') tags.appendChild(el('span', 'j5ac-tag j5ac-tag--ok', 'NIJ certified'));
 					if (tags.firstChild) body.appendChild(tags);
 					var st = el('div', 'j5ac-vcard-stats');
@@ -953,9 +1053,8 @@
 					body.appendChild(st);
 					body.appendChild(vsizes(f));
 					var foot = el('div', 'j5ac-vcard-foot');
-					var pk = vpick(f); pk.appendChild(el('span', null, 'Compare'));
-					foot.appendChild(pk);
 					foot.appendChild(vstock(f));
+					foot.appendChild(vpick(f));
 					body.appendChild(foot);
 					c.appendChild(body);
 					grid.appendChild(c);
