@@ -524,6 +524,19 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 
 	$cols = array();
 	foreach ( $fields as $f ) if ( $f['required'] ) $cols[] = $f;
+	// J5-AC-SIDEBAR: width + height read as one Size column; standalone/ICW moves to a tag under the model (it is a sidebar filter).
+	$ckeys = wp_list_pluck( $cols, 'key' );
+	if ( in_array( 'width_in', $ckeys, true ) && in_array( 'height_in', $ckeys, true ) ) {
+		$merged = array();
+		foreach ( $cols as $f ) {
+			if ( 'height_in' === $f['key'] ) continue;
+			if ( 'width_in' === $f['key'] ) { if ( ! in_array( 'size', $ckeys, true ) ) $merged[] = array( 'key' => '_size', 'label' => 'Size', 'type' => 'text', 'required' => true ); continue; }
+			$merged[] = $f;
+		}
+		$cols = $merged;
+	}
+	$tag_standalone = in_array( 'standalone', $ckeys, true );
+	if ( $tag_standalone ) $cols = array_values( array_filter( $cols, function ( $f ) { return 'standalone' !== $f['key']; } ) );
 
 	$any_eff = false; $any_sizes = false;
 	foreach ( $models as $m ) { $d = j5_armor_ref_derived( $m['specs'] ); if ( isset( $d['oz_per_sqin'] ) ) $any_eff = true; if ( j5_armor_ref_sizes( $m, $models ) ) $any_sizes = true; }
@@ -552,7 +565,23 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 
 		<div class="j5ac-guide" data-j5ac-guide hidden></div>
 
-		<form class="j5ac-filters" data-j5ac-filters aria-label="Filter <?php echo esc_attr( strtolower( $feed['label'] ) ); ?>">
+		<?php
+		$fid    = 'j5ac-f-' . $cat;
+		$makers = array();
+		foreach ( $models as $m ) if ( $m['manufacturer'] ) $makers[ $m['manufacturer'] ] = true;
+		$makers = array_keys( $makers ); natcasesort( $makers );
+		$fkeys  = wp_list_pluck( $fields, 'key' );
+		$nij    = in_array( 'nij_certified', $fkeys, true );
+		$nij_placed = false;
+		$more   = array();
+		?>
+		<div class="j5ac-layout">
+		<form class="j5ac-filters" id="<?php echo esc_attr( $fid ); ?>" data-j5ac-filters aria-label="Filter <?php echo esc_attr( strtolower( $feed['label'] ) ); ?>">
+			<div class="j5ac-fhead">
+				<span class="j5ac-fh">Filters</span>
+				<button type="reset" class="j5ac-reset">Clear all</button>
+			</div>
+
 			<?php foreach ( $fields as $f ) :
 				if ( 'list' === $f['type'] && $f['options'] ) :
 					$used = array();
@@ -560,33 +589,24 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 					$opts = array_values( array_filter( $f['options'], function ( $o ) use ( $used ) { return isset( $used[ $o ] ); } ) );
 					if ( count( $opts ) < 2 ) continue;
 					?>
-					<fieldset class="j5ac-fs">
-						<legend class="j5ac-lbl"><?php echo esc_html( $f['label'] ); ?></legend>
-						<div class="j5ac-chips">
-						<?php foreach ( $opts as $o ) : ?>
-							<label class="j5ac-chip<?php echo 'level' === $f['key'] ? ' j5ac-chip--' . esc_attr( j5_armor_ref_tier( $o ) ) : ''; ?>"><input type="checkbox" name="<?php echo esc_attr( $f['key'] ); ?>" value="<?php echo esc_attr( $o ); ?>"><span><?php echo esc_html( 'level' === $f['key'] && preg_match( '/^(II|III)A?\+?$/', $o ) ? 'NIJ ' . $o : $o ); ?></span></label>
-						<?php endforeach; ?>
+					<details class="j5ac-sec"<?php echo $f['required'] ? ' open' : ''; ?>>
+						<summary class="j5ac-sec-h"><?php echo esc_html( 'standalone' === $f['key'] ? 'Type' : $f['label'] ); ?></summary>
+						<div class="j5ac-sec-b<?php echo 'level' === $f['key'] ? ' j5ac-chips' : ''; ?>">
+						<?php foreach ( $opts as $o ) :
+							if ( 'level' === $f['key'] ) : ?>
+							<label class="j5ac-chip j5ac-chip--<?php echo esc_attr( j5_armor_ref_tier( $o ) ); ?>"><input type="checkbox" name="level" value="<?php echo esc_attr( $o ); ?>"><span><?php echo esc_html( preg_match( '/^(II|III)A?\+?$/', $o ) ? 'NIJ ' . $o : $o ); ?></span></label>
+							<?php else : ?>
+							<label class="j5ac-check"><input type="checkbox" name="<?php echo esc_attr( $f['key'] ); ?>" value="<?php echo esc_attr( $o ); ?>"> <span><?php echo esc_html( $o ); ?></span></label>
+							<?php endif;
+						endforeach;
+						if ( 'standard' === $f['key'] && $nij ) : $nij_placed = true; ?>
+							<label class="j5ac-check j5ac-check--sep"><input type="checkbox" name="only:nij_certified" value="1"> <span>NIJ certified only</span></label>
+						<?php endif; ?>
 						</div>
-					</fieldset>
+					</details>
 				<?php endif;
 			endforeach; ?>
 
-			<?php
-			$makers = array();
-			foreach ( $models as $m ) if ( $m['manufacturer'] ) $makers[ $m['manufacturer'] ] = true;
-			$makers = array_keys( $makers ); natcasesort( $makers );
-			?>
-			<div class="j5ac-row j5ac-row--find">
-				<label class="j5ac-search"><span class="screen-reader-text">Search <?php echo esc_html( strtolower( $feed['label'] ) ); ?></span><input type="search" name="q" placeholder="Search model or manufacturer" autocomplete="off"></label>
-				<?php if ( count( $makers ) > 1 ) : ?>
-				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Manufacturer</span>
-					<select name="maker" class="j5ac-sort"><option value="">All</option><?php foreach ( $makers as $mk ) : ?><option value="<?php echo esc_attr( $mk ); ?>"><?php echo esc_html( $mk ); ?></option><?php endforeach; ?></select>
-				</label>
-				<?php endif; ?>
-				<label class="j5ac-check"><input type="checkbox" name="carried" value="1"> <span>J5 carries only</span></label>
-				<?php if ( 'plate' === $cat ) : ?><label class="j5ac-check"><input type="checkbox" name="steel" value="1"> <span>Include steel plates</span></label><?php endif; ?>
-			</div>
-			<div class="j5ac-row">
 			<?php foreach ( $fields as $f ) :
 				if ( 'number' === $f['type'] ) :
 					$max = 0; $min = null;
@@ -595,25 +615,63 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 					$step = $max > 20 ? 1 : 0.1;
 					$max  = ceil( $max / $step ) * $step;
 					?>
-					<label class="j5ac-range">
-						<span class="j5ac-lbl">Max <?php echo esc_html( strtolower( $f['label'] ) ); ?></span>
-						<input type="range" name="max:<?php echo esc_attr( $f['key'] ); ?>" min="<?php echo esc_attr( floor( $min / $step ) * $step ); ?>" max="<?php echo esc_attr( $max ); ?>" step="<?php echo esc_attr( $step ); ?>" value="<?php echo esc_attr( $max ); ?>">
-						<output><?php echo esc_html( j5_armor_ref_fmt( $max, $f ) ); ?></output>
-					</label>
-				<?php elseif ( 'bool' === $f['type'] ) : ?>
-					<label class="j5ac-check"><input type="checkbox" name="only:<?php echo esc_attr( $f['key'] ); ?>" value="1"> <span><?php echo esc_html( $f['label'] ); ?> only</span></label>
-				<?php endif;
+					<details class="j5ac-sec" open>
+						<summary class="j5ac-sec-h">Max <?php echo esc_html( strtolower( $f['label'] ) ); ?></summary>
+						<div class="j5ac-sec-b">
+							<label class="j5ac-range">
+								<span class="screen-reader-text">Max <?php echo esc_html( strtolower( $f['label'] ) ); ?></span>
+								<input type="range" name="max:<?php echo esc_attr( $f['key'] ); ?>" min="<?php echo esc_attr( floor( $min / $step ) * $step ); ?>" max="<?php echo esc_attr( $max ); ?>" step="<?php echo esc_attr( $step ); ?>" value="<?php echo esc_attr( $max ); ?>">
+								<output><?php echo esc_html( j5_armor_ref_fmt( $max, $f ) ); ?></output>
+							</label>
+						</div>
+					</details>
+				<?php elseif ( 'bool' === $f['type'] && ! ( 'nij_certified' === $f['key'] && $nij_placed ) ) :
+					$more[] = array( 'only:' . $f['key'], $f['label'] . ' only' );
+				endif;
 			endforeach; ?>
-				<?php if ( 'shield' === $cat ) : ?><label class="j5ac-check"><input type="checkbox" name="has:viewport" value="1"> <span>Viewport only</span></label><?php endif; ?>
-				<?php if ( 'plate' === $cat ) : ?><label class="j5ac-check"><input type="checkbox" name="only:standalone" value="1"> <span>Standalone only</span></label><?php endif; ?>
-				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Sort</span>
-					<select name="sort" class="j5ac-sort"><?php foreach ( $sorts as $k => $l ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $l ); ?></option><?php endforeach; ?></select>
-					<button type="button" class="j5ac-dir" data-j5ac-dir aria-label="Reverse sort order" title="Reverse sort order">&#9650;</button>
-				</label>
-				<span class="j5ac-count" data-j5ac-count><?php echo count( $models ); ?> of <?php echo count( $models ); ?></span>
-				<button type="reset" class="j5ac-reset">Clear</button>
-			</div>
+
+			<?php if ( count( $makers ) > 1 ) : ?>
+			<details class="j5ac-sec">
+				<summary class="j5ac-sec-h">Manufacturer</summary>
+				<div class="j5ac-sec-b">
+				<?php foreach ( $makers as $mk ) : ?>
+					<label class="j5ac-check"><input type="checkbox" name="maker" value="<?php echo esc_attr( $mk ); ?>"> <span><?php echo esc_html( $mk ); ?></span></label>
+				<?php endforeach; ?>
+				</div>
+			</details>
+			<?php endif; ?>
+
+			<?php
+			$more[] = array( 'carried', 'J5 carries only' );
+			if ( 'shield' === $cat ) $more[] = array( 'has:viewport', 'Viewport only' );
+			if ( 'plate' === $cat ) $more[] = array( 'steel', 'Include steel plates' );
+			?>
+			<details class="j5ac-sec">
+				<summary class="j5ac-sec-h">More</summary>
+				<div class="j5ac-sec-b">
+				<?php foreach ( $more as $mo ) : ?>
+					<label class="j5ac-check"><input type="checkbox" name="<?php echo esc_attr( $mo[0] ); ?>" value="1"> <span><?php echo esc_html( $mo[1] ); ?></span></label>
+				<?php endforeach; ?>
+				</div>
+			</details>
 		</form>
+
+		<div class="j5ac-main">
+		<div class="j5ac-toolbar" data-j5ac-toolbar>
+			<div class="j5ac-tb-row">
+				<button type="button" class="j5ac-ftoggle" data-j5ac-ftoggle aria-controls="<?php echo esc_attr( $fid ); ?>" aria-expanded="false">Filters <span data-j5ac-fcount></span></button>
+				<label class="j5ac-search"><span class="screen-reader-text">Search <?php echo esc_html( strtolower( $feed['label'] ) ); ?></span><input type="search" name="q" form="<?php echo esc_attr( $fid ); ?>" placeholder="Search model or manufacturer" autocomplete="off"></label>
+				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Sort</span>
+					<select name="sort" form="<?php echo esc_attr( $fid ); ?>" class="j5ac-sort"><?php foreach ( $sorts as $k => $l ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $l ); ?></option><?php endforeach; ?></select>
+				</label>
+				<button type="button" class="j5ac-dir" data-j5ac-dir aria-label="Reverse sort order" title="Reverse sort order">&#9650;</button>
+			</div>
+			<div class="j5ac-tb-row j5ac-tb-row--active">
+				<span class="j5ac-count" data-j5ac-count><?php echo count( $models ); ?> of <?php echo count( $models ); ?></span>
+				<div class="j5ac-active" data-j5ac-active aria-label="Active filters"></div>
+				<button type="reset" form="<?php echo esc_attr( $fid ); ?>" class="j5ac-reset" data-j5ac-clearall hidden>Clear all</button>
+			</div>
+		</div>
 
 		<?php if ( 'shield' === $cat ) : ?><div class="j5ac-cards-list" data-j5ac-cardlist hidden></div><?php endif; ?>
 		<div class="j5ac-table-wrap<?php echo 'shield' === $cat ? ' j5ac-table-wrap--cards' : ''; ?>">
@@ -651,11 +709,11 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 							<td class="j5ac-td--pick"><input type="checkbox" class="j5ac-pick" value="<?php echo esc_attr( $m['slug'] ); ?>" aria-label="Compare <?php echo esc_attr( $m['manufacturer'] . ' ' . $m['model'] ); ?>"></td>
 							<th scope="row" class="j5ac-td--model">
 								<span class="j5ac-model"><?php echo esc_html( $m['model'] ); ?></span>
-								<span class="j5ac-maker"><?php echo esc_html( $m['manufacturer'] ); ?><?php if ( $m['carried'] ) : ?> <span class="j5ac-stock"><?php echo $m['wc_product_url'] ? 'Sold by J5' : 'Quote from J5'; ?></span><?php endif; ?></span>
+								<span class="j5ac-maker"><?php echo esc_html( $m['manufacturer'] ); ?><?php if ( $tag_standalone && ! empty( $m['specs']['standalone'] ) ) : ?> <span class="j5ac-tag"><?php echo esc_html( $m['specs']['standalone'] ); ?></span><?php endif; ?><?php if ( $m['carried'] ) : ?> <span class="j5ac-stock"><?php echo $m['wc_product_url'] ? 'Sold by J5' : 'Quote from J5'; ?></span><?php endif; ?></span>
 							</th>
 							<?php foreach ( $cols as $f ) :
-								$v = isset( $m['specs'][ $f['key'] ] ) ? $m['specs'][ $f['key'] ] : null; ?>
-								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php echo null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : ( 'size' === $f['key'] ? j5_armor_ref_size_display( $m['specs'] ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ) ); ?></td>
+								$v = '_size' === $f['key'] ? ( j5_armor_ref_dims( $m['specs'] ) ? true : null ) : ( isset( $m['specs'][ $f['key'] ] ) ? $m['specs'][ $f['key'] ] : null ); ?>
+								<td<?php echo 'number' === $f['type'] ? ' class="is-num"' : ''; ?> data-label="<?php echo esc_attr( $f['label'] ); ?>"><?php echo null === $v ? '<span class="j5ac-na">not listed</span>' : ( 'level' === $f['key'] ? j5_armor_ref_pill( $v ) : ( 'size' === $f['key'] || '_size' === $f['key'] ? j5_armor_ref_size_display( $m['specs'] ) : esc_html( j5_armor_ref_fmt( $v, $f ) ) ) ); ?></td>
 							<?php endforeach; ?>
 							<?php if ( $any_eff ) : ?><td class="is-num j5ac-td--eff" data-label="Oz / sq in"><?php echo isset( $d['oz_per_sqin'] ) ? esc_html( number_format( $d['oz_per_sqin'], 3 ) ) : '<span class="j5ac-na">not listed</span>'; ?></td><?php endif; ?>
 							<?php if ( $any_sizes ) : ?><td class="is-num" data-label="Sizes"><?php echo $sz ? '<span title="' . esc_attr( $d['size_list'] ) . '">' . (int) $sz['count'] . '</span>' : '1'; ?></td><?php endif; ?>
@@ -669,6 +727,8 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 
 		<p class="j5ac-hint"><span data-j5ac-hint>Check up to 6 to compare side by side.</span> <button type="button" class="j5ac-clear" data-j5ac-clear hidden>Clear selection</button></p>
 		<div class="j5ac-compare" data-j5ac-compare-out hidden tabindex="-1"></div>
+		</div><!-- .j5ac-main -->
+		</div><!-- .j5ac-layout -->
 
 		<p class="j5ac-foot">Specs as published by each manufacturer<?php echo $pulled ? ', sheets pulled ' . esc_html( $pulled ) : ''; ?>. Ounces per square inch is calculated from the listed size and weight. NIJ certification claims are taken from manufacturer spec sheets and cross-checked against the <a href="https://cpl.nij.ojp.gov/" target="_blank" rel="noopener">NIJ Compliant Products List</a>; "Not certified" means the model is not on the CPL, whatever the sheet says it was tested to. Confirm current specs with the manufacturer or with us before you buy.</p>
 	</section>

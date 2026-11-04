@@ -343,10 +343,20 @@
 	Panel.prototype.bind = function () {
 		var self = this;
 		this.desc = false;
-		this.dirBtn = this.form.querySelector('[data-j5ac-dir]');
-		this.form.addEventListener('input', function (e) {
+		// J5-AC-SIDEBAR: search and sort live in the toolbar over the results (form="" ties them to the filter form).
+		this.dirBtn = this.section.querySelector('[data-j5ac-dir]');
+		this.toolbar = this.section.querySelector('[data-j5ac-toolbar]');
+		var onInput = function (e) {
 			if (e.target.type === 'range') self.syncOutput(e.target);
 			if (e.target.name === 'sort') self.sort(e.target.value); else self.filter();
+		};
+		this.form.addEventListener('input', onInput);
+		if (this.toolbar) this.toolbar.addEventListener('input', onInput);
+		var ftoggle = this.section.querySelector('[data-j5ac-ftoggle]');
+		if (ftoggle) ftoggle.addEventListener('click', function () {
+			var on = !self.section.classList.contains('is-fopen');
+			self.section.classList.toggle('is-fopen', on);
+			ftoggle.setAttribute('aria-expanded', on ? 'true' : 'false');
 		});
 		this.form.addEventListener('submit', function (e) { e.preventDefault(); });
 		this.dirBtn.addEventListener('click', function () {
@@ -389,11 +399,11 @@
 	};
 
 	Panel.prototype.filter = function () {
-		var lists = {}, maxes = {}, onlys = [], has = [], q = '', maker = '', carriedOnly = false, steelOn = this.steelOn();
+		var lists = {}, maxes = {}, onlys = [], has = [], q = '', makers = [], carriedOnly = false, steelOn = this.steelOn();
 		Array.prototype.forEach.call(this.form.elements, function (inp) {
 			if (!inp.name || inp.name === 'sort' || inp.name === 'steel') return;
 			if (inp.name === 'q') { q = inp.value.trim().toLowerCase(); return; }
-			if (inp.name === 'maker') { maker = inp.value; return; }
+			if (inp.name === 'maker') { if (inp.checked) makers.push(inp.value); return; }
 			if (inp.name === 'carried') { carriedOnly = inp.checked; return; }
 			if (inp.type === 'checkbox' && inp.name.indexOf('only:') === 0) { if (inp.checked) onlys.push(inp.name.slice(5)); }
 			else if (inp.type === 'checkbox' && inp.name.indexOf('has:') === 0) { if (inp.checked) has.push(inp.name.slice(4)); }
@@ -406,7 +416,7 @@
 			for (k in g) if (g[k] !== undefined && g[k] !== '*' && g[k] !== ANY && stepValue(row.data, k) !== g[k]) { ok = false; break; }
 			if (!steelOn && isSteel(row.data)) ok = false;
 			if (ok && q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
-			if (ok && maker && row.data.manufacturer !== maker) ok = false;
+			if (ok && makers.length && makers.indexOf(row.data.manufacturer) === -1) ok = false;
 			if (ok && carriedOnly && !row.data.carried) ok = false;
 			if (ok) for (k in lists) { if (lists[k].indexOf(String(this.value(row, k))) === -1) { ok = false; break; } }
 			if (ok) for (k in maxes) { var n = num(this.value(row, k)); if (n === null || n > maxes[k]) { ok = false; break; } }
@@ -417,7 +427,44 @@
 		}, this);
 		this.count.textContent = shown + ' of ' + this.rows.length;
 		this.none.hidden = shown > 0;
+		this.renderActive();
 		this.renderCards();
+	};
+
+	/** Active filters as removable chips over the results, plus the count on the mobile Filters button. */
+	Panel.prototype.renderActive = function () {
+		var box = this.section.querySelector('[data-j5ac-active]');
+		if (!box) return;
+		var self = this, n = 0;
+		box.textContent = '';
+		Array.prototype.forEach.call(this.form.elements, function (inp) {
+			if (!inp.name || inp.name === 'sort' || inp.name === 'q') return;
+			var label = null, undo = null;
+			if (inp.type === 'checkbox' && inp.checked) {
+				var l = inp.closest('label');
+				label = l ? l.textContent.replace(/\s+/g, ' ').trim() : inp.value;
+				undo = function () { inp.checked = false; };
+			} else if (inp.type === 'range' && parseFloat(inp.value) < parseFloat(inp.max)) {
+				var out = inp.parentNode.querySelector('output');
+				label = 'Max ' + (out ? out.textContent : inp.value);
+				undo = function () { inp.value = inp.max; self.syncOutput(inp); };
+			}
+			if (!label) return;
+			n++;
+			var b = el('button', 'j5ac-achip', label);
+			b.type = 'button';
+			b.setAttribute('aria-label', 'Remove filter: ' + label);
+			b.addEventListener('click', function () {
+				undo(); self.filter();
+				var next = box.querySelector('.j5ac-achip');
+				if (next) next.focus();
+			});
+			box.appendChild(b);
+		});
+		var all = this.section.querySelector('[data-j5ac-clearall]');
+		if (all) all.hidden = n === 0;
+		var fc = this.section.querySelector('[data-j5ac-fcount]');
+		if (fc) fc.textContent = n ? '(' + n + ')' : '';
 	};
 
 	Panel.prototype.featuredRank = function (d) {

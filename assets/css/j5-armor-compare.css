@@ -278,3 +278,53 @@ body.j5ac-modal-open { overflow: hidden; }
 .j5ac-pcard-flag { position: absolute; left: 0; top: 14px; z-index: 2; font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding: 5px 10px 5px 12px; border-radius: 0 3px 3px 0; }
 .j5ac-pcard-flag.is-sold { background: var(--g); color: #15120a; }
 .j5ac-pcard-flag.is-quote { background: #15181d; color: var(--g); border: 1px solid var(--g); border-left: 0; }
+
+/* === J5-AC-SIDEBAR (2026-11-04): filters in a left sidebar, search/sort/active chips over the results === */
+.j5ac-layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px 28px; }
+.j5ac-main { flex: 999 1 560px; min-width: 0; }
+.j5ac .j5ac-filters { flex: 1 1 250px; max-width: 280px; margin: 0; padding: 4px 18px 10px; background: var(--card); border: 1px solid var(--line-hi); border-radius: 6px; }
+.j5ac-fhead { display: flex; align-items: center; justify-content: space-between; min-height: 52px; border-bottom: 1px solid var(--line-hi); }
+.j5ac-fh { font-family: var(--disp); font-size: 24px; letter-spacing: .04em; color: var(--bone); line-height: 1; }
+.j5ac-sec { border-bottom: 1px solid var(--line); }
+.j5ac-sec:last-child { border-bottom: 0; }
+.j5ac-sec-h { display: flex; align-items: center; justify-content: space-between; min-height: 46px; list-style: none; cursor: pointer; font-family: var(--cond); font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+.j5ac-sec-h::-webkit-details-marker { display: none; }
+.j5ac-sec-h::after { content: ""; width: 8px; height: 8px; margin-right: 3px; border-right: 2px solid var(--dim); border-bottom: 2px solid var(--dim); transform: rotate(45deg) translateY(-3px); }
+.j5ac-sec[open] > .j5ac-sec-h::after { border-color: var(--g); transform: rotate(-135deg) translateY(-2px); }
+.j5ac-sec-h:hover { color: var(--bone); }
+.j5ac-sec-b { display: flex; flex-direction: column; gap: 2px; padding: 0 0 14px; }
+.j5ac-sec-b.j5ac-chips { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+.j5ac-filters .j5ac-check { min-height: 34px; color: var(--ink); font-size: 15px; }
+.j5ac-filters .j5ac-check input { width: 17px; height: 17px; }
+.j5ac-check--sep { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line-hi); }
+.j5ac-filters .j5ac-range { flex: none; min-width: 0; width: 100%; }
+.j5ac-filters .j5ac-range output { min-width: 3.2em; text-align: right; }
+
+.j5ac-toolbar { display: flex; flex-direction: column; gap: 12px; margin: 0 0 14px; }
+.j5ac-tb-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.j5ac-toolbar .j5ac-search input { padding: 10px 14px; font-size: 15px; }
+.j5ac-toolbar .j5ac-sort { padding: 9px 10px; }
+.j5ac-toolbar .j5ac-dir { padding: 12px 12px; }
+.j5ac-toolbar .j5ac-count { margin: 0 6px 0 0; font-family: var(--cond); font-size: 14px; letter-spacing: .06em; color: var(--dim); }
+.j5ac-active { display: flex; flex-wrap: wrap; gap: 6px; }
+.j5ac .j5ac-achip { font-family: var(--cond); font-size: 13px; letter-spacing: .06em; color: var(--g); border: 1px solid var(--g); border-radius: 4px; padding: 6px 10px; background: rgba(212, 160, 68, .08); }
+.j5ac .j5ac-achip::after { content: " \2715"; font-size: 10px; color: var(--dim); }
+.j5ac .j5ac-achip:hover { background: rgba(212, 160, 68, .16); }
+.j5ac-tag { display: inline-block; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line-hi); border-radius: 3px; color: var(--dim); letter-spacing: .06em; }
+.j5ac .j5ac-ftoggle { display: none; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px; font-family: var(--cond); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--bone); border: 1px solid var(--g); border-radius: 4px; background: rgba(212, 160, 68, .08); }
+.j5ac-ftoggle span { color: var(--g); }
+
+/* Guided search hides the filter form; the toolbar goes with it. */
+.j5ac-layout:has(> .j5ac-filters[hidden]) .j5ac-toolbar { display: none; }
+
+@media (max-width: 900px) {
+	.j5ac .j5ac-filters { display: none; flex: 1 1 100%; max-width: none; }
+	.j5ac-panel.is-fopen .j5ac-filters { display: block; }
+	.j5ac .j5ac-ftoggle { display: inline-flex; }
+	/* Mobile: the toolbar (with the Filters button) sits first, the opened filters right under it, results after. */
+	.j5ac-layout { gap: 0; }
+	.j5ac-main { display: contents; }
+	.j5ac-main > * { order: 3; flex: 1 1 100%; min-width: 0; }
+	.j5ac-main > .j5ac-toolbar { order: 1; }
+	.j5ac .j5ac-filters { order: 2; margin: 0 0 16px; }
+}
