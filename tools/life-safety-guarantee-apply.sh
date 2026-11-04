@@ -29,7 +29,7 @@ cat > /tmp/lsg-$ID.html <<EOF
 
 <!-- wp:list -->
 <ul class="wp-block-list">
-<li><strong>Proof of purchase</strong> from J5 Rescue Supply LLC, such as your receipt or a paid invoice.</li>
+<li><strong>Proof of purchase</strong> from J5 Rescue Supply LLC, such as your receipt or a paid invoice, showing the item was shipped to you.</li>
 <li><strong>A police report</strong> from a U.S. police agency, or an <strong>incident report</strong> if the event happened in the line of duty.</li>
 <li><strong>The documentation for your product</strong>, listed in the coverage table below.</li>
 </ul>
@@ -42,8 +42,9 @@ cat > /tmp/lsg-$ID.html <<EOF
 <!-- wp:list -->
 <ul class="wp-block-list">
 <li>Purchasers located in the United States.</li>
+<li>Items shipped directly to you, the end user, by J5 Rescue Supply or by the manufacturer on our order.</li>
 <li>Civilians and bystanders who bought the equipment and used it to save a life.</li>
-<li>First responders who bought the equipment for their own duty use.</li>
+<li>Law enforcement officers, firefighters, EMS providers, military members, security professionals and other first responders who bought the equipment for duty use <strong>with their own money</strong>.</li>
 </ul>
 <!-- /wp:list -->
 
@@ -52,7 +53,7 @@ cat > /tmp/lsg-$ID.html <<EOF
 <!-- /wp:heading -->
 
 <!-- wp:paragraph -->
-<p>Organizations that bill for their services or have a budget for this equipment are not covered. That includes:</p>
+<p>Equipment bought by a department, agency or employer is not covered, even when an individual uses it. Organizations that bill for their services or have a budget for this equipment are not covered either. That includes:</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:list -->
@@ -64,6 +65,7 @@ cat > /tmp/lsg-$ID.html <<EOF
 <li>Nonprofits and NGOs providing emergency medical or surgical support in war zones</li>
 <li>Businesses required to provide the listed equipment</li>
 <li>Equipment bought to treat combat casualties</li>
+<li>Items bought through a reseller or another dealer, even if they were originally sold by J5 Rescue Supply</li>
 </ul>
 <!-- /wp:list -->
 

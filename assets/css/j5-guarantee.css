@@ -1,29 +1,64 @@
-/* Life Safety Replacement Guarantee page (page 83814, inc/j5-guarantee-page.php) */
-.j5-page__content { max-width: 900px; }
-.j5-page__content .j5-lsg-seal { float: left; margin: 4px 28px 12px 0; }
-.j5-page__content .j5-lsg-seal img { width: 180px; height: auto; border-radius: 50%; background: #fff; display: block; }
-.j5-page__content .j5-lsg-lead { font-size: 22px; line-height: 1.4; color: var(--j5-bone, #f5f1e8); margin-top: 18px; }
-.j5-page__content h2.wp-block-heading { clear: both; font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif; font-weight: 400; font-size: 34px; letter-spacing: .03em; color: var(--j5-bone, #f5f1e8); margin: 40px 0 12px; padding-top: 18px; border-top: 1px solid var(--j5-border-hi, #333842); }
-.j5-page__content h3.wp-block-heading { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: .12em; text-transform: uppercase; color: var(--j5-gold, #d4a044); margin: 26px 0 8px; }
-.j5-page__content .wp-block-list { padding-left: 1.2em; }
-.j5-page__content .wp-block-list li { margin: 0 0 8px; line-height: 1.55; }
-.j5-page__content .wp-block-list li::marker { color: var(--j5-gold, #d4a044); }
-.j5-lsg-table { margin: 8px 0 12px; overflow-x: auto; }
-.j5-lsg-table table { width: 100%; border-collapse: collapse; font-size: 15px; }
-.j5-lsg-table th { text-align: left; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--j5-ink-mute, #8a8a80); padding: 0 14px 10px 0; border-bottom: 1px solid var(--j5-border-hi, #333842); }
-.j5-lsg-table td { vertical-align: top; padding: 14px 14px 14px 0; border-bottom: 1px solid var(--j5-border, #23272f); line-height: 1.45; }
-.j5-lsg-table td:first-child { white-space: nowrap; color: var(--j5-bone, #f5f1e8); }
-.j5-lsg-table td:last-child { color: var(--j5-gold, #d4a044); }
+/* Life Safety Replacement Guarantee page (page 83814, inc/j5-guarantee-page.php)
+   Selectors are scoped under .j5-page__content so they beat WordPress core block styles
+   (core .wp-block-table adds 1px cell borders and a 3px thead rule). */
+
+.j5-page__content { max-width: 920px; color: #e6e3da; font-size: 16px; line-height: 1.6; }
+.j5-page__content p { color: #e6e3da; }
+.j5-page__content strong { color: #ffffff; font-weight: 600; }
+
+/* Links: gold, underlined, never browser blue/purple */
+.j5-page__content a,
+.j5-page__content a:visited { color: #f0bc5a; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; font-weight: 500; }
+.j5-page__content a:hover,
+.j5-page__content a:focus-visible { color: #ffffff; text-decoration-thickness: 2px; }
+.j5-page__content a:focus-visible { outline: 2px solid #f0bc5a; outline-offset: 2px; border-radius: 2px; }
+
+/* Seal: white rounded tile with padding so the whole logo, including "Eligible item", shows */
+.j5-page__content .j5-lsg-seal { float: left; margin: 2px 32px 16px 0; }
+.j5-page__content .j5-lsg-seal img { display: block; width: 172px !important; height: auto; padding: 12px; background: #ffffff; border-radius: 12px; box-sizing: content-box; }
+.j5-page__content .j5-lsg-lead { font-size: 24px; line-height: 1.35; font-weight: 600; color: #ffffff; margin: 6px 0 14px; }
+
+/* Headings */
+.j5-page__content h2.wp-block-heading { clear: both; font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif; font-weight: 400; font-size: 36px; line-height: 1.05; letter-spacing: .03em; color: #ffffff; margin: 44px 0 14px; padding-top: 22px; border-top: 1px solid #333842; }
+.j5-page__content h3.wp-block-heading { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: #f0bc5a; margin: 30px 0 8px; }
+
+/* Lists */
+.j5-page__content .wp-block-list { padding-left: 1.3em; margin: 0 0 14px; }
+.j5-page__content .wp-block-list li { margin: 0 0 10px; color: #e6e3da; }
+.j5-page__content .wp-block-list li::marker { color: #f0bc5a; font-weight: 700; }
+
+/* Coverage table: one bordered card, no cell grid, padded cells, zebra rows */
+.j5-page__content figure.wp-block-table.j5-lsg-table { margin: 10px 0 12px; border: 1px solid #333842; border-radius: 8px; overflow: hidden; background: #111418; }
+.j5-page__content .wp-block-table.j5-lsg-table table { width: 100%; border-collapse: collapse; border: 0; font-size: 15px; line-height: 1.45; }
+.j5-page__content .wp-block-table.j5-lsg-table thead { border: 0; }
+.j5-page__content .wp-block-table.j5-lsg-table th,
+.j5-page__content .wp-block-table.j5-lsg-table td { border: 0; padding: 16px 18px; text-align: left; vertical-align: top; }
+.j5-page__content .wp-block-table.j5-lsg-table thead th { background: #1c2027; border-bottom: 1px solid #3a414d; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #c9c6bc; padding-top: 12px; padding-bottom: 12px; }
+.j5-page__content .wp-block-table.j5-lsg-table tbody td { border-bottom: 1px solid #262a31; color: #e6e3da; }
+.j5-page__content .wp-block-table.j5-lsg-table tbody tr:nth-child(even) td { background: #161a1f; }
+.j5-page__content .wp-block-table.j5-lsg-table tbody tr:last-child td { border-bottom: 0; }
+.j5-page__content .wp-block-table.j5-lsg-table td:first-child { width: 18%; white-space: nowrap; }
+.j5-page__content .wp-block-table.j5-lsg-table td:first-child strong { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: .04em; color: #ffffff; }
+.j5-page__content .wp-block-table.j5-lsg-table td:last-child { width: 20%; color: #f0bc5a; font-weight: 600; }
+
+.j5-page__content .j5-lsg-table + p em { color: #b8b5ab; }
+
 @media (max-width: 720px) {
-	.j5-page__content .j5-lsg-seal { float: none; margin: 0 auto 8px; }
-	.j5-page__content .j5-lsg-seal img { margin: 0 auto; width: 150px; }
-	.j5-page__content .j5-lsg-lead { text-align: center; }
-	.j5-lsg-table thead { display: none; }
-	.j5-lsg-table table, .j5-lsg-table tbody, .j5-lsg-table tr, .j5-lsg-table td { display: block; width: auto; }
-	.j5-lsg-table tr { padding: 12px 0; border-bottom: 1px solid var(--j5-border-hi, #333842); }
-	.j5-lsg-table td { border: 0; padding: 3px 0; white-space: normal; }
-	.j5-lsg-table td:first-child { font-size: 17px; padding-bottom: 6px; }
-	.j5-lsg-table td:nth-child(2)::before { content: "Replacement: "; color: var(--j5-ink-mute, #8a8a80); }
-	.j5-lsg-table td:nth-child(3)::before { content: "Send: "; color: var(--j5-ink-mute, #8a8a80); }
-	.j5-lsg-table td:nth-child(4)::before { content: "Window: "; color: var(--j5-ink-mute, #8a8a80); }
+	.j5-page__content .j5-lsg-seal { float: none; margin: 0 auto 14px; width: max-content; }
+	.j5-page__content .j5-lsg-seal img { width: 150px !important; margin: 0 auto; }
+	.j5-page__content .j5-lsg-lead { text-align: center; font-size: 21px; }
+	.j5-page__content .wp-block-table.j5-lsg-table thead { display: none; }
+	.j5-page__content .wp-block-table.j5-lsg-table table,
+	.j5-page__content .wp-block-table.j5-lsg-table tbody,
+	.j5-page__content .wp-block-table.j5-lsg-table tr,
+	.j5-page__content .wp-block-table.j5-lsg-table td { display: block; width: auto; }
+	.j5-page__content .wp-block-table.j5-lsg-table tbody tr { padding: 14px 16px; border-bottom: 1px solid #262a31; }
+	.j5-page__content .wp-block-table.j5-lsg-table tbody tr:nth-child(even) { background: #161a1f; }
+	.j5-page__content .wp-block-table.j5-lsg-table tbody tr:nth-child(even) td { background: none; }
+	.j5-page__content .wp-block-table.j5-lsg-table tbody tr:last-child { border-bottom: 0; }
+	.j5-page__content .wp-block-table.j5-lsg-table td { border: 0; padding: 3px 0; white-space: normal; }
+	.j5-page__content .wp-block-table.j5-lsg-table td:first-child { padding-bottom: 8px; }
+	.j5-page__content .wp-block-table.j5-lsg-table td:nth-child(2)::before { content: "Replacement: "; color: #9a978d; font-weight: 600; }
+	.j5-page__content .wp-block-table.j5-lsg-table td:nth-child(3)::before { content: "Send: "; color: #9a978d; font-weight: 600; }
+	.j5-page__content .wp-block-table.j5-lsg-table td:nth-child(4)::before { content: "Claim window: "; color: #9a978d; font-weight: 600; }
 }
