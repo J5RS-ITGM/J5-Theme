@@ -106,7 +106,7 @@ function j5_armor_ref_normalize( $category, $body ) {
 				if ( '' === $k || null === $v || '' === $v ) continue;
 				if ( is_bool( $v ) )            $specs[ $k ] = $v;
 				elseif ( is_int( $v ) || is_float( $v ) ) $specs[ $k ] = $v + 0;
-				elseif ( is_array( $v ) )       $specs[ $k ] = array_map( 'sanitize_text_field', array_map( 'strval', $v ) );
+				elseif ( is_array( $v ) )       $specs[ $k ] = j5_armor_ref_clean( $v ); // nested lists/objects (threat matrix) keep their shape
 				else                            $specs[ $k ] = sanitize_text_field( (string) $v );
 			}
 		}
@@ -418,6 +418,36 @@ function j5_armor_ref_size_display( array $specs ) {
 	return $name ? $out . ' <small class="j5ac-sapi">' . esc_html( $name ) . '</small>' : $out;
 }
 
+/**
+ * Sanitize a nested spec value (list of strings, or rows like the threat matrix) without
+ * flattening it. Before 2026-11-04 nested values were cast to the string "Array".
+ */
+function j5_armor_ref_clean( $v, $depth = 0 ) {
+	if ( $depth > 5 ) return null;
+	if ( is_bool( $v ) || is_int( $v ) || is_float( $v ) ) return $v;
+	if ( is_array( $v ) ) {
+		// Lists stay lists; objects keep their keys (part numbers like "4800" in a threat matrix's shots).
+		$list = function_exists( 'array_is_list' ) ? array_is_list( $v ) : array_keys( $v ) === range( 0, count( $v ) - 1 );
+		$out  = array();
+		foreach ( $v as $k => $x ) {
+			$x = j5_armor_ref_clean( $x, $depth + 1 );
+			if ( null === $x || '' === $x ) continue;
+			if ( $list ) $out[] = $x; else $out[ sanitize_text_field( (string) $k ) ] = $x;
+		}
+		return $out;
+	}
+	return null === $v ? null : sanitize_text_field( (string) $v );
+}
+
+/** True when a spec value is a flat list of plain values. */
+function j5_armor_ref_flat( $v ) {
+	if ( ! is_array( $v ) ) return false;
+	foreach ( $v as $x ) if ( ! is_scalar( $x ) ) return false;
+	// A list of nothing but "Array" is a table an older version flattened; treat it as unusable.
+	if ( $v && count( array_filter( $v, function ( $x ) { return 'Array' !== $x; } ) ) === 0 ) return false;
+	return true;
+}
+
 /** Listing key: the DP family slug, else manufacturer + family name, else the model itself. */
 function j5_armor_ref_fam_key( array $m ) {
 	if ( ! empty( $m['family_slug'] ) ) return $m['family_slug'];
@@ -470,7 +500,7 @@ function j5_armor_ref_fam_eff( array $fam ) {
 /** Display string for a spec value. */
 function j5_armor_ref_fmt( $v, $field = null ) {
 	if ( is_bool( $v ) ) return $v ? 'Yes' : 'No';
-	if ( is_array( $v ) ) return implode( ', ', $v );
+	if ( is_array( $v ) ) return j5_armor_ref_flat( $v ) ? implode( ', ', $v ) : '';
 	if ( ( is_int( $v ) || is_float( $v ) ) && $field && ! empty( $field['unit'] ) ) return rtrim( rtrim( number_format( (float) $v, 2, '.', ',' ), '0' ), '.' ) . ' ' . $field['unit'];
 	if ( is_int( $v ) || is_float( $v ) ) return rtrim( rtrim( number_format( (float) $v, 2, '.', ',' ), '0' ), '.' );
 	return (string) $v;
@@ -841,6 +871,7 @@ function j5_armor_ref_jsonld( array $feed ) {
 	foreach ( $feed['models'] as $m ) {
 		$props = array();
 		foreach ( $m['specs'] as $k => $v ) {
+			if ( is_array( $v ) && ! j5_armor_ref_flat( $v ) ) continue; // tables (threat matrix) are not a single property value
 			$f = isset( $by_key[ $k ] ) ? $by_key[ $k ] : null;
 			$p = array( '@type' => 'PropertyValue', 'name' => $f ? $f['label'] : $k, 'value' => is_array( $v ) ? implode( ', ', $v ) : ( is_bool( $v ) ? ( $v ? 'Yes' : 'No' ) : $v ) );
 			if ( $f && ! empty( $f['unit'] ) && ( is_int( $v ) || is_float( $v ) ) ) $p['unitText'] = $f['unit'];

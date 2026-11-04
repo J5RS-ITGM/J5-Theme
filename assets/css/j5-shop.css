@@ -1567,3 +1567,24 @@ body.j5-shop-template .j5-container {
 .j5-variant-card.j5-opt-special.j5-opt-production { border-color: #5b9bd5; }
 .j5-variant-card.j5-opt-special.j5-opt-production .j5-vc-special { color: #5b9bd5; }
 .j5-variant-card.j5-opt-special.j5-opt-production .j5-vc-name::before { background: #5b9bd5; }
+
+/* === J5-BADGES (2026-11-04): product badges under the name (inc/j5-product-badges.php) === */
+.j5-badges { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: -4px 0 20px; padding: 0; }
+.j5-le-only + .j5-badges { margin-top: -6px; }
+.j5-badge { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; width: 148px; min-height: 122px; box-sizing: border-box; margin: 0; padding: 16px 10px 14px; border-radius: 6px; border: 1px solid; text-align: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; line-height: 1.15; letter-spacing: 0.09em; text-transform: uppercase; cursor: default; outline: none; }
+.j5-badge:focus-visible { box-shadow: 0 0 0 2px var(--j5-gold, #d4a044); }
+.j5-badge--nij { border-color: #8a6a2a; background: #1a160c; color: #f0bc5a; }
+.j5-badge--usa { border-color: #3f4a63; background: #11151d; color: #e4e8f0; }
+.j5-badge--guarantee { border-color: #7a2a32; background: #1a0f11; color: #f2a6ad; }
+.j5-badge__ico { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+.j5-badge__ico--nij { background: #2a2312; border: 2px solid #d4a044; font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif; font-weight: 400; font-size: 24px; line-height: 1; letter-spacing: 0.06em; color: #f0bc5a; padding-top: 2px; }
+.j5-badge__ico--usa { background: #1a2030; }
+.j5-badge__seal { width: 62px; height: 62px; border-radius: 50%; background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.j5-badge__seal img { width: 62px; height: 62px; object-fit: contain; display: block; }
+.j5-badge__tip { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); z-index: 20; width: max-content; max-width: 240px; padding: 8px 12px; border-radius: 4px; background: #23272f; border: 1px solid #333842; color: var(--j5-bone, #f5f1e8); font-family: 'Barlow', sans-serif; font-weight: 400; font-size: 13px; line-height: 1.4; letter-spacing: 0; text-transform: none; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .12s; }
+.j5-badge:hover .j5-badge__tip, .j5-badge:focus .j5-badge__tip, .j5-badge:focus-within .j5-badge__tip { opacity: 1; visibility: visible; }
+@media (max-width: 480px) {
+	.j5-badges { gap: 8px; }
+	.j5-badge { width: calc((100% - 16px) / 3); min-width: 0; min-height: 112px; padding: 12px 6px; font-size: 12.5px; }
+	.j5-badge__tip { max-width: 180px; }
+}

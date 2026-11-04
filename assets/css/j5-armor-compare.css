@@ -529,3 +529,21 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1840px; }
 .j5ac-det-table tr.is-unequal td:not(.is-cmp) { opacity: .5; }
 .j5ac-det-why td { padding: 0 0 12px; border-top: 0; white-space: normal; font-size: 13px; color: #c9b27a; }
 .j5ac-det-why strong { color: #e0c27a; font-weight: 600; }
+
+/* === J5-AC-V5 (2026-11-04): chart heading, threat matrix table === */
+.j5ac-chart-h { align-items: flex-end; padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--line-hi); }
+.j5ac-chart-ht { display: flex; flex-direction: column; gap: 2px; }
+.j5ac-chart-eyebrow { font-family: var(--cond); font-weight: 600; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.j5ac .j5ac-chart-h h3 { font-size: 44px; line-height: .95; color: var(--gh); letter-spacing: .04em; }
+.j5ac-chart-h p { font-size: 14px; color: var(--ink); max-width: 60ch; }
+.j5ac-caxis-l { font-family: var(--cond); font-weight: 600; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--g); }
+.j5ac-ctick { font-size: 13px; color: var(--dim); letter-spacing: .04em; }
+.j5ac-crow--axis { min-height: 38px; }
+.j5ac-crow--axis .j5ac-ctrack { height: 20px; }
+
+.j5ac-mtx th, .j5ac-mtx td { white-space: normal; }
+.j5ac-mtx .is-num { text-align: right; padding-right: 0; }
+.j5ac-mtx thead th.is-num { text-align: right; padding-right: 0; }
+.j5ac-mtx-r { font-family: var(--cond); font-weight: 600; font-size: 15px; color: var(--bone); text-align: left; padding: 10px 12px 10px 0; border-top: 1px solid var(--line); }
+.j5ac-mtx-r.is-ap { color: #ff8a98; }
+.j5ac-mtx-g th { padding: 14px 0 6px; border-top: 0; font-family: var(--cond); font-weight: 600; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--g); text-align: left; }

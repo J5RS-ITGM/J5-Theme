@@ -15,6 +15,8 @@
 	function fmt(v, field) {
 		if (v === null || v === undefined || v === '') return null;
 		if (typeof v === 'string' && /^\[.*\]$/.test(v.trim())) v = toList(v);
+		// Tables (threat matrix) are drawn on their own; "Array" is what old pushes stored for them.
+		if (Array.isArray(v) && (v.some(function (x) { return x && typeof x === 'object'; }) || (v.length && v.every(function (x) { return x === 'Array'; })))) return null;
 		if (typeof v === 'boolean') return v ? 'Yes' : 'No';
 		if (Array.isArray(v)) return v.join(', ');
 		if (typeof v === 'number') {
@@ -709,6 +711,12 @@
 			box.appendChild(secT);
 		}
 
+		// Threat matrix: rows of { round, core, fps, shots, base } from the DP
+		var mkey = null;
+		cfg.fields.forEach(function (f) { if (!mkey && matrixRows(first.specs[f.key]).length) mkey = f.key; });
+		if (!mkey) Object.keys(first.specs).forEach(function (k) { if (!mkey && matrixRows(first.specs[k]).length) mkey = k; });
+		if (mkey) box.appendChild(matrixSection(matrixRows(first.specs[mkey]), (this.fieldsByKey[mkey] && this.fieldsByKey[mkey].label) || 'Threat matrix'));
+
 		// Specifications (same for every size)
 		var specs = [];
 		cfg.fields.forEach(function (f) {
@@ -761,6 +769,55 @@
 		box.scrollTop = 0;
 		x.focus();
 	};
+	function matrixRows(v) {
+		return Array.isArray(v) ? v.filter(function (x) { return x && typeof x === 'object' && !Array.isArray(x); }) : [];
+	}
+	function cellText(v) {
+		if (v === null || v === undefined || v === '') return '';
+		if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+		if (Array.isArray(v)) return v.map(cellText).filter(Boolean).join(', ');
+		if (typeof v === 'object') return Object.keys(v).map(function (k) { return k + ': ' + cellText(v[k]); }).join(', ');
+		return String(v);
+	}
+	/** Threat matrix as a table: Round, Core, ft/s, shots stopped, plus any other columns the DP sends. */
+	function matrixSection(rows, title) {
+		var KNOWN = { round: 'Round', threat: 'Round', name: 'Round', core: 'Core', fps: 'ft/s', velocity_fps: 'ft/s', velocity: 'Velocity', shots: 'Shots stopped' };
+		var cols = [], seen = {};
+		var addCol = function (k) { var lab = KNOWN[k] || k.replace(/_/g, ' ').replace(/^./, function (c) { return c.toUpperCase(); }); if (seen[lab]) return; seen[lab] = 1; cols.push({ k: k, lab: lab }); };
+		['round', 'threat', 'name', 'core', 'fps', 'velocity_fps', 'velocity'].forEach(function (k) { if (rows.some(function (r) { return r[k] !== undefined && r[k] !== ''; })) addCol(k); });
+		rows.forEach(function (r) { Object.keys(r).forEach(function (k) { if (k !== 'base' && k !== 'shots' && !KNOWN[k]) addCol(k); }); });
+		var hasShots = rows.some(function (r) { return r.shots !== undefined; });
+		var sec = el('section', 'j5ac-det-sec');
+		sec.appendChild(el('h4', null, title));
+		var wrap = el('div', 'j5ac-det-tw'), t = el('table', 'j5ac-det-table j5ac-mtx'), th = el('thead'), hr = el('tr');
+		cols.forEach(function (c) { var x = el('th', null, c.lab); x.scope = 'col'; hr.appendChild(x); });
+		if (hasShots) { var xs = el('th', 'is-num', 'Shots stopped'); xs.scope = 'col'; hr.appendChild(xs); }
+		th.appendChild(hr); t.appendChild(th);
+		var groups = [['Certification test round', rows.filter(function (r) { return r.base; })], ['Special threats', rows.filter(function (r) { return !r.base; })]];
+		groups.forEach(function (g) {
+			if (!g[1].length) return;
+			var tb = el('tbody');
+			if (groups[0][1].length && groups[1][1].length) { var gr = el('tr', 'j5ac-mtx-g'), gc = el('th', null, g[0]); gc.colSpan = cols.length + (hasShots ? 1 : 0); gc.scope = 'rowgroup'; gr.appendChild(gc); tb.appendChild(gr); }
+			g[1].forEach(function (r) {
+				var tr = el('tr');
+				cols.forEach(function (c, i) {
+					var txt = cellText(r[c.k]), td = el(i === 0 ? 'th' : 'td', i === 0 ? 'j5ac-mtx-r' : null, txt || '\u2014');
+					if (i === 0) { td.scope = 'row'; if (/\bAP\b|M2\s?AP|M61\b|M993|M995/i.test(txt)) td.classList.add('is-ap'); }
+					tr.appendChild(td);
+				});
+				if (hasShots) {
+					var sv = r.shots, st;
+					if (sv && typeof sv === 'object' && !Array.isArray(sv)) { var ks = Object.keys(sv); st = ks.length === 1 ? cellText(sv[ks[0]]) : ks.map(function (k) { return k + ': ' + cellText(sv[k]); }).join(', '); }
+					else st = cellText(sv);
+					tr.appendChild(el('td', 'is-num', st || '\u2014'));
+				}
+				tb.appendChild(tr);
+			});
+			t.appendChild(tb);
+		});
+		wrap.appendChild(t); sec.appendChild(wrap);
+		return sec;
+	}
 	function closeDetail(root) {
 		var modal = root.querySelector('[data-j5ac-detail]');
 		if (!modal || modal.hidden) return;
@@ -1131,22 +1188,29 @@
 			});
 		} else {
 			var key = this.measureSel ? this.measureSel.value : 'weight_lb';
-			var meta = { weight_lb: { lab: 'Weight across each listing’s sizes', unit: 'lb', get: 'weight' }, oz_per_sqin: { lab: 'Ounces per square inch, lower is lighter for the coverage', unit: '', places: 3, get: 'eff' }, area_sqin: { lab: 'Coverage across each listing’s sizes', unit: 'sq in', get: 'area' } }[key] || { lab: 'Weight', unit: 'lb', get: 'weight' };
+			var meta = {
+				weight_lb: { m: 'Weight', sub: 'Pounds, from each listing\u2019s smallest size to its largest', unit: 'lb', axis: 'Weight (lb)', get: 'weight' },
+				oz_per_sqin: { m: 'Oz per sq in', sub: 'Weight for the coverage. Lower is lighter', unit: '', places: 3, axis: 'Ounces per sq in', get: 'eff' },
+				area_sqin: { m: 'Coverage', sub: 'Square inches, from each listing\u2019s smallest size to its largest', unit: 'sq in', axis: 'Coverage (sq in)', get: 'area' }
+			}[key] || { m: 'Weight', sub: '', unit: 'lb', axis: 'Weight (lb)', get: 'weight' };
 			var hi = 0;
 			fams.forEach(function (f) { if (f[meta.get][1] !== null) hi = Math.max(hi, f[meta.get][1]); });
 			if (!(hi > 0)) hi = 1;
 			var step = niceStep(hi / 6), max = Math.ceil(hi / step) * step;
 			var wrap = el('div', 'j5ac-chart');
 			var head = el('div', 'j5ac-chart-h');
-			head.appendChild(el('h3', null, meta.lab));
-			head.appendChild(el('p', null, 'Each bar runs from the smallest size to the largest. Click a model to see every size.'));
+			var ht = el('div', 'j5ac-chart-ht');
+			ht.appendChild(el('span', 'j5ac-chart-eyebrow', 'Chart'));
+			ht.appendChild(el('h3', null, meta.m));
+			head.appendChild(ht);
+			head.appendChild(el('p', null, (meta.sub ? meta.sub + '. ' : '') + 'Click a model to see every size.'));
 			wrap.appendChild(head);
 			var axis = el('div', 'j5ac-crow j5ac-crow--axis');
-			axis.appendChild(el('span', 'j5ac-k', 'Model'));
+			axis.appendChild(el('span', 'j5ac-caxis-l', meta.axis));
 			var ax = el('div', 'j5ac-ctrack');
 			for (var v = 0; v <= max + 1e-9; v += step) { var t = el('span', 'j5ac-ctick', (meta.places ? v.toFixed(2) : fmt(Math.round(v * 100) / 100))); t.style.left = (v / max * 100) + '%'; ax.appendChild(t); }
 			axis.appendChild(ax);
-			axis.appendChild(el('span', 'j5ac-k', meta.unit ? meta.unit : ''));
+			axis.appendChild(el('span', 'j5ac-k', ''));
 			wrap.appendChild(axis);
 			groups.forEach(function (g) {
 				if (g.title) { var gh = vhead(g, g.items.length); gh.classList.add('j5ac-vgroup--chart'); wrap.appendChild(gh); }

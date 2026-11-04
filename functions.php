@@ -106,6 +106,8 @@ require_once get_stylesheet_directory() . '/inc/j5-product-flags.php';
 require_once get_stylesheet_directory() . '/inc/j5-spec-sheets.php';
 // NIJ Certified badge + shop filter, from portal meta _j5_nij_certified. J5-NIJ
 require_once get_stylesheet_directory() . '/inc/j5-nij-certified.php';
+// Product badges under the name: NIJ Certified, Made in the USA (tag made-in-usa), Life Safety Guarantee (tag life-safety-guarantee). J5-BADGES
+require_once get_stylesheet_directory() . '/inc/j5-product-badges.php';
 // === J5-CAT-CONTENT-REQUIRES-END ===
 
 // Storefront SKU display (real DP SKUs, never the WC ID). J5-SKU-DISPLAY
