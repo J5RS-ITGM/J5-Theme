@@ -46,7 +46,10 @@ $j5_year      = date_i18n( 'Y' );
 				<h2 class="j5-footer-col__title">Account</h2>
 				<ul class="j5-footer-links">
 					<?php if ( function_exists( 'wc_get_account_endpoint_url' ) ) : ?>
-					<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'dashboard' ) ); ?>">Sign in</a></li>
+					<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'dashboard' ) ); ?>"><?php echo is_user_logged_in() ? 'My account' : 'Sign in'; ?></a></li>
+					<?php if ( ! is_user_logged_in() && 'yes' === get_option( 'woocommerce_enable_myaccount_registration' ) ) : /* J5-FOOTER-REGISTER: shown while My Account sign-up is on */ ?>
+					<li><a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) . '#j5-register' ); ?>">Register</a></li>
+					<?php endif; ?>
 					<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'orders' ) ); ?>">My orders</a></li>
 					<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'orders' ) ); ?>">Track order</a></li>
 					<li><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'edit-address' ) ); ?>">Addresses</a></li>

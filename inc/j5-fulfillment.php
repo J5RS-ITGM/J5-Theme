@@ -762,5 +762,14 @@ add_filter( 'woocommerce_available_variation', function ( $data, $product, $vari
 		// Compact form for pills and dropdown options: "4-6 weeks".
 		$data['j5_lead_short'] = j5_lead_weeks_short( $lead['min'], $lead['max'] );
 	}
+	// J5-IN-PRODUCTION-1: an in-production option is labeled "In production"
+	// on pills and dropdown options (not "Special order"), through the same
+	// path factory lead times use. j5_stock_state stays 'special'.
+	$f = j5_get_fulfillment( $variation );
+	if ( is_array( $f ) && 'in_production' === $f['type'] ) {
+		$data['j5_lead_text']     = $f['note'];
+		$data['j5_lead_short']    = 'In production';
+		$data['j5_in_production'] = true;
+	}
 	return $data;
 }, 21, 3 );

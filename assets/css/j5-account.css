@@ -1233,3 +1233,31 @@ body.woocommerce-account .j5-register-card .woocommerce-form-register {
 
 .j5rg-trap { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
 .j5-register-card { scroll-margin-top: 110px; }
+
+/* ============================================================================
+   J5-ACCOUNT-ALIGN-1 (2026-11-03): Log in and Register buttons on one line.
+   Cards are equal height (flex row); each form fills its card and the submit
+   row is pushed to the bottom. "Lost your password?" moved up beside
+   Remember me so nothing sits under the Log in button.
+   ============================================================================ */
+@media (min-width: 901px) {
+    .j5-login-card,
+    .j5-register-card { display: flex !important; flex-direction: column !important; }
+    body.woocommerce-account .j5-login-card form.login,
+    body.woocommerce-account .j5-register-card form.register {
+        flex: 1 1 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    body.woocommerce-account .j5-form-submit { margin-top: auto !important; padding-top: 8px; }
+}
+body.woocommerce-account .j5-login-meta {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+body.woocommerce-account .j5-login-meta .j5-checkbox-row { margin: 0 !important; }
+body.woocommerce-account .j5-form-submit { margin-bottom: 0 !important; }
+body.woocommerce-account .j5-form-submit button { width: 100% !important; margin: 0 !important; }

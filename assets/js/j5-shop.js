@@ -294,6 +294,8 @@
                                 }
                             }
                             o.classList.toggle( 'j5-opt-factory', !! lead );
+                            /* J5-IN-PRODUCTION-1: blue tag when every matching option is in production. */
+                            o.classList.toggle( 'j5-opt-production', !! lead && matching.filter( function ( v ) { return v.j5_stock_state === 'special'; } ).every( function ( v ) { return !! v.j5_in_production; } ) );
                             if ( lead ) {
                                 o.setAttribute( 'data-j5-lead', lead );
                                 o.setAttribute( 'data-j5-lead-short', leadShort );
@@ -328,7 +330,7 @@
                                 }
                             }
                         } else {
-                            o.classList.remove( 'j5-opt-in', 'j5-opt-special', 'j5-opt-oos', 'j5-opt-factory' );
+                            o.classList.remove( 'j5-opt-in', 'j5-opt-special', 'j5-opt-oos', 'j5-opt-factory', 'j5-opt-production' );
                             o.removeAttribute( 'data-j5-lead' );
                             o.removeAttribute( 'data-j5-lead-short' );
                         }

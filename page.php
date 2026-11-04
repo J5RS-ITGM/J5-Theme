@@ -30,7 +30,7 @@ get_header();
 				?>
 				<article id="post-<?php the_ID(); ?>" <?php post_class( 'j5-page' ); ?>>
 
-					<?php if ( ! is_cart() && ! is_checkout() && ! is_front_page() ) : ?>
+					<?php if ( ! is_cart() && ! is_checkout() && ! is_front_page() && ! ( function_exists( 'is_account_page' ) && is_account_page() ) ) : /* My Account has its own hero title; skip the duplicate page title */ ?>
 						<header class="j5-page__header">
 							<h1 class="j5-page__title"><?php the_title(); ?></h1>
 						</header>

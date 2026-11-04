@@ -1548,3 +1548,11 @@ body.j5-shop-template .j5-container {
  * ======================================================================== */
 .j5-product-stock .dot.info { background: #5b9bd5; box-shadow: 0 0 8px rgba(91, 155, 213, 0.6); animation: none; }
 .j5-product-stock[data-state="info"] { border-left-color: #5b9bd5; }
+
+/* J5-IN-PRODUCTION-1: in-production options tagged in the banner's blue */
+.j5-variant-pill.j5-opt-special.j5-opt-production { border-color: #5b9bd5; }
+.j5-variant-pill.j5-opt-special.j5-opt-production::before { background: #5b9bd5; box-shadow: 0 0 5px rgba(91, 155, 213, 0.6); }
+.j5-variant-pill.j5-opt-special.j5-opt-production::after { color: #5b9bd5; }
+.j5-variant-card.j5-opt-special.j5-opt-production { border-color: #5b9bd5; }
+.j5-variant-card.j5-opt-special.j5-opt-production .j5-vc-special { color: #5b9bd5; }
+.j5-variant-card.j5-opt-special.j5-opt-production .j5-vc-name::before { background: #5b9bd5; }
