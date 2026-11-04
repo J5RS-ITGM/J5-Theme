@@ -482,8 +482,8 @@ get_header();
 	if ( function_exists( 'j5_news_render_latest_section' ) ) {
 		j5_news_render_latest_section( array(
 			'posts_per_page' => 3,
-			'eyebrow'        => 'FROM THE BLOG',
-			'title'          => 'Latest from the news desk.',
+			'eyebrow'        => '',
+			'title'          => 'Latest News',
 			'description'    => 'Product notes, responder resources, and field-tested guidance from the J5 team.',
 			'button_label'   => 'View All Articles',
 		) );
@@ -494,7 +494,6 @@ get_header();
 	<!-- === J5-HOME-NEWSLETTER-START === -->
 	<section class="j5-news">
 		<div class="j5-container j5-news-inner">
-			<div class="j5-block-label" style="justify-content: center;">SIGNALS</div>
 			<h2 class="j5-news-title">Don't miss <span class="gold">the drop.</span></h2>
 			<p>New product launches, clearance lists, member pricing alerts, and occasional educational articles. No spam &mdash; we hate it too.</p>
 			<form class="j5-news-form" action="#" method="post" onsubmit="event.preventDefault(); alert('Hook this up to your mailing list provider.');">
