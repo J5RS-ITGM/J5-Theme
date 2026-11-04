@@ -62,3 +62,12 @@
 	.j5-page__content .wp-block-table.j5-lsg-table td:nth-child(3)::before { content: "Send: "; color: #9a978d; font-weight: 600; }
 	.j5-page__content .wp-block-table.j5-lsg-table td:nth-child(4)::before { content: "Claim window: "; color: #9a978d; font-weight: 600; }
 }
+
+/* Mobile: nothing wider than the screen */
+.j5-page__content { overflow-wrap: anywhere; }
+.j5-page__content figure.wp-block-table.j5-lsg-table { max-width: 100%; }
+@media (max-width: 720px) {
+	.j5-page__content h2.wp-block-heading { font-size: 30px; }
+	.j5-page__content .wp-block-table.j5-lsg-table td:first-child { width: auto; }
+	.j5-page__content .wp-block-table.j5-lsg-table td:last-child { width: auto; }
+}

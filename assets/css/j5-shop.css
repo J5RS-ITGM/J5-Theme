@@ -1609,3 +1609,13 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 	.j5-badges__item { flex: 1 1 0; }
 	.j5-badge { width: 100%; height: 96px; font-size: 11.5px; padding: 8px 4px; }
 }
+
+/* J5-BADGES mobile (2026-11-04): hidden tooltips must not widen the page. Out of layout until shown;
+   on phones the tip spans the badge row instead of centering on one badge. */
+.j5-badge__tip { display: none; }
+.j5-badge:hover .j5-badge__tip, .j5-badge:focus .j5-badge__tip, .j5-badge:focus-within .j5-badge__tip { display: block; }
+@media (max-width: 600px) {
+	.j5-badges { position: relative; }
+	.j5-badges__item, .j5-badge { position: static; }
+	.j5-badge__tip { left: 0; right: 0; transform: none; width: auto; max-width: none; text-align: center; }
+}

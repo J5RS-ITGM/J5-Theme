@@ -689,7 +689,7 @@
 			});
 		}
 		sync();
-		t.appendChild(tb); wrap.appendChild(t); sec1.appendChild(wrap);
+		t.appendChild(tb); labelCells(t); wrap.appendChild(t); sec1.appendChild(wrap);
 		box.appendChild(sec1);
 
 		// Special threats, grouped by caliber
@@ -769,6 +769,16 @@
 		box.scrollTop = 0;
 		x.focus();
 	};
+	/** Phones stack overlay tables into cards; each cell carries its column name for the label. */
+	function labelCells(table) {
+		var heads = Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) { return th.textContent; });
+		Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (tr) {
+			if (tr.classList.contains('j5ac-det-why') || tr.classList.contains('j5ac-mtx-g')) return;
+			Array.prototype.forEach.call(tr.children, function (cell, i) {
+				if (i > 0 && heads[i] && !cell.classList.contains('is-cmp')) cell.setAttribute('data-k', heads[i]);
+			});
+		});
+	}
 	function matrixRows(v) {
 		return Array.isArray(v) ? v.filter(function (x) { return x && typeof x === 'object' && !Array.isArray(x); }) : [];
 	}
@@ -815,6 +825,7 @@
 			});
 			t.appendChild(tb);
 		});
+		labelCells(t);
 		wrap.appendChild(t); sec.appendChild(wrap);
 		return sec;
 	}

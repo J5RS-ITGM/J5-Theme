@@ -554,3 +554,42 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1840px; }
 .j5ac-vsubh-n { font-size: 13px; color: var(--dim); }
 .j5ac-vsubh--grid { grid-column: 1 / -1; margin-top: 6px; }
 .j5ac-vsubh--chart { margin-top: 10px; }
+
+/* === J5-AC-MOBILE (2026-11-04): no horizontal scrolling anywhere in the tool; stack instead === */
+.j5ac { max-width: 100%; overflow-x: clip; }
+.j5ac-chart { overflow: hidden; }
+.j5ac-vgrid { grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr)); }
+.j5ac-tiles, .j5ac-tiles-row { grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); }
+.j5ac-search { min-width: 0; }
+.j5ac-tb-row > * { min-width: 0; }
+.j5ac .j5ac-open { overflow-wrap: anywhere; }
+.j5ac-why, .j5ac-cmpbar-t { overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+	/* Chart: name on top, bar underneath, value label above the bar (no labels hanging off the right edge) */
+	.j5ac-crow { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 10px 0; min-height: 0; }
+	.j5ac-crow--axis { display: none; }
+	.j5ac-ctrack { height: 40px; background-size: 25% 100% !important; }
+	.j5ac-cval { position: absolute; top: 0; left: 0 !important; right: auto !important; font-size: 13px; }
+	.j5ac-cbar { top: 24px; }
+	.j5ac-chart-h h3 { font-size: 34px; }
+	.j5ac-chart-h p { font-size: 13px; }
+
+	/* Overlay tables (sizes, threat matrix): each row becomes a stacked card with labels */
+	.j5ac-det-tw { overflow-x: visible; }
+	.j5ac-det-table thead { display: none; }
+	.j5ac-det-table, .j5ac-det-table tbody, .j5ac-det-table tr, .j5ac-det-table td, .j5ac-det-table th { display: block; width: auto; }
+	.j5ac-det-table tr { padding: 10px 0; border-top: 1px solid var(--line); }
+	.j5ac-det-table td, .j5ac-det-table th { border: 0 !important; padding: 2px 0 !important; white-space: normal; text-align: left !important; }
+	.j5ac-det-table td[data-k]::before { content: attr(data-k) ": "; color: var(--mute); font-family: var(--cond); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+	.j5ac-det-table td.is-cmp { padding-top: 8px !important; }
+	.j5ac-det-table td.is-cmp .j5ac-cmp { width: 100%; justify-content: center; }
+	.j5ac-det-why td { padding: 0 0 10px !important; }
+	.j5ac-det-size { font-size: 20px; }
+	.j5ac-mtx-g th { padding-top: 12px !important; }
+	.j5ac-mtx-r { padding: 4px 0 2px !important; }
+
+	.j5ac-cmpbar { flex-direction: column; align-items: flex-start; }
+	.j5ac-cmpbar-t { flex-basis: auto; }
+	.j5ac .j5ac-detail-box { padding: 20px 16px; }
+}
