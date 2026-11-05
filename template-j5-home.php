@@ -293,6 +293,8 @@ get_header();
 	</section>
 	<!-- === J5-HOME-CATEGORIES-END === -->
 
+	<?php if ( function_exists( 'j5_home_compare_feature' ) ) j5_home_compare_feature(); /* J5-HOME-COMPARE */ ?>
+
 	<!-- === J5-HOME-NEW-ARRIVALS-START === -->
 	<?php if ( ! empty( $j5_new_arrivals ) ) : ?>
 	<section class="j5-block">

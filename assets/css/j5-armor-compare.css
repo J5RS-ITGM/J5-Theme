@@ -593,3 +593,19 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1840px; }
 	.j5ac-cmpbar-t { flex-basis: auto; }
 	.j5ac .j5ac-detail-box { padding: 20px 16px; }
 }
+
+/* === J5-AC-PAGE (2026-11-04): intro above the tool, guide + disclaimer + FAQ below it === */
+.j5-page__content .j5ac-lead { max-width: 75ch; font-size: 17px; line-height: 1.55; color: #e6e3da; margin: 0 0 22px; }
+.j5ac-seo { max-width: 920px; margin-top: 48px; color: #e6e3da; font-size: 16px; line-height: 1.6; }
+.j5ac-seo p, .j5ac-seo li { color: #e6e3da; }
+.j5ac-seo strong { color: #fff; font-weight: 600; }
+.j5ac-seo h2.wp-block-heading { font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif; font-weight: 400; font-size: 34px; line-height: 1.05; letter-spacing: .03em; color: #fff; margin: 40px 0 12px; padding-top: 20px; border-top: 1px solid #333842; }
+.j5ac-seo h3.wp-block-heading { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; color: #f0bc5a; margin: 24px 0 6px; }
+.j5ac-seo .wp-block-list { padding-left: 1.3em; }
+.j5ac-seo .wp-block-list li { margin: 0 0 10px; }
+.j5ac-seo .wp-block-list li::marker { color: #f0bc5a; font-weight: 700; }
+.j5ac-seo a, .j5ac-seo a:visited { color: #f0bc5a; text-decoration: underline; text-underline-offset: 3px; }
+.j5ac-seo a:hover { color: #fff; }
+.j5ac-seo .j5ac-disclaimer { padding: 14px 18px; border: 1px solid #4a3e22; border-left: 3px solid #d4a044; border-radius: 6px; background: #17140c; }
+.j5ac-seo { overflow-wrap: anywhere; }
+@media (max-width: 720px) { .j5ac-seo h2.wp-block-heading { font-size: 28px; } }

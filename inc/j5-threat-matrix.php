@@ -302,6 +302,7 @@ function j5tm_render_ballistics( $product ) {
 			<?php if ( '' !== $answer ) : ?><p class="j5tm__a"><?php echo esc_html( $answer ); ?></p><?php endif; ?>
 			<?php echo j5tm_matrix_html( $product, $spec, $model ); ?>
 		<?php endif; ?>
+		<?php echo function_exists( 'j5_compare_product_link' ) ? j5_compare_product_link( $product ) : ''; /* J5-COMPARE-LINKS */ ?>
 	</div>
 	<?php
 	j5tm_assets();

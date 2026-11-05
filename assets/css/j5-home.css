@@ -2106,3 +2106,40 @@ body.j5-home-template .j5-hero-title .j5-hero-sub2 {
 	body.j5-home-template.j5-hero-photo .j5-hero-ctas { margin-top: 32px; }
 }
 /* === J5-HERO-FEATHER END === */
+
+/* === J5-HOME-COMPARE (2026-11-04): Armor Comparison Tool feature (inc/j5-compare-links.php) === */
+.j5-home-compare { border-top: 1px solid var(--j5-border); }
+.j5-home-compare__grid { display: flex; flex-wrap: wrap; align-items: center; gap: 56px; }
+.j5-home-compare__copy { flex: 1 1 440px; min-width: 0; }
+.j5-home-compare__desc { margin: 22px 0 0; max-width: 540px; font-size: 17px; line-height: 1.55; color: #c9c6bc; }
+.j5-home-compare__list { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.j5-home-compare__list li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.45; color: var(--j5-ink); }
+.j5-hc-chk { flex: 0 0 22px; height: 22px; border-radius: 50%; background: #2a2312; color: var(--j5-gold-hi); display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.j5-home-compare__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.j5-home-compare__note { margin: 18px 0 0; font-size: 13px; color: var(--j5-ink-dim); }
+.j5-home-compare__note a { color: var(--j5-gold-hi); text-decoration: underline; text-underline-offset: 3px; }
+.j5-home-compare__preview { flex: 1 1 560px; min-width: 0; display: block; text-decoration: none; background: var(--j5-bg-card); border: 1px solid var(--j5-border-hi); border-radius: 10px; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, .45); transition: border-color .2s, transform .2s; }
+.j5-home-compare__preview:hover { border-color: var(--j5-gold); transform: translateY(-2px); }
+.j5-home-compare__bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--j5-border); background: var(--j5-bg-card-hi); }
+.j5-home-compare__bar i { width: 9px; height: 9px; border-radius: 50%; background: #3a414d; }
+.j5-home-compare__bar span { margin-left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a8a80; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.j5-home-compare__body { display: block; padding: 18px 20px 20px; }
+.j5-home-compare__lv { display: flex; align-items: baseline; gap: 10px; padding-bottom: 8px; border-bottom: 2px solid #ff5a6e; font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: .04em; color: #ff5a6e; }
+.j5-home-compare__lv small { font-family: 'Barlow', sans-serif; font-size: 12px; letter-spacing: 0; color: var(--j5-ink-dim); }
+.j5-home-compare__row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, .8fr) auto; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--j5-border); }
+.j5-home-compare__row:last-child { border-bottom: 0; }
+.j5-home-compare__m b { display: block; font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 21px; line-height: 1; color: var(--j5-bone); }
+.j5-home-compare__row em { display: block; font-style: normal; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8a8a80; margin-top: 3px; }
+.j5-home-compare__kv { font-size: 13px; color: var(--j5-ink); }
+.j5-home-compare__kv em { margin: 0 0 2px; }
+.j5-home-compare__kv b { font-size: 14px; color: var(--j5-bone); }
+.j5-home-compare__pill { display: inline-flex; align-items: center; min-height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid #4a4f58; color: #d6d3c9; font-family: 'Barlow Condensed', sans-serif; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.j5-home-compare__pill.is-on { background: var(--j5-gold); border-color: var(--j5-gold); color: #15110a; }
+@media (max-width: 720px) {
+	.j5-home-compare__grid { gap: 36px; }
+	.j5-home-compare__copy, .j5-home-compare__preview { flex-basis: 100%; }
+	.j5-home-compare__row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
+	.j5-home-compare__kv { grid-column: 1; }
+	.j5-home-compare__pill { grid-column: 2; grid-row: 1; }
+	.j5-home-compare__ctas .j5-btn { flex: 1 1 100%; justify-content: center; }
+}

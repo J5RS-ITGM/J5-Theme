@@ -530,7 +530,7 @@ add_shortcode( 'j5_armor_compare', 'j5_armor_ref_shortcode' );
 function j5_armor_ref_shortcode( $atts ) {
 	$atts = shortcode_atts( array( 'category' => '', 'quote' => '' ), $atts, 'j5_armor_compare' );
 	$only = sanitize_key( $atts['category'] );
-	$cats = $only ? array( $only ) : array( 'shield', 'plate', 'helmet', 'soft_armor' );
+	$cats = $only ? array( $only ) : array( 'plate', 'helmet', 'soft_armor', 'shield' ); // tab order
 
 	$quote_base = $atts['quote'] ? esc_url_raw( $atts['quote'] ) : ( function_exists( 'j5_quote_base' ) ? j5_quote_base() : home_url( '/request-a-quote/' ) );
 

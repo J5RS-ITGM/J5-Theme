@@ -241,6 +241,8 @@ if ( is_admin() ) {
 // Armor Comparison Tool: DP pushes per-category feeds to /wp-json/j5/v1/armor-reference/<category>;
 // [j5_armor_compare] renders the server-side table + compare UI from the stored feed. J5-ARMOR-REF
 require_once get_stylesheet_directory() . '/inc/j5-armor-reference.php';
+// Links to the Armor Comparison Tool: home feature, plate Ballistics tab, HESCO guide + NIJ article callouts. J5-COMPARE-LINKS
+require_once get_stylesheet_directory() . '/inc/j5-compare-links.php';
 // Type show/hide + order per category: J5 Apps > Armor Comparison (also used at render, so not admin-only).
 require_once get_stylesheet_directory() . '/inc/j5-armor-reference-admin.php';
 // === J5-ARMOR-REFERENCE-REQUIRES-END ===

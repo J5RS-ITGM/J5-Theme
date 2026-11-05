@@ -24,11 +24,11 @@ function j5_armor_ref_default_order( $category ) {
 
 /**
  * Categories shown as "Coming soon": tab greyed out, no panel, no search markup. The DP feed is
- * still stored, so switching a category back on needs no re-push. Default: shields.
+ * still stored, so switching a category back on needs no re-push. Default: helmets and shields.
  */
 function j5_armor_ref_coming_soon() {
 	$all = get_option( J5_ARMOR_REF_SETTINGS, array() );
-	$cs  = is_array( $all ) && isset( $all['coming_soon'] ) && is_array( $all['coming_soon'] ) ? $all['coming_soon'] : array( 'shield' );
+	$cs  = is_array( $all ) && isset( $all['coming_soon'] ) && is_array( $all['coming_soon'] ) ? $all['coming_soon'] : array( 'helmet', 'shield' );
 	return array_values( array_map( 'sanitize_key', $cs ) );
 }
 
@@ -153,7 +153,7 @@ function j5_armor_ref_settings_page() {
 			<p class="description">A category marked Coming soon shows a greyed-out tab and nothing else. Its data from the dealer portal is kept, so unchecking it brings it straight back.</p>
 			<?php $cs_now = j5_armor_ref_coming_soon(); ?>
 			<p>
-			<?php foreach ( array( 'shield' => 'Shields', 'plate' => 'Plates', 'helmet' => 'Helmets', 'soft_armor' => 'Soft armor' ) as $c => $l ) : ?>
+			<?php foreach ( array( 'plate' => 'Plates', 'helmet' => 'Helmets', 'soft_armor' => 'Soft armor', 'shield' => 'Shields' ) as $c => $l ) : ?>
 				<label style="margin-right:18px"><input type="checkbox" name="coming_soon[<?php echo esc_attr( $c ); ?>]" value="1" <?php checked( in_array( $c, $cs_now, true ) ); ?>> <?php echo esc_html( $l ); ?>: Coming soon</label>
 			<?php endforeach; ?>
 			</p>
