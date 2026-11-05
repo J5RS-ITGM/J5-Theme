@@ -57,6 +57,12 @@
 		var hay = [d.specs && d.specs.material, d.model, d.family].join(' ');
 		return /\bsteel\b|\bar\s?-?(500|550|600|650)\b/i.test(hay);
 	}
+	/** One model is a side plate: named as one (HESCO "-SP", "side plate"), or 8 in or smaller on both sides. */
+	function isSideModel(d) {
+		if (/-SP\b|\bside\s*plates?\b/i.test([d.model, d.family].join(' '))) return true;
+		var z = sizeOf(d);
+		return !!(z && z.w && Math.max(z.w, z.h) <= 8);
+	}
 	/** Size family for the size step: side plate, shooter's cut, or SAPI. */
 	function sizeGroup(sz) {
 		if (!sz || !sz.w) return { id: 'other', label: 'Other sizes', order: 3 };
@@ -135,209 +141,145 @@
 		this.out = section.querySelector('[data-j5ac-compare-out]');
 		this.picked = [];
 		this.guide = {};
-		this.guideOn = true;
+		this.guideOn = false;
+		this.helpOpen = false;
 		this.steps = STEPS[this.config.category] || ['threat'];
 		this.guideBox = section.querySelector('[data-j5ac-guide]');
 		this.listWrap = section.querySelector('.j5ac-table-wrap');
 		this.viewInit();
 		this.bind();
 		this.renderGuide();
+		this.applyGuide();
 		this.ready = true;
 	}
 
-	/** Rows that satisfy every answered guide step. */
 	Panel.prototype.steelOn = function () { var cb = this.form.elements.steel; return !!(cb && cb.checked); };
-	Panel.prototype.guideRows = function () {
-		var g = this.guide, steel = this.steelOn();
-		return this.rows.filter(function (r) {
-			if (!steel && isSteel(r.data)) return false;
-			for (var k in g) if (g[k] !== undefined && g[k] !== '*' && g[k] !== ANY && stepValue(r.data, k) !== g[k]) return false;
-			return true;
+	/*
+	 * J5-AC-HELP: the tool opens straight to the list. "Help me choose" opens a short panel of
+	 * questions; the answers only set the sidebar filters, so there is no separate guided mode.
+	 */
+	var HELP_Q = { threat: 'What does it need to stop?', nij: 'Do you need NIJ certification?', size: 'What size?', type: 'What kind of shield?', cut: 'What cut?' };
+	Panel.prototype.helpSteps = function () {
+		var f = this.form, self = this;
+		return this.steps.filter(function (st) {
+			if (st === 'threat') return !!f.querySelector('input[name=level]');
+			if (st === 'nij') return !!f.elements['only:nij_certified'];
+			if (st === 'size') return !!f.querySelector('input[name=sizegrp]');
+			return !!f.querySelector('input[name="' + st + '"]');
+		}).filter(function (st) { return self.helpOpts(st).length > 1 || st === 'nij'; });
+	};
+	Panel.prototype.helpOpts = function (st) {
+		var f = this.form, rows = this.rows;
+		if (st === 'threat') {
+			return THREATS.filter(function (t) { return rows.some(function (r) { return threatOf(r.data.specs.level) === t.id; }); })
+				.map(function (t) { return { v: t.id, l: t.id === 'iiia' ? 'Handgun' : 'Rifle ' + t.sub }; });
+		}
+		if (st === 'nij') return [{ v: 'yes', l: 'Yes, certified' }, { v: ANY, l: 'Doesn’t matter' }];
+		if (st === 'size') {
+			var o = Array.prototype.map.call(f.querySelectorAll('input[name=sizegrp]'), function (i) { var lb = i.closest('label'); return { v: i.value, l: lb ? lb.textContent.trim() : i.value }; });
+			o.push({ v: ANY, l: 'Any size' });
+			return o;
+		}
+		return Array.prototype.map.call(f.querySelectorAll('input[name="' + st + '"]'), function (i) { return { v: i.value, l: i.value }; });
+	};
+	/** Current answer for a question, read back from the filters so reopening the panel shows what is set. */
+	Panel.prototype.helpRead = function (st) {
+		var f = this.form, on = function (sel) { return Array.prototype.filter.call(f.querySelectorAll(sel), function (i) { return i.checked; }).map(function (i) { return i.value; }); };
+		if (st === 'threat') {
+			var lv = on('input[name=level]');
+			if (!lv.length) return undefined;
+			for (var i = 0; i < THREATS.length; i++) if (lv.every(function (l) { return THREATS[i].levels.indexOf(l) !== -1; })) return THREATS[i].id;
+			return undefined;
+		}
+		if (st === 'nij') return f.elements['only:nij_certified'].checked ? 'yes' : undefined;
+		var c = on('input[name="' + (st === 'size' ? 'sizegrp' : st) + '"]');
+		return c.length === 1 ? c[0] : undefined;
+	};
+	Panel.prototype.helpApply = function (ans) {
+		var f = this.form;
+		var set = function (name, vals) { Array.prototype.forEach.call(f.querySelectorAll('input[name="' + name + '"]'), function (i) { i.checked = vals.indexOf(i.value) !== -1; }); };
+		Object.keys(ans).forEach(function (st) {
+			var v = ans[st];
+			if (v === undefined) return;
+			if (st === 'threat') { var t = THREATS.filter(function (x) { return x.id === v; })[0]; set('level', t ? t.levels : []); }
+			else if (st === 'nij') f.elements['only:nij_certified'].checked = v === 'yes';
+			else set(st === 'size' ? 'sizegrp' : st, v === ANY ? [] : [v]);
 		});
+		this.clearPicks();
+		this.filter();
+		this.sort(f.elements.sort.value);
 	};
-
-	Panel.prototype.nextStep = function () {
-		for (var i = 0; i < this.steps.length; i++) if (this.guide[this.steps[i]] === undefined) return this.steps[i];
-		return null;
-	};
-
 	Panel.prototype.renderGuide = function () {
 		var self = this, box = this.guideBox;
+		this.guideOn = false; this.guide = {};
+		this.listWrap.hidden = false; this.form.hidden = false; this.hint.parentNode.hidden = false;
+		if (this.helpBtn) this.helpBtn.setAttribute('aria-expanded', this.helpOpen ? 'true' : 'false');
 		box.textContent = '';
-		if (!this.guideOn) { box.hidden = true; this.form.hidden = false; this.applyGuide(); return; }
+		if (!this.helpOpen) { box.hidden = true; return; }
 		box.hidden = false;
-
-		// Breadcrumb of answers so far
-		var crumbs = el('div', 'j5ac-crumbs');
-		this.steps.forEach(function (st) {
-			if (self.guide[st] === undefined || self.guide[st] === '*') return;
-			var sample = self.guideRows()[0];
-			var lab = sample ? stepLabel(sample.data, st, self.guide[st]) : { label: self.guide[st] };
-			var b = el('button', 'j5ac-crumb', (st === 'threat' || st === 'size') && lab.sub ? lab.label + ' ' + lab.sub : lab.label);
-			b.type = 'button'; b.title = 'Change';
-			b.addEventListener('click', function () { self.backTo(st); });
-			crumbs.appendChild(b);
-		});
-		var all = el('button', 'j5ac-seeall', this.guide.threat === undefined ? 'See all ' + this.config.label.toLowerCase() : 'See all');
-		all.type = 'button';
-		all.addEventListener('click', function () { self.seeAll(); });
-		crumbs.appendChild(all);
-		box.appendChild(crumbs);
-
-		var step = this.nextStep();
-		var pool = this.guideRows();
-
-		if (this.form.elements.steel) {
-			var steelLab = el('label', 'j5ac-steel');
-			var steelCb = el('input'); steelCb.type = 'checkbox'; steelCb.checked = this.steelOn();
-			steelCb.addEventListener('change', function () { self.form.elements.steel.checked = steelCb.checked; self.clearPicks(); self.renderGuide(); self.filter(); });
-			steelLab.appendChild(steelCb); steelLab.appendChild(el('span', null, 'Include steel plates'));
-			crumbs.insertBefore(steelLab, all);
-		}
-
-		// Progress: which step we are on, out of the steps this category actually asks.
-		var asked = this.steps.filter(function (st) { return this.guide[st] !== '*'; }, this);
-		var done = asked.filter(function (st) { return this.guide[st] !== undefined; }, this).length;
-		var prog = el('div', 'j5ac-prog');
-		prog.appendChild(el('span', null, step ? 'Step ' + (done + 1) + ' of ' + asked.length : 'Done, ' + asked.length + ' of ' + asked.length));
-		var bar = el('div', 'j5ac-prog-bar');
-		asked.forEach(function (st, i) { var seg = el('i'); if (i < done || !step) seg.className = 'is-on'; else if (i === done) seg.className = 'is-now'; bar.appendChild(seg); });
-		prog.appendChild(bar);
-		box.appendChild(prog);
-
-		// Skip a step the data can't answer yet (no model in the pool carries the field).
-		while (step && !pool.some(function (r) { var v = stepValue(r.data, step); return v !== '' && v !== null; })) {
-			this.guide[step] = '*';
-			step = this.nextStep();
-		}
-		if (step) {
-			var q = el('h3', 'j5ac-q', STEP_Q[step] || step);
-			box.appendChild(q);
-			var groups = {}, order = [];
-			pool.forEach(function (r) {
-				var v = stepValue(r.data, step);
-				if (v === null) return;
-				if (!groups[v]) { groups[v] = { n: 0, sample: r.data }; order.push(v); }
-				groups[v].n++;
-			});
-			if (step === 'threat') order.sort(function (a, b) { return THREATS.map(function (t) { return t.id; }).indexOf(a) - THREATS.map(function (t) { return t.id; }).indexOf(b); });
-			else if (step === 'size') order.sort(function (a, b) { var A = sizeOf(groups[a].sample), B = sizeOf(groups[b].sample); return (A.w * A.h) - (B.w * B.h) || A.w - B.w; });
-			else if (step === 'nij') order.sort(function (a, b) { return (a === 'yes' ? 0 : 1) - (b === 'yes' ? 0 : 1); });
-			else if (step === 'type') {
-				var to = (self.config.type_order || []).map(function (x) { return String(x).toLowerCase(); });
-				order.sort(function (a, b) { var ia = to.indexOf(a.toLowerCase()), ib = to.indexOf(b.toLowerCase()); if (ia === -1) ia = 999; if (ib === -1) ib = 999; return ia - ib || a.localeCompare(b); });
-			}
-			else order.sort(function (a, b) { return (a === '') - (b === '') || a.localeCompare(b); });
-			var tiles = el('div', 'j5ac-tiles');
-			function tile(v) {
-				var g = groups[v], lab = stepLabel(g.sample, step, v);
-				var t = el('button', 'j5ac-tile'); t.type = 'button';
-				var top, main;
-				if (step === 'threat') { top = lab.label; main = lab.sub; }
-				else if (step === 'size') { var sz = sizeOf(g.sample), grp = sizeGroup(sz); if (grp.id === 'sapi') { top = lab.label; main = lab.sub; } else { top = ''; main = lab.label; } }
-				else { top = lab.sub; main = lab.label; }
-				t.appendChild(el('span', 'j5ac-tile-k', top || '\u00a0'));
-				t.appendChild(el('span', 'j5ac-tile-l', main));
-				t.appendChild(el('span', 'j5ac-tile-n', g.n + (g.n === 1 ? ' model' : ' models')));
-				t.addEventListener('click', function () { self.answer(step, v); });
-				return t;
-			}
-			if (step === 'size') {
-				// Sections: side plates, shooter's cut, SAPI, each smallest to largest. Order and visibility from J5 Apps > Armor Comparison.
-				var sgs = self.config.size_groups || { order: [], hidden: [] }, sgl = self.config.size_group_labels || {};
-				var sections = {};
-				order.forEach(function (v) { var grp = sizeGroup(sizeOf(groups[v].sample)); if ((sgs.hidden || []).indexOf(grp.id) !== -1) return; (sections[grp.id] = sections[grp.id] || { grp: grp, keys: [] }).keys.push(v); });
-				var so = sgs.order && sgs.order.length ? sgs.order : [];
-				Object.keys(sections).sort(function (a, b) { var ia = so.indexOf(a), ib = so.indexOf(b); if (ia === -1) ia = 50 + sections[a].grp.order; if (ib === -1) ib = 50 + sections[b].grp.order; return ia - ib; }).forEach(function (id) {
-					var sec = sections[id];
-					tiles.appendChild(el('h4', 'j5ac-tiles-h', sgl[id] || sec.grp.label));
-					var row = el('div', 'j5ac-tiles-row');
-					sec.keys.forEach(function (v) { row.appendChild(tile(v)); });
-					tiles.appendChild(row);
+		var steps = this.helpSteps(), ans = this.helpAns || (this.helpAns = {});
+		var panel = el('div', 'j5ac-help');
+		var hd = el('div', 'j5ac-help-hd');
+		var h = el('h3', 'j5ac-help-t', 'Help me choose'); h.id = 'j5ac-help-' + this.config.category; h.tabIndex = -1;
+		hd.appendChild(h);
+		var x = el('button', 'j5ac-help-x'); x.type = 'button'; x.setAttribute('aria-label', 'Close'); x.innerHTML = '&times;';
+		x.addEventListener('click', function () { self.closeHelp(); });
+		hd.appendChild(x);
+		panel.appendChild(hd);
+		panel.appendChild(el('p', 'j5ac-help-p', 'A few quick questions. Your answers set the filters, and you can change them any time.'));
+		steps.forEach(function (st) {
+			var q = el('fieldset', 'j5ac-help-q');
+			q.appendChild(el('legend', null, HELP_Q[st] || st));
+			var opts = el('div', 'j5ac-help-opts');
+			self.helpOpts(st).forEach(function (o) {
+				var b = el('button', 'j5ac-help-o' + (ans[st] === o.v ? ' is-on' : ''), o.l); b.type = 'button';
+				b.setAttribute('aria-pressed', ans[st] === o.v ? 'true' : 'false');
+				b.addEventListener('click', function () {
+					ans[st] = ans[st] === o.v ? undefined : o.v;
+					Array.prototype.forEach.call(opts.children, function (c) { var on = c === b && ans[st] !== undefined; c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', on ? 'true' : 'false'); });
 				});
-				tiles.classList.add('j5ac-tiles--grouped');
-			} else {
-				order.forEach(function (v) { tiles.appendChild(tile(v)); });
-			}
-			if (step === 'nij' && order.length > 1) {
-				var both = el('button', 'j5ac-tile j5ac-tile--any'); both.type = 'button';
-				both.appendChild(el('span', 'j5ac-tile-k', 'Certified and not'));
-				both.appendChild(el('span', 'j5ac-tile-l', 'Show both'));
-				both.appendChild(el('span', 'j5ac-tile-n', pool.length + ' models'));
-				both.addEventListener('click', function () { self.answer(step, ANY); });
-				tiles.appendChild(both);
-			}
-			box.appendChild(tiles);
-			this.listWrap.hidden = true;
-			if (this.cardList) this.cardList.hidden = true;
-			this.form.hidden = true;
-			this.hint.parentNode.hidden = true;
-		} else {
-			// All answered: show the matched list, compare-ready.
-			var n = pool.length;
-			box.appendChild(el('p', 'j5ac-guide-done', n + (n === 1 ? ' model matches. ' : ' models match. ') + 'Check any to compare side by side.'));
-			this.listWrap.hidden = false;
-			this.form.hidden = true;
-			this.hint.parentNode.hidden = false;
-			this.applyGuide();
-		}
-		this.writeHash();
+				opts.appendChild(b);
+			});
+			q.appendChild(opts);
+			panel.appendChild(q);
+		});
+		var acts = el('div', 'j5ac-help-acts');
+		var go = el('button', 'j5ac-help-go', 'Show ' + this.config.label.toLowerCase()); go.type = 'button';
+		go.addEventListener('click', function () {
+			self.helpApply(ans);
+			self.closeHelp(true);
+		});
+		var skip = el('button', 'j5ac-help-skip', 'Skip'); skip.type = 'button';
+		skip.addEventListener('click', function () { self.closeHelp(); });
+		acts.appendChild(go); acts.appendChild(skip);
+		panel.appendChild(acts);
+		box.appendChild(panel);
 	};
-
-	/** Back one question: drop the last answered step (or leave See all mode). */
-	Panel.prototype.backStep = function () {
-		if (!this.guideOn) { this.guideOn = true; this.form.reset(); this.clearPicks(); this.renderGuide(); this.filter(); }
-		else {
-			var answered = this.steps.filter(function (st) { return this.guide[st] !== undefined && this.guide[st] !== '*'; }, this);
-			if (!answered.length) return;
-			this.backTo(answered[answered.length - 1]);
-		}
-		this.section.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+	Panel.prototype.openHelp = function () {
+		var self = this;
+		this.helpAns = {};
+		this.helpSteps().forEach(function (st) { self.helpAns[st] = self.helpRead(st); });
+		this.helpOpen = true;
+		this.renderGuide();
+		var h = this.guideBox.querySelector('.j5ac-help-t');
+		if (h) { h.focus(); this.guideBox.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'nearest' }); }
+	};
+	Panel.prototype.closeHelp = function (toResults) {
+		this.helpOpen = false;
+		this.renderGuide();
+		if (toResults && this.count) { this.count.setAttribute('tabindex', '-1'); this.count.focus({ preventScroll: true }); (this.toolbar || this.count).scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); }
+		else if (this.helpBtn) this.helpBtn.focus();
 	};
 	Panel.prototype.startOver = function () {
 		this.sizeTarget = null; this.sizeSel = {};
-		this.guide = {}; this.guideOn = true;
-		this.form.reset(); this.clearPicks(); this.renderGuide(); this.filter();
-		this.section.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
-	};
-	Panel.prototype.answer = function (step, v) { this.guide[step] = v; this.clearPicks(); this.renderGuide(); };
-	Panel.prototype.backTo = function (step) {
-		var i = this.steps.indexOf(step);
-		for (var j = i; j < this.steps.length; j++) delete this.guide[this.steps[j]];
-		// re-evaluate skipped steps before it too, since the pool changes
-		for (var k = 0; k < i; k++) if (this.guide[this.steps[k]] === '*') delete this.guide[this.steps[k]];
-		this.clearPicks(); this.renderGuide();
-	};
-	Panel.prototype.seeAll = function () {
-		// Carry the threat answer into the level chips, drop the rest, show the full list and filters.
-		var threat = this.guide.threat;
-		this.guideOn = false; this.guide = {};
-		this.form.reset();
-		if (threat && threat !== '*') {
-			var levels = THREATS.filter(function (t) { return t.id === threat; })[0].levels;
-			Array.prototype.forEach.call(this.form.querySelectorAll('input[name=level]'), function (cb) { cb.checked = levels.indexOf(cb.value) !== -1; });
-		}
-		this.listWrap.hidden = false; this.hint.parentNode.hidden = false;
-		this.clearPicks();
-		this.renderGuide();
-		var back = el('button', 'j5ac-seeall j5ac-seeall--back', 'Back to guided search'); back.type = 'button';
-		var self = this;
-		back.addEventListener('click', function () { self.guideOn = true; self.form.reset(); self.clearPicks(); self.renderGuide(); self.filter(); });
-		this.guideBox.textContent = ''; this.guideBox.hidden = false; this.guideBox.appendChild(back);
-		this.filter();
+		this.form.reset(); this.clearPicks(); this.filter();
 	};
 	Panel.prototype.applyGuide = function () { this.filter(); this.sort(this.form.elements.sort.value); };
 	Panel.prototype.writeHash = function () {
 		if (!history.replaceState || !this.ready || this.section.hidden) return;
-		var parts = ['j5ac-' + this.config.category];
-		this.steps.forEach(function (st) { if (this.guide[st] !== undefined) parts.push(encodeURIComponent(this.guide[st] === '*' ? '-' : this.guide[st])); }, this);
-		history.replaceState(null, '', '#' + parts.join('/'));
+		history.replaceState(null, '', '#j5ac-' + this.config.category);
 	};
-	Panel.prototype.readHash = function (segs) {
-		var self = this;
-		segs.forEach(function (seg, i) { if (self.steps[i] !== undefined && seg !== '') self.guide[self.steps[i]] = seg === '-' ? '*' : decodeURIComponent(seg); });
-		this.renderGuide();
-	};
+	Panel.prototype.readHash = function () { this.renderGuide(); };
 
 	Panel.prototype.value = function (row, key) {
 		if (key === 'model') return row.data.model.toLowerCase();
@@ -358,6 +300,12 @@
 		};
 		this.form.addEventListener('input', onInput);
 		if (this.toolbar) this.toolbar.addEventListener('input', onInput);
+		this.helpBtn = this.section.querySelector('[data-j5ac-help]');
+		if (this.helpBtn) {
+			if (!this.helpSteps().length) this.helpBtn.hidden = true;
+			this.helpBtn.addEventListener('click', function () { if (self.helpOpen) self.closeHelp(); else self.openHelp(); });
+		}
+		this.section.addEventListener('keydown', function (e) { if (e.key === 'Escape' && self.helpOpen) self.closeHelp(); });
 		var ftoggle = this.section.querySelector('[data-j5ac-ftoggle]');
 		if (ftoggle) ftoggle.addEventListener('click', function () {
 			var on = !self.section.classList.contains('is-fopen');
@@ -414,12 +362,13 @@
 	};
 
 	Panel.prototype.filter = function () {
-		var lists = {}, maxes = {}, onlys = [], has = [], q = '', makers = [], carriedOnly = false, steelOn = this.steelOn();
+		var lists = {}, maxes = {}, onlys = [], has = [], q = '', makers = [], sizegrps = [], carriedOnly = false, steelOn = this.steelOn();
 		Array.prototype.forEach.call(this.form.elements, function (inp) {
 			if (!inp.name || inp.name === 'sort' || inp.name === 'steel') return;
 			if (inp.name === 'q') { q = inp.value.trim().toLowerCase(); return; }
 			if (inp.name === 'maker') { if (inp.checked) makers.push(inp.value); return; }
 			if (inp.name === 'carried') { carriedOnly = inp.checked; return; }
+			if (inp.name === 'sizegrp') { if (inp.checked) sizegrps.push(inp.value); return; }
 			if (inp.type === 'checkbox' && inp.name.indexOf('only:') === 0) { if (inp.checked) onlys.push(inp.name.slice(5)); }
 			else if (inp.type === 'checkbox' && inp.name.indexOf('has:') === 0) { if (inp.checked) has.push(inp.name.slice(4)); }
 			else if (inp.type === 'checkbox') { if (inp.checked) (lists[inp.name] = lists[inp.name] || []).push(inp.value); }
@@ -433,6 +382,7 @@
 			if (ok && q) { var hay = (row.data.manufacturer + ' ' + row.data.model + ' ' + (row.data.family || '')).toLowerCase(); if (hay.indexOf(q) === -1) ok = false; }
 			if (ok && makers.length && makers.indexOf(row.data.manufacturer) === -1) ok = false;
 			if (ok && carriedOnly && !row.data.carried) ok = false;
+			if (ok && sizegrps.length && sizegrps.indexOf(isSideModel(row.data) ? 'side' : 'full') === -1) ok = false;
 			if (ok) for (k in lists) { if (lists[k].indexOf(String(this.value(row, k))) === -1) { ok = false; break; } }
 			if (ok) for (k in maxes) { var n = num(this.value(row, k)); if (n === null || n > maxes[k]) { ok = false; break; } }
 			if (ok) for (i = 0; i < onlys.length; i++) { v = this.value(row, onlys[i]); if (!v || v === 'No' || v === 'ICW') { ok = false; break; } }
@@ -948,6 +898,8 @@
 			if (!t.closest) return;
 			var szb = t.closest('[data-j5ac-size]');
 			if (szb) { self.famSel = self.famSel || {}; self.famSel[szb.getAttribute('data-fam')] = szb.getAttribute('data-j5ac-size'); self.renderCards(); var again = self.viewBox.querySelector('[data-j5ac-size="' + szb.getAttribute('data-j5ac-size') + '"]'); if (again) again.focus(); return; }
+			var mo = t.closest('[data-j5ac-more]');
+			if (mo) { var mk = mo.getAttribute('data-j5ac-more'); self.moreOpen = self.moreOpen || {}; self.moreOpen[mk] = !self.moreOpen[mk]; self.renderView(); var mb = self.viewBox.querySelector('[data-j5ac-more="' + mk + '"]'); if (mb) mb.focus(); return; }
 			var clr = t.closest('[data-j5ac-clearpicks]');
 			if (clr) { self.clearPicks(); return; }
 			var cmp = t.closest('[data-j5ac-cmp]');
@@ -1009,7 +961,7 @@
 			area: range(function (r) { return r.data.derived ? r.data.derived.area_sqin : null; }),
 			sizes: sizes, sgroups: sgroups, cuts: cuts, cut: cuts.join(' & '), cert: stepValue(d, 'nij'),
 			stock: d.carried ? (wc ? 'Sold by J5' : 'Quote from J5') : 'Reference only',
-			carried: !!d.carried, picked: picked,
+			carried: !!d.carried, wc: wc, picked: picked,
 			locked: false,
 			why: !picked && this.unequal ? (this.unequal[f.rep.data.slug] || []) : [],
 			shownLabel: (function () { var z = sizeOf(d); return z && z.w ? (z.sub || z.label.replace(' in', '')) : ''; })(),
@@ -1065,25 +1017,39 @@
 		return b;
 	}
 	function vkv(k, v, cls) { var w = el('div', 'j5ac-kv' + (cls ? ' ' + cls : '')); w.appendChild(el('span', 'j5ac-k', k)); w.appendChild(el('span', 'j5ac-v', v === null || v === undefined || v === '' ? 'not listed' : v)); return w; }
-	function vsizes(f) {
+	var SIZE_SHOW = 6; // chips shown per listing before "+N more"
+	function vsizes(f, more) {
 		var w = el('div', 'j5ac-vsizes');
-		w.appendChild(el('span', 'j5ac-k', f.sizes.length > 1 ? f.sizes.length + ' sizes' : (f.sizes.length ? '1 size' : 'Size')));
+		w.appendChild(el('span', 'j5ac-k', f.sizes.length > 1 ? 'Sizes' : 'Size'));
 		if (!f.sgroups.length) { w.appendChild(el('span', 'j5ac-na', 'not listed')); return w; }
+		var open = !!(more && more[f.key]), total = 0, shown = 0;
+		f.sgroups.forEach(function (g) { total += (g.items || g.sizes).length; });
+		var cap = open || total <= SIZE_SHOW + 1 ? Infinity : SIZE_SHOW;
 		f.sgroups.forEach(function (g) {
 			var c = el('div', 'j5ac-vchips');
 			if (g.label) c.appendChild(el('span', 'j5ac-vchips-l', g.label));
-			(g.items || g.sizes.map(function (n) { return { n: n, slug: null }; })).forEach(function (it) {
-				if (!it.slug || f.members.length < 2) { c.appendChild(el('span', 'j5ac-vchip' + (it.slug && it.slug === f.rep.data.slug && f.members.length > 1 ? ' is-on' : ''), it.n)); return; }
+			var list = el('div', 'j5ac-vchips-s'); c.appendChild(list);
+			var items = (g.items || g.sizes.map(function (n) { return { n: n, slug: null }; }));
+			items.forEach(function (it) {
+				// keep the size being shown visible even past the cap
+				if (shown >= cap && it.slug !== f.rep.data.slug) return;
+				shown++;
+				if (!it.slug || f.members.length < 2) { list.appendChild(el('span', 'j5ac-vchip' + (it.slug && it.slug === f.rep.data.slug && f.members.length > 1 ? ' is-on' : ''), it.n)); return; }
 				var b = el('button', 'j5ac-vchip' + (it.slug === f.rep.data.slug ? ' is-on' : ''), it.n);
 				b.type = 'button';
 				b.setAttribute('data-j5ac-size', it.slug);
 				b.setAttribute('data-fam', f.key);
 				b.setAttribute('aria-pressed', it.slug === f.rep.data.slug ? 'true' : 'false');
 				b.setAttribute('aria-label', 'Show ' + f.name + ' ' + it.n);
-				c.appendChild(b);
+				list.appendChild(b);
 			});
-			w.appendChild(c);
+			if (list.firstChild) w.appendChild(c);
 		});
+		if (total > shown || open && total > SIZE_SHOW + 1) {
+			var mb = el('button', 'j5ac-vmore', open ? 'Fewer sizes' : '+' + (total - shown) + ' more');
+			mb.type = 'button'; mb.setAttribute('data-j5ac-more', f.key); mb.setAttribute('aria-expanded', open ? 'true' : 'false');
+			w.appendChild(mb);
+		}
 		return w;
 	}
 	/** Side plate: named as one (HESCO "-SP", "side plate"), or every size is 8 in or smaller on both sides. */
@@ -1096,7 +1062,6 @@
 	function vsubhead(h) {
 		var d = el('div', 'j5ac-vsubh');
 		d.appendChild(el('h4', 'j5ac-vsubh-t', h.t));
-		d.appendChild(el('span', 'j5ac-vsubh-n', h.n + (h.n === 1 ? ' listing' : ' listings')));
 		return d;
 	}
 	function vwhy(f) {
@@ -1117,13 +1082,40 @@
 		if (f.members.length < 2 || !f.shownLabel) return vkv('Oz / sq in', rangeText(f.eff[0], f.eff[1], 3));
 		return vkv('Oz / sq in', f.shownEff !== null ? f.shownEff.toFixed(3) : null);
 	}
-	function vstock(f) { return el('span', 'j5ac-vstock' + (f.carried ? '' : ' is-ref'), f.stock); }
+	/** J5-AC-J5MARK: a small J5 mark on listings J5 sells; nothing on reference-only listings. */
+	function j5mark(wc) {
+		var m = el('span', 'j5ac-j5', 'J5');
+		var t = wc ? 'Sold by J5' : 'Available from J5 by quote';
+		m.title = t; m.setAttribute('role', 'img'); m.setAttribute('aria-label', t);
+		return m;
+	}
+	function vstock(f) { return f.carried ? j5mark(!!f.wc) : null; }
+	function vnameline(f) {
+		var w = el('div', 'j5ac-vnl');
+		w.appendChild(vname(f));
+		var m = vstock(f); if (m) w.appendChild(m);
+		return w;
+	}
+	/** J5-AC-TYPE: standalone or ICW as a badge; ICW says it needs soft armor. */
+	function isICW(v) { return /icw|conjunction/i.test(String(v || '')); }
+	function vtype(v) {
+		var icw = isICW(v), b = el('span', 'j5ac-type' + (icw ? ' is-icw' : ''), icw ? 'ICW' : (v || 'Standalone'));
+		if (icw) b.title = 'In conjunction with soft armor: rated only when worn over the soft armor on its spec sheet';
+		return b;
+	}
+	function vtypekv(v) {
+		var w = el('div', 'j5ac-kv j5ac-kv--type');
+		w.appendChild(el('span', 'j5ac-k', 'Type'));
+		var vv = el('span', 'j5ac-v'); vv.appendChild(vtype(v));
+		if (isICW(v)) vv.appendChild(el('span', 'j5ac-type-n', 'Needs soft armor'));
+		w.appendChild(vv);
+		return w;
+	}
 	function vhead(g, count) {
 		var h = el('div', 'j5ac-vgroup');
 		if (g.color) { var dot = el('span', 'j5ac-vgroup-dot'); dot.style.background = g.color; dot.setAttribute('aria-hidden', 'true'); h.appendChild(dot); }
 		var t = el('h3', 'j5ac-vgroup-t', g.title); if (g.color) t.style.color = g.color;
 		h.appendChild(t);
-		h.appendChild(el('span', 'j5ac-vgroup-n', count + (count === 1 ? ' listing' : ' listings')));
 		if (g.color) h.style.borderBottomColor = g.color;
 		return h;
 	}
@@ -1148,7 +1140,7 @@
 			box.appendChild(bar);
 		}
 		if (!fams.length) return;
-		var hasCert = !!this.fieldsByKey.nij_certified, hasCut = !!this.fieldsByKey.cut, hasStd = !!this.fieldsByKey.standard;
+		var hasCert = !!this.fieldsByKey.nij_certified, hasCut = !!this.fieldsByKey.cut, hasStd = !!this.fieldsByKey.standard, hasType = !!this.fieldsByKey.standalone;
 
 		if (view === 'rows') {
 			groups.forEach(function (g) {
@@ -1159,22 +1151,19 @@
 					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
 					row.setAttribute('data-j5ac-item', f.key);
 					var nm = el('div', 'j5ac-vname');
-					nm.appendChild(vname(f));
-					var sub = el('div', 'j5ac-vsub');
-					sub.appendChild(el('span', 'j5ac-maker', f.d.manufacturer));
-					if (f.d.specs.standalone) sub.appendChild(el('span', 'j5ac-tag', f.d.specs.standalone));
-					sub.appendChild(vstock(f));
-					nm.appendChild(sub);
+					nm.appendChild(vnameline(f));
+					nm.appendChild(el('span', 'j5ac-maker j5ac-maker--lg', f.d.manufacturer));
 					row.appendChild(nm);
 					var specs = el('div', 'j5ac-vspecs');
 					if (!g.color && f.d.specs.level) { var lv = el('div', 'j5ac-kv'); lv.appendChild(el('span', 'j5ac-k', 'Level')); var lvv = el('span', 'j5ac-v'); lvv.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(f.d.specs.level), f.d.specs.level)); lv.appendChild(lvv); specs.appendChild(lv); }
 					if (hasStd) specs.appendChild(vkv('Standard', f.d.specs.standard));
 					if (hasCert) specs.appendChild(vkv('NIJ certified', f.cert === 'yes' ? 'Yes' : (f.cert === 'no' ? 'No' : null), f.cert === 'yes' ? 'is-yes' : ''));
+					if (hasType) specs.appendChild(vtypekv(f.d.specs.standalone));
 					if (hasCut) specs.appendChild(vkv('Cut', f.cuts.length ? f.cuts.join(' &\n') : null, 'is-cut'));
 					specs.appendChild(vweight(f));
 					if (cfg.eff) specs.appendChild(veff(f));
 					row.appendChild(specs);
-					row.appendChild(vsizes(f));
+					row.appendChild(vsizes(f, self.moreOpen));
 					row.appendChild(vpick(f));
 					if (f.why.length) row.appendChild(vwhy(f));
 					sec.appendChild(row);
@@ -1194,13 +1183,13 @@
 					var body = el('div', 'j5ac-vcard-b');
 					var top = el('div', 'j5ac-vcard-top');
 					var tl = el('div');
-					tl.appendChild(vname(f));
-					tl.appendChild(el('span', 'j5ac-maker', f.d.manufacturer));
+					tl.appendChild(vnameline(f));
+					tl.appendChild(el('span', 'j5ac-maker j5ac-maker--lg', f.d.manufacturer));
 					top.appendChild(tl);
 					if (f.d.specs.level) top.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(f.d.specs.level), f.d.specs.level));
 					body.appendChild(top);
 					var tags = el('div', 'j5ac-vtags');
-					if (f.d.specs.standalone) tags.appendChild(el('span', 'j5ac-tag', f.d.specs.standalone));
+					if (f.d.specs.standalone) { tags.appendChild(vtype(f.d.specs.standalone)); if (isICW(f.d.specs.standalone)) tags.appendChild(el('span', 'j5ac-type-n', 'Needs soft armor')); }
 					f.cuts.forEach(function (c) { tags.appendChild(el('span', 'j5ac-tag', c)); });
 					if (f.cert === 'yes') tags.appendChild(el('span', 'j5ac-tag j5ac-tag--ok', 'NIJ certified'));
 					if (tags.firstChild) body.appendChild(tags);
@@ -1208,10 +1197,9 @@
 					st.appendChild(vweight(f));
 					st.appendChild(cfg.eff ? veff(f) : vkv('Standard', f.d.specs.standard));
 					body.appendChild(st);
-					body.appendChild(vsizes(f));
+					body.appendChild(vsizes(f, self.moreOpen));
 					if (f.why.length) body.appendChild(vwhy(f));
 					var foot = el('div', 'j5ac-vcard-foot');
-					foot.appendChild(vstock(f));
 					foot.appendChild(vpick(f));
 					body.appendChild(foot);
 					c.appendChild(body);
@@ -1255,10 +1243,11 @@
 					if (f.why.length) row.title = 'Not an equal comparison to your selected models. ' + f.why.join('. ');
 					row.setAttribute('data-j5ac-item', f.key);
 					var nm = el('div', 'j5ac-cname');
-					nm.appendChild(vname(f));
+					nm.appendChild(vnameline(f));
 					var sub = el('div', 'j5ac-vsub');
-					sub.appendChild(el('span', 'j5ac-maker', f.d.manufacturer));
+					sub.appendChild(el('span', 'j5ac-maker j5ac-maker--lg', f.d.manufacturer));
 					if (f.cert === 'yes') sub.appendChild(el('span', 'j5ac-tag j5ac-tag--ok', 'NIJ'));
+					if (isICW(f.d.specs.standalone)) sub.appendChild(vtype(f.d.specs.standalone));
 					nm.appendChild(sub);
 					row.appendChild(nm);
 					var tr = el('div', 'j5ac-ctrack');
@@ -1278,7 +1267,6 @@
 					row.appendChild(tr);
 					var end = el('div', 'j5ac-cend');
 					end.appendChild(el('span', null, f.sizes.length > 1 ? f.sizes.length + ' sizes' : '1 size'));
-					end.appendChild(vstock(f));
 					row.appendChild(end);
 					wrap.appendChild(row);
 				});
@@ -1647,22 +1635,12 @@
 	function floatingBar(root, panels) {
 		var bar = el('div', 'j5ac-float');
 		var top = el('button', 'j5ac-float-btn j5ac-float-btn--top', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
-		var back = el('button', 'j5ac-float-btn j5ac-float-btn--back', 'Back'); back.type = 'button'; back.setAttribute('aria-label', 'Back one question');
-		var over = el('button', 'j5ac-float-btn j5ac-float-btn--over', 'Start over'); over.type = 'button'; over.setAttribute('aria-label', 'Back to the first question on this tab');
 		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset all'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
-		bar.appendChild(top); bar.appendChild(back); bar.appendChild(over); bar.appendChild(reset);
-		back.addEventListener('click', function () {
-			var open = root.querySelector('.j5ac-panel:not([hidden])'), pn = open && panels[open.getAttribute('data-cat')];
-			if (pn) pn.backStep();
-		});
-		over.addEventListener('click', function () {
-			var open = root.querySelector('.j5ac-panel:not([hidden])');
-			if (open && panels[open.getAttribute('data-cat')]) panels[open.getAttribute('data-cat')].startOver();
-		});
+		bar.appendChild(top); bar.appendChild(reset);
 		root.appendChild(bar);
 		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
 		reset.addEventListener('click', function () {
-			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.clearPicks(); p.form.reset(); p.guide = {}; p.guideOn = true; p.sizeTarget = null; p.sizeSel = {}; p.renderGuide(); p.filter(); });
+			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.clearPicks(); p.form.reset(); p.sizeTarget = null; p.sizeSel = {}; p.helpOpen = false; p.renderGuide(); p.filter(); });
 			root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
 		});
 		function tick() {
@@ -1699,7 +1677,7 @@
 		var hash = (location.hash || '').replace('#j5ac-', '');
 		if (hash) {
 			var segs = hash.split('/'), cat = segs.shift();
-			if (panels[cat]) { show(cat); if (segs.length) panels[cat].readHash(segs); }
+			if (panels[cat]) show(cat);
 		}
 		floatingBar(root, panels);
 	}

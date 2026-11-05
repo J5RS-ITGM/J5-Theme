@@ -24,8 +24,8 @@ cat > /tmp/compare-$ID.html <<'EOF'
 <!-- wp:list {"ordered":true} -->
 <ol class="wp-block-list">
 <li><strong>Pick a category.</strong> Plates are live now. Helmets, soft armor and ballistic shields are coming soon.</li>
-<li><strong>Answer the guided questions, or choose See all.</strong> The guided search asks what the plate needs to stop, whether you need NIJ certification, and what size you wear, then shows only the plates that fit.</li>
-<li><strong>Narrow the list with filters.</strong> Filter by protection level, test standard, standalone or ICW, cut, curve, maximum weight and manufacturer. On a phone, tap Filters.</li>
+<li><strong>Not sure where to start? Press Help me choose.</strong> It asks what the plate needs to stop, whether you need NIJ certification, and whether you want full-size or side plates, then sets the filters for you. Change them any time.</li>
+<li><strong>Narrow the list with filters.</strong> Filter by protection level, test standard, standalone or ICW, cut, curve, size, maximum weight and manufacturer. On a phone, tap Filters.</li>
 <li><strong>Switch views.</strong> Rows shows every key spec, Cards are quicker to scan, and Chart lines up weight, ounces per square inch or coverage on one scale. Group the results by protection level, cut or manufacturer.</li>
 <li><strong>Open a model for the details.</strong> Click any model to see every size it comes in, the weight and coverage of each, its special threats, the threat matrix when the manufacturer publishes one, and a link to the spec sheet.</li>
 <li><strong>Compare up to six.</strong> Press Compare on a listing or on a single size. Models that differ from your first pick in size, protection level, test standard or weight are marked so you know the comparison isn't equal. You can still add them with Compare anyway.</li>
@@ -89,7 +89,7 @@ cat > /tmp/compare-$ID.html <<'EOF'
 <!-- /wp:heading -->
 
 <!-- wp:paragraph -->
-<p>Every spec comes from the manufacturer's own spec sheet, and each model links to the sheet with the date we pulled it. NIJ certification is checked against the <a href="https://cpl.nij.ojp.gov/" target="_blank" rel="noopener">NIJ Compliant Products List</a>. The tool includes plates we don't sell, so you can compare the whole market, not just our catalog. Models we carry are marked "Sold by J5" or "Quote from J5".</p>
+<p>Every spec comes from the manufacturer's own spec sheet, and each model links to the sheet with the date we pulled it. NIJ certification is checked against the <a href="https://cpl.nij.ojp.gov/" target="_blank" rel="noopener">NIJ Compliant Products List</a>. The tool includes plates we don't sell, so you can compare the whole market, not just our catalog. Models J5 sells carry the J5 mark next to the name.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:heading -->
@@ -113,7 +113,7 @@ cat > /tmp/compare-$ID.html <<'EOF'
 <!-- /wp:heading -->
 
 <!-- wp:paragraph -->
-<p>No. The tool covers plates from across the market so you can compare fairly. Models we carry are marked "Sold by J5" or "Quote from J5"; the rest are marked reference only.</p>
+<p>No. The tool covers plates from across the market so you can compare fairly. Models we sell carry the J5 mark next to the name. Hover or tap it to see whether it is in the store or available by quote.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:heading {"level":3} -->
@@ -137,7 +137,7 @@ cat > /tmp/compare-$ID.html <<'EOF'
 <!-- /wp:heading -->
 
 <!-- wp:paragraph -->
-<p>Plates marked "Sold by J5" link straight to the product page. For plates marked "Quote from J5", or for agency and bulk orders, use <a href="/request-a-quote/">Request a Quote</a> or call us at <a href="tel:+16304424938">(630) 442-4938</a>.</p>
+<p>Open a plate with the J5 mark to find its product page or a quote link. For quoted plates or for agency and bulk orders, use <a href="/request-a-quote/">Request a Quote</a> or call us at <a href="tel:+16304424938">(630) 442-4938</a>.</p>
 <!-- /wp:paragraph -->
 
 </div>

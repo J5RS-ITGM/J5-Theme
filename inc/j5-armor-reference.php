@@ -648,10 +648,10 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 	<section class="j5ac-panel" id="j5ac-<?php echo esc_attr( $cat ); ?>" data-cat="<?php echo esc_attr( $cat ); ?>" <?php echo $open ? '' : 'hidden'; ?>>
 		<script type="application/json" class="j5ac-config"><?php echo wp_json_encode( $config, JSON_UNESCAPED_SLASHES ); ?></script>
 
-		<div class="j5ac-guide" data-j5ac-guide hidden></div>
-
 		<?php
 		$fid    = 'j5ac-f-' . $cat;
+		$any_carried = false;
+		foreach ( $models as $m ) if ( ! empty( $m['carried'] ) ) { $any_carried = true; break; }
 		$makers = array();
 		foreach ( $models as $m ) if ( $m['manufacturer'] ) $makers[ $m['manufacturer'] ] = true;
 		$makers = array_keys( $makers ); natcasesort( $makers );
@@ -715,6 +715,27 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				endif;
 			endforeach; ?>
 
+			<?php
+			// J5-AC-HELP: full-size vs side plates (same test as the JS: "-SP" / "side plate" in the name, or 8 in or smaller both ways).
+			if ( 'plate' === $cat ) :
+				$grps = array();
+				foreach ( $models as $m ) {
+					$sw = isset( $m['specs']['width_in'] ) ? j5_armor_ref_num( $m['specs']['width_in'] ) : null;
+					$sh = isset( $m['specs']['height_in'] ) ? j5_armor_ref_num( $m['specs']['height_in'] ) : null;
+					$side = preg_match( '/-SP\b|\bside\s*plates?\b/i', $m['model'] . ' ' . ( isset( $m['family'] ) ? $m['family'] : '' ) ) || ( $sw && $sh && max( $sw, $sh ) <= 8 );
+					$grps[ $side ? 'side' : 'full' ] = true;
+				}
+				if ( count( $grps ) > 1 ) : ?>
+			<details class="j5ac-sec">
+				<summary class="j5ac-sec-h">Size</summary>
+				<div class="j5ac-sec-b">
+					<label class="j5ac-check"><input type="checkbox" name="sizegrp" value="full"> <span>Full-size plates</span></label>
+					<label class="j5ac-check"><input type="checkbox" name="sizegrp" value="side"> <span>Side plates</span></label>
+				</div>
+			</details>
+				<?php endif;
+			endif; ?>
+
 			<?php if ( count( $makers ) > 1 ) : ?>
 			<details class="j5ac-sec">
 				<summary class="j5ac-sec-h">Manufacturer</summary>
@@ -744,6 +765,7 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 		<div class="j5ac-main">
 		<div class="j5ac-toolbar" data-j5ac-toolbar>
 			<div class="j5ac-tb-row">
+				<button type="button" class="j5ac-helpbtn" data-j5ac-help aria-controls="j5ac-g-<?php echo esc_attr( $cat ); ?>" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg>Help me choose</button>
 				<button type="button" class="j5ac-ftoggle" data-j5ac-ftoggle aria-controls="<?php echo esc_attr( $fid ); ?>" aria-expanded="false">Filters <span data-j5ac-fcount></span></button>
 				<label class="j5ac-search"><span class="screen-reader-text">Search <?php echo esc_html( strtolower( $feed['label'] ) ); ?></span><input type="search" name="q" form="<?php echo esc_attr( $fid ); ?>" placeholder="Search model or manufacturer" autocomplete="off"></label>
 				<label class="j5ac-sortwrap"><span class="j5ac-lbl">Sort</span>
@@ -778,8 +800,11 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 				<span class="j5ac-count" data-j5ac-count><?php echo count( $models ); ?> of <?php echo count( $models ); ?></span>
 				<div class="j5ac-active" data-j5ac-active aria-label="Active filters"></div>
 				<button type="reset" form="<?php echo esc_attr( $fid ); ?>" class="j5ac-reset" data-j5ac-clearall hidden>Clear all</button>
+				<?php if ( $any_carried ) : ?><span class="j5ac-legend"><span class="j5ac-j5" aria-hidden="true">J5</span> Available from J5</span><?php endif; ?>
 			</div>
 		</div>
+
+		<div class="j5ac-guide" id="j5ac-g-<?php echo esc_attr( $cat ); ?>" data-j5ac-guide hidden></div>
 
 		<?php if ( 'shield' === $cat ) : ?><div class="j5ac-cards-list" data-j5ac-cardlist hidden></div><?php endif; ?>
 		<div class="j5ac-table-wrap<?php echo 'shield' === $cat ? ' j5ac-table-wrap--cards' : ''; ?>">

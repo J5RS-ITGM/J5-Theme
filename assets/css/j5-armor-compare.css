@@ -609,3 +609,83 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1840px; }
 .j5ac-seo .j5ac-disclaimer { padding: 14px 18px; border: 1px solid #4a3e22; border-left: 3px solid #d4a044; border-radius: 6px; background: #17140c; }
 .j5ac-seo { overflow-wrap: anywhere; }
 @media (max-width: 720px) { .j5ac-seo h2.wp-block-heading { font-size: 28px; } }
+
+/* ==== J5-AC-V6: Help me choose, J5 mark, Type badge, manufacturer line, roomier size chips ==== */
+.j5ac .j5ac-helpbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; font-family: var(--cond); font-weight: 600; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--gh); border: 1px solid var(--g); border-radius: 4px; background: #1a160c; cursor: pointer; }
+.j5ac .j5ac-helpbtn:hover, .j5ac .j5ac-helpbtn[aria-expanded="true"] { background: #2a2312; color: var(--bone); }
+.j5ac .j5ac-helpbtn[hidden] { display: none; }
+.j5ac-guide { margin: 14px 0 4px; }
+.j5ac-help { background: var(--card); border: 1px solid var(--line-hi); border-top: 3px solid var(--g); border-radius: 8px; padding: 20px 22px; max-width: 720px; }
+.j5ac-help-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.j5ac-help-t { margin: 0; font-family: var(--disp); font-weight: 400; font-size: 28px; letter-spacing: .03em; line-height: 1; color: var(--bone); outline: none; }
+.j5ac .j5ac-help-x { flex: 0 0 auto; width: 40px; height: 40px; margin: -8px -8px 0 0; background: none; border: 0; color: var(--dim); font-size: 26px; line-height: 1; cursor: pointer; }
+.j5ac .j5ac-help-x:hover { color: var(--bone); }
+.j5ac-help-p { margin: 6px 0 14px; font-size: 14px; color: var(--dim); }
+.j5ac-help-q { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
+.j5ac-help-q legend { padding: 0; margin: 0 0 8px; font-family: var(--cond); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.j5ac-help-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.j5ac .j5ac-help-o { min-height: 44px; padding: 0 16px; border: 1px solid var(--line-hi); border-radius: 4px; background: #111418; color: #d6d3c9; font-family: var(--cond); font-weight: 600; font-size: 15px; letter-spacing: .06em; cursor: pointer; }
+.j5ac .j5ac-help-o:hover { border-color: var(--mute); color: var(--bone); }
+.j5ac .j5ac-help-o.is-on { border-color: var(--g); background: #2a2312; color: var(--gh); }
+.j5ac-help-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 4px; }
+.j5ac .j5ac-help-go { min-height: 46px; padding: 0 22px; border: 0; border-radius: 4px; background: var(--r); color: #fff; font-family: var(--cond); font-weight: 700; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.j5ac .j5ac-help-go:hover { background: var(--rh); }
+.j5ac .j5ac-help-skip { background: none; border: 0; padding: 8px 4px; color: var(--dim); font-family: var(--cond); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.j5ac .j5ac-help-skip:hover { color: var(--bone); }
+
+/* No listing counts beside headings */
+.j5ac-vgroup-n, .j5ac-vsubh-n { display: none; }
+
+/* J5 mark: small gold square on listings J5 sells */
+.j5ac-j5 { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 24px; height: 24px; border: 1.5px solid var(--g); border-radius: 3px; color: var(--g); font-family: var(--disp); font-size: 14px; letter-spacing: .02em; line-height: 1; padding-top: 1px; box-sizing: border-box; }
+.j5ac-vnl { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.j5ac-vnl .j5ac-model { min-width: 0; overflow-wrap: anywhere; }
+.j5ac-legend { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-family: var(--cond); font-size: 13px; letter-spacing: .06em; color: var(--dim); }
+.j5ac-legend .j5ac-j5 { width: 20px; height: 20px; font-size: 12px; }
+
+/* Manufacturer on its own line, easier to read */
+.j5ac .j5ac-maker--lg, .j5ac-vsub .j5ac-maker--lg, .j5ac-vcard .j5ac-maker--lg { display: block; margin: 6px 0 0; font-family: var(--cond); font-weight: 600; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: #d6d3c9; }
+.j5ac-cname .j5ac-vsub .j5ac-maker--lg { display: inline; margin: 0; font-size: 14px; }
+
+/* Type badge */
+.j5ac-type { display: inline-flex; align-items: center; font-family: var(--cond); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; line-height: 1; padding: 5px 8px; border-radius: 3px; color: #c9d6e6; background: #151c26; border: 1px solid #334155; white-space: nowrap; }
+.j5ac-type.is-icw { color: #f5c36b; background: #241b0c; border-color: #7a5a22; }
+.j5ac-type-n { display: block; margin-top: 4px; font-size: 12px; color: #c9a868; }
+.j5ac-kv--type .j5ac-v { display: block; }
+.j5ac-vtags .j5ac-type-n { display: inline; margin: 0; align-self: center; }
+
+/* Size chips: bigger targets, cut label in its own column so chips line up */
+.j5ac-vsizes .j5ac-vchips { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 8px; margin-top: 6px; }
+.j5ac-vsizes .j5ac-vchips + .j5ac-vchips { margin-top: 8px; }
+.j5ac-vsizes .j5ac-vchips-l { flex: 0 0 64px; min-width: 64px; padding-top: 8px; line-height: 1.1; }
+.j5ac-vchips-s { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.j5ac .j5ac-vchip { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 32px; padding: 0 10px; font-size: 14px; font-weight: 600; border: 1px solid #2c323c; border-radius: 4px; background: #1d2128; color: #e6e3da; box-sizing: border-box; }
+.j5ac .j5ac-vmore { margin: 8px 0 0 72px; min-height: 32px; padding: 0 12px; background: none; border: 1px dashed var(--line-hi); border-radius: 4px; color: var(--g); font-family: var(--cond); font-weight: 600; font-size: 13px; letter-spacing: .06em; cursor: pointer; }
+.j5ac .j5ac-vmore:hover { color: var(--gh); border-color: var(--g); }
+.j5ac-vrow > .j5ac-vsizes { flex: 1.8 1 280px; }
+
+@media (max-width: 720px) {
+	.j5ac-help { padding: 16px; border-radius: 6px; }
+	.j5ac-help-t { font-size: 24px; }
+	.j5ac .j5ac-help-o { flex: 1 1 calc(50% - 4px); padding: 0 10px; }
+	.j5ac .j5ac-help-go { flex: 1 1 100%; }
+	.j5ac-help-acts { justify-content: center; }
+	.j5ac .j5ac-helpbtn { flex: 1 1 calc(50% - 6px); justify-content: center; }
+	.j5ac .j5ac-ftoggle { flex: 1 1 calc(50% - 6px); justify-content: center; }
+	.j5ac-legend { margin-left: 0; flex-basis: 100%; }
+	.j5ac-vsizes .j5ac-vchips { flex-direction: column; gap: 6px; }
+	.j5ac-vsizes .j5ac-vchips-l { flex: none; min-width: 0; padding-top: 0; }
+	.j5ac .j5ac-vmore { margin-left: 0; }
+	.j5ac-vnl .j5ac-model { font-size: 22px; }
+}
+.j5ac-vrow > .j5ac-vname { flex: 1 1 200px; }
+.j5ac-vrow > .j5ac-vspecs { flex: 4 1 420px; }
+.j5ac-vrow > .j5ac-vsizes { flex: 1.8 1 250px; }
+.j5ac-vsizes .j5ac-vchips-l { flex-basis: 78px; min-width: 78px; letter-spacing: .06em; }
+.j5ac .j5ac-vmore { margin-left: 86px; }
+@media (max-width: 720px) { .j5ac-vsizes .j5ac-vchips-l { flex-basis: auto; min-width: 0; } .j5ac .j5ac-vmore { margin-left: 0; } }
+.j5ac-vsizes .j5ac-vchips-l { align-self: flex-start; text-align: left; }
+@media (max-width: 720px) {
+	.j5ac .j5ac-helpbtn, .j5ac .j5ac-ftoggle { padding: 0 10px; letter-spacing: .06em; white-space: nowrap; }
+	.j5ac-vsizes .j5ac-vchips-l { padding-top: 2px; }
+}
