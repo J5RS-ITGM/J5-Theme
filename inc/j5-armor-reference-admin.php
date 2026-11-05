@@ -22,6 +22,16 @@ function j5_armor_ref_default_order( $category ) {
 	return isset( $d[ $category ] ) ? $d[ $category ] : array();
 }
 
+/**
+ * Categories shown as "Coming soon": tab greyed out, no panel, no search markup. The DP feed is
+ * still stored, so switching a category back on needs no re-push. Default: shields.
+ */
+function j5_armor_ref_coming_soon() {
+	$all = get_option( J5_ARMOR_REF_SETTINGS, array() );
+	$cs  = is_array( $all ) && isset( $all['coming_soon'] ) && is_array( $all['coming_soon'] ) ? $all['coming_soon'] : array( 'shield' );
+	return array_values( array_map( 'sanitize_key', $cs ) );
+}
+
 /** Size groups the plate size step uses (ids are fixed in the JS; labels and order are editable). */
 function j5_armor_ref_size_groups() {
 	return array( 'side' => 'Side plates', 'shooter' => "Shooter's cut", 'sapi' => 'SAPI cut', 'other' => 'Other sizes' );
@@ -113,6 +123,9 @@ function j5_armor_ref_settings_page() {
 				$all['plate']['size_groups'] = array( 'order' => array_keys( $sorted ), 'hidden' => $hidden );
 			}
 		}
+		$cs = array();
+		foreach ( array( 'shield', 'plate', 'helmet', 'soft_armor' ) as $c ) if ( ! empty( $_POST['coming_soon'][ $c ] ) ) $cs[] = $c;
+		$all['coming_soon'] = $cs;
 		$all['report_email'] = isset( $_POST['report_email'] ) ? sanitize_email( wp_unslash( $_POST['report_email'] ) ) : '';
 		update_option( J5_ARMOR_REF_SETTINGS, $all, true );
 		if ( function_exists( 'j5_armor_ref_after_push' ) ) j5_armor_ref_after_push( 'settings' );
@@ -136,6 +149,14 @@ function j5_armor_ref_settings_page() {
 		<p>What the walkthrough offers and in what order. Hidden items are removed from the tool and its search markup entirely. Model data itself comes from the dealer portal; edit it there.</p>
 		<form method="post">
 			<?php wp_nonce_field( 'j5_armor_ref_settings' ); ?>
+			<h2>Categories</h2>
+			<p class="description">A category marked Coming soon shows a greyed-out tab and nothing else. Its data from the dealer portal is kept, so unchecking it brings it straight back.</p>
+			<?php $cs_now = j5_armor_ref_coming_soon(); ?>
+			<p>
+			<?php foreach ( array( 'shield' => 'Shields', 'plate' => 'Plates', 'helmet' => 'Helmets', 'soft_armor' => 'Soft armor' ) as $c => $l ) : ?>
+				<label style="margin-right:18px"><input type="checkbox" name="coming_soon[<?php echo esc_attr( $c ); ?>]" value="1" <?php checked( in_array( $c, $cs_now, true ) ); ?>> <?php echo esc_html( $l ); ?>: Coming soon</label>
+			<?php endforeach; ?>
+			</p>
 			<h2>Spec reports</h2>
 			<p><label>Send "Report incorrect information" submissions to <input type="email" name="report_email" value="<?php echo esc_attr( $settings['report_email'] ?? '' ); ?>" placeholder="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" class="regular-text"></label><br><span class="description">Blank uses the site admin email. Every report is also listed at the bottom of this page.</span></p>
 			<?php foreach ( $categories as $cat => $label ) : ?>

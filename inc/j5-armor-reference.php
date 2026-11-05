@@ -536,8 +536,12 @@ function j5_armor_ref_shortcode( $atts ) {
 
 	j5_armor_ref_assets();
 
+	// J5-AC-SOON: categories switched to "Coming soon" in J5 Apps > Armor Comparison render like empty ones.
+	$soon = function_exists( 'j5_armor_ref_coming_soon' ) ? j5_armor_ref_coming_soon() : array();
+	$live = function ( $c ) use ( $soon ) { return ! in_array( $c, $soon, true ) ? j5_armor_ref_feed( $c ) : null; };
+
 	$first = '';
-	foreach ( $cats as $c ) { if ( j5_armor_ref_feed( $c ) ) { $first = $c; break; } }
+	foreach ( $cats as $c ) { if ( $live( $c ) ) { $first = $c; break; } }
 	if ( ! $first ) $first = $cats[0];
 
 	ob_start();
@@ -563,7 +567,7 @@ function j5_armor_ref_shortcode( $atts ) {
 		<?php if ( count( $cats ) > 1 ) : ?>
 		<nav class="j5ac-cats" aria-label="Armor category">
 			<?php foreach ( $cats as $c ) :
-				$feed = j5_armor_ref_feed( $c );
+				$feed = $live( $c );
 				$n    = $feed ? count( $feed['models'] ) : 0;
 				if ( ! $feed ) : ?>
 					<span class="j5ac-cat is-off"><?php echo esc_html( j5_armor_ref_label( $c ) ); ?><small>Coming soon</small></span>
@@ -575,7 +579,7 @@ function j5_armor_ref_shortcode( $atts ) {
 		<?php endif; ?>
 
 		<?php foreach ( $cats as $c ) :
-			$feed = j5_armor_ref_feed( $c );
+			$feed = $live( $c );
 			if ( ! $feed ) {
 				if ( count( $cats ) === 1 ) echo '<p class="j5ac-empty">Nothing published for ' . esc_html( strtolower( j5_armor_ref_label( $c ) ) ) . ' yet.</p>';
 				continue;
