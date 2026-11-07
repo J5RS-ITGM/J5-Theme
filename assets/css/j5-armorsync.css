@@ -1,0 +1,28 @@
+/* J5 ArmorSync units ("Choose your plate"). Markup: inc/j5-armorsync-units.php + assets/js/j5-armorsync.js.
+   Matches the DP product options look (assets/css/j5-product-options.css). Stacks on phones. */
+.j5-as { margin: 4px 0 20px; padding: 0; border: 0; min-width: 0; }
+.j5-as[hidden] { display: none; }
+.j5-as__name { padding: 0; margin: 0 0 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--j5-gold); }
+.j5-as__help { margin: 0 0 10px; font-size: 14px; line-height: 1.45; color: var(--j5-ink-dim); }
+.j5-as__list { display: flex; flex-direction: column; gap: 6px; }
+.j5-as__choice { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--j5-bg-card); border: 1px solid var(--j5-border-hi); cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 0; }
+.j5-as__choice:hover { border-color: var(--j5-gold); }
+.j5-as__choice.is-on, .j5-as__choice:has(input:checked) { border-color: var(--j5-gold); background: var(--j5-bg-card-hi); }
+.j5-as__choice input { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; accent-color: var(--j5-gold); cursor: pointer; }
+.j5-as__choice input:focus-visible { outline: 2px solid var(--j5-gold); outline-offset: 2px; }
+.j5-as__text { flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.j5-as__label { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 15px; color: var(--j5-bone); }
+.j5-as__desc { font-size: 13px; line-height: 1.4; color: var(--j5-ink-dim); overflow-wrap: anywhere; }
+.j5-as__pct { flex: 0 0 auto; padding: 4px 8px; border: 1px solid var(--j5-gold); color: var(--j5-gold); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.j5-as__note { margin: 8px 0 0; font-size: 13px; color: var(--j5-ink-dim); }
+.j5-qty-wrap.is-locked { opacity: 0.6; }
+.j5-qty-wrap.is-locked .j5-qty-btn { cursor: not-allowed; }
+.j5-fs-callout.j5-as-hide { display: none; }
+.j5-as-qty { display: inline-block; min-width: 2ch; text-align: center; }
+
+@media (max-width: 480px) {
+	.j5-as__choice { flex-wrap: wrap; align-items: flex-start; padding: 12px; }
+	.j5-as__choice input { margin-top: 2px; }
+	.j5-as__text { flex: 1 1 calc(100% - 30px); }
+	.j5-as__pct { margin-left: 30px; }
+}

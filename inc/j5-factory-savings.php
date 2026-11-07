@@ -189,6 +189,9 @@ add_filter( 'woocommerce_coupon_is_valid_for_product', function ( $valid, $produ
 	if ( ! j5fs_is_code( $coupon ) ) {
 		return $valid;
 	}
+	if ( is_array( $values ) && ! empty( $values['j5_as'] ) ) {
+		return false; // an in-stock ArmorSync plate is not a factory order (inc/j5-armorsync-units.php)
+	}
 	return j5fs_pct( $product ) > 0;
 }, 20, 4 );
 
@@ -196,6 +199,9 @@ add_filter( 'woocommerce_coupon_is_valid_for_product', function ( $valid, $produ
 add_filter( 'woocommerce_coupon_get_discount_amount', function ( $discount, $discounting_amount, $cart_item, $single, $coupon ) {
 	if ( ! j5fs_is_code( $coupon ) ) {
 		return $discount;
+	}
+	if ( is_array( $cart_item ) && ! empty( $cart_item['j5_as'] ) ) {
+		return 0;
 	}
 	$product = is_array( $cart_item ) && isset( $cart_item['data'] ) ? $cart_item['data'] : null;
 	$pct     = j5fs_pct( $product );
@@ -205,7 +211,7 @@ add_filter( 'woocommerce_coupon_get_discount_amount', function ( $discount, $dis
 /** True when the cart holds at least one eligible line. */
 function j5fs_cart_eligible( $cart ) {
 	foreach ( $cart->get_cart() as $item ) {
-		if ( isset( $item['data'] ) && j5fs_pct( $item['data'] ) > 0 ) {
+		if ( empty( $item['j5_as'] ) && isset( $item['data'] ) && j5fs_pct( $item['data'] ) > 0 ) {
 			return true;
 		}
 	}
@@ -249,7 +255,7 @@ add_filter( 'woocommerce_cart_totals_coupon_html', function ( $html, $coupon, $d
 
 /** Note under eligible cart / checkout lines. */
 add_filter( 'woocommerce_get_item_data', function ( $item_data, $item ) {
-	if ( isset( $item['data'] ) && j5fs_pct( $item['data'] ) > 0 && WC()->cart && in_array( J5FS_CODE, WC()->cart->get_applied_coupons(), true ) ) {
+	if ( empty( $item['j5_as'] ) && isset( $item['data'] ) && j5fs_pct( $item['data'] ) > 0 && WC()->cart && in_array( J5FS_CODE, WC()->cart->get_applied_coupons(), true ) ) {
 		$item_data[] = array(
 			'key'   => J5FS_LABEL,
 			'value' => 'Applied',

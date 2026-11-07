@@ -1,0 +1,522 @@
+<?php
+/**
+ * J5 ArmorSync units on the product page (WC ArmorSync Units Contract 1, 2026-11-06).
+ *
+ * The DP (dealer.j5rescue.com) is the system of record for serialized plates.
+ * WooCommerce stores no units: after the customer picks cut and size, the page
+ * asks WC (wc-ajax=j5_as_units), WC asks the DP live, and the list shows
+ * "Factory new" plus each in-stock unit (masked serials, month made, % off).
+ * Nothing is in page HTML, schema, sitemap or feeds.
+ *
+ * Picking a unit:
+ *   - add to cart: WC re-reads the unit from the DP (never trusts the post),
+ *     holds it for this cart (POST /hold), forces quantity 1.
+ *   - cart: virtual auto coupon "in-stock-plate-savings" takes discount_pct off
+ *     that line only. Factory order savings never applies to a unit line.
+ *   - checkout: hold again (extends it); a 409 stops checkout with a message.
+ *   - order line meta: _j5_as_unit_id, _j5_as_serials, _j5_as_mfg,
+ *     _j5_as_discount_pct (the DP reads these on import) + a visible "Plate" line.
+ *   - removed from cart: POST /release.
+ *
+ * Off unless wp-config defines J5_ARMORSYNC_SECRET (same value as ArmorSync >
+ * Settings > Website Units). Optional J5_ARMORSYNC_URL overrides the DP base URL.
+ *
+ * @package J5 Theme
+ */
+
+if ( ! defined( 'ABSPATH' ) ) { exit; }
+
+const J5AS_CART_KEY = 'j5_as';
+const J5AS_CODE     = 'in-stock-plate-savings';
+const J5AS_LABEL    = 'In-stock plate savings';
+const J5AS_HOLD_MIN = 30;
+
+/* =========================================================================
+ * 1. DP CLIENT
+ * ====================================================================== */
+
+function j5as_on() {
+	return defined( 'J5_ARMORSYNC_SECRET' ) && '' !== (string) J5_ARMORSYNC_SECRET;
+}
+
+function j5as_base() {
+	$base = defined( 'J5_ARMORSYNC_URL' ) && J5_ARMORSYNC_URL ? J5_ARMORSYNC_URL : 'https://dealer.j5rescue.com';
+	return untrailingslashit( $base ) . '/api/armorsync';
+}
+
+/** This cart's reference for holds. Empty when there is no WC session. */
+function j5as_wc_ref() {
+	if ( function_exists( 'WC' ) && WC()->session ) {
+		return (string) WC()->session->get_customer_id();
+	}
+	return '';
+}
+
+/**
+ * Call the DP. Returns array( 'code' => int, 'body' => array ) or WP_Error.
+ *
+ * @param string $method GET|POST
+ * @param string $path   /available, /hold, /release
+ * @param array  $data   query (GET) or JSON body (POST)
+ * @param bool   $wait   false = fire and forget
+ */
+function j5as_call( $method, $path, $data = array(), $wait = true ) {
+	if ( ! j5as_on() ) {
+		return new WP_Error( 'j5as_off', 'ArmorSync is not configured.' );
+	}
+	$url  = j5as_base() . $path;
+	$args = array(
+		'timeout'  => 'GET' === $method ? 4 : 6,
+		'blocking' => $wait,
+		'headers'  => array(
+			'X-J5-ArmorSync-Secret' => (string) J5_ARMORSYNC_SECRET,
+			'Accept'                => 'application/json',
+		),
+	);
+	if ( 'GET' === $method ) {
+		$res = wp_remote_get( add_query_arg( array_map( 'rawurlencode', $data ), $url ), $args );
+	} else {
+		$args['headers']['Content-Type'] = 'application/json';
+		$args['body']                    = wp_json_encode( $data );
+		$res                             = wp_remote_post( $url, $args );
+	}
+	if ( is_wp_error( $res ) || ! $wait ) {
+		return $res;
+	}
+	$body = json_decode( (string) wp_remote_retrieve_body( $res ), true );
+	return array(
+		'code' => (int) wp_remote_retrieve_response_code( $res ),
+		'body' => is_array( $body ) ? $body : array(),
+	);
+}
+
+/** Keep only the last 4 characters of a serial (the DP already masks; this is a backstop). */
+function j5as_mask( $serial ) {
+	$s = trim( (string) $serial );
+	if ( preg_match( '/^X{2,}/i', $s ) ) {
+		return strtoupper( substr( $s, 0, -4 ) ) . substr( $s, -4 );
+	}
+	return strlen( $s ) > 4 ? 'XXXX' . substr( $s, -4 ) : $s;
+}
+
+/** "2025-03" -> "Mar 2025". */
+function j5as_month( $ym ) {
+	$d = DateTime::createFromFormat( '!Y-m', substr( (string) $ym, 0, 7 ) );
+	return $d ? $d->format( 'M Y' ) : '';
+}
+
+/** One DP unit -> the clean record WC keeps (no prices). Null when unusable. */
+function j5as_clean_unit( $u ) {
+	if ( ! is_array( $u ) || empty( $u['unit_id'] ) ) {
+		return null;
+	}
+	$id = preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $u['unit_id'] );
+	if ( '' === $id ) {
+		return null;
+	}
+	$serials = array_values( array_filter( array_map( 'j5as_mask', (array) ( $u['serials'] ?? array() ) ) ) );
+	$pct     = isset( $u['discount_pct'] ) ? (int) round( (float) $u['discount_pct'] ) : 0;
+	return array(
+		'unit_id'        => $id,
+		'kind'           => 'set' === ( $u['kind'] ?? '' ) ? 'set' : 'single',
+		'serials'        => $serials,
+		'mfg_date'       => preg_match( '/^\d{4}-\d{2}/', (string) ( $u['mfg_date'] ?? '' ) ) ? substr( $u['mfg_date'], 0, 7 ) : '',
+		'age_months'     => isset( $u['age_months'] ) ? max( 0, (int) $u['age_months'] ) : null,
+		'warranty_years' => isset( $u['warranty_years'] ) ? (float) $u['warranty_years'] : null,
+		'warranty_ends'  => preg_match( '/^\d{4}-\d{2}/', (string) ( $u['warranty_ends'] ?? '' ) ) ? substr( $u['warranty_ends'], 0, 7 ) : '',
+		'discount_pct'   => max( 0, min( 90, $pct ) ),
+	);
+}
+
+/**
+ * Available units for a SKU. Cached 60 s per SKU unless this cart holds one of
+ * them (then live with wc_ref, so the held unit still lists).
+ *
+ * @return array|null list of clean units, or null when the DP did not answer
+ */
+function j5as_available( $sku, $live = false ) {
+	$sku = (string) $sku;
+	if ( '' === $sku || ! j5as_on() ) {
+		return null;
+	}
+	$ref = j5as_wc_ref();
+	if ( ! $live && $ref && j5as_cart_has_sku( $sku ) ) {
+		$live = true;
+	}
+	$ck = 'j5as_' . md5( $sku );
+	if ( ! $live ) {
+		$hit = get_transient( $ck );
+		if ( is_array( $hit ) ) {
+			return $hit;
+		}
+	}
+	$q = array( 'sku' => $sku );
+	foreach ( j5as_cart_items() as $item ) {
+		if ( ( $item[ J5AS_CART_KEY ]['sku'] ?? '' ) === $sku && ! empty( $item[ J5AS_CART_KEY ]['wc_ref'] ) ) {
+			$ref = $item[ J5AS_CART_KEY ]['wc_ref']; // the ref this cart's hold is under
+			break;
+		}
+	}
+	if ( $ref ) {
+		$q['wc_ref'] = $ref;
+	}
+	$res = j5as_call( 'GET', '/available', $q );
+	if ( is_wp_error( $res ) || 200 !== $res['code'] ) {
+		return null;
+	}
+	$units = array();
+	foreach ( (array) ( $res['body']['units'] ?? array() ) as $u ) {
+		$c = j5as_clean_unit( $u );
+		if ( $c ) {
+			$units[] = $c;
+		}
+	}
+	if ( ! $live || ! j5as_cart_has_sku( $sku ) ) {
+		set_transient( $ck, $units, 60 );
+	}
+	return $units;
+}
+
+/**
+ * Hold a unit for this cart. $ref: the wc_ref the unit was first held under (kept on the
+ * cart item), so the hold still matches after a guest logs in at checkout and WC's
+ * session id changes.
+ */
+function j5as_hold( $unit_id, $ref = '' ) {
+	$res = j5as_call( 'POST', '/hold', array( 'unit_id' => (string) $unit_id, 'wc_ref' => $ref ? $ref : j5as_wc_ref(), 'minutes' => J5AS_HOLD_MIN ) );
+	if ( is_wp_error( $res ) ) {
+		return 'error';
+	}
+	if ( 200 === $res['code'] && ! empty( $res['body']['ok'] ) ) {
+		return 'ok';
+	}
+	if ( 409 === $res['code'] ) {
+		$r = $res['body']['detail']['reason'] ?? ( $res['body']['reason'] ?? 'sold' );
+		return 'held' === $r ? 'held' : 'sold';
+	}
+	return 'error';
+}
+
+function j5as_release( $unit_id, $ref = '' ) {
+	j5as_call( 'POST', '/release', array( 'unit_id' => (string) $unit_id, 'wc_ref' => $ref ? $ref : j5as_wc_ref() ), false );
+}
+
+/* =========================================================================
+ * 2. WHERE IT SHOWS
+ * ====================================================================== */
+
+/** Plate products (and anything the j5_as_enabled filter adds). */
+function j5as_enabled_for( $product ) {
+	if ( ! j5as_on() || ! $product instanceof WC_Product ) {
+		return false;
+	}
+	$parent = $product->get_parent_id() ? wc_get_product( $product->get_parent_id() ) : $product;
+	if ( ! $parent || ! $parent->is_type( 'variable' ) ) {
+		return false;
+	}
+	$on = function_exists( 'j5_product_is_plate' ) ? j5_product_is_plate( $parent ) : has_term( 'body-armor', 'product_cat', $parent->get_id() );
+	return (bool) apply_filters( 'j5_as_enabled', $on, $parent );
+}
+
+/* =========================================================================
+ * 3. PRODUCT PAGE
+ * ====================================================================== */
+
+add_action( 'wp_enqueue_scripts', function () {
+	if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+		return;
+	}
+	$product = wc_get_product( get_queried_object_id() );
+	if ( ! j5as_enabled_for( $product ) ) {
+		return;
+	}
+	$dir = get_stylesheet_directory();
+	$uri = get_stylesheet_directory_uri();
+	wp_enqueue_style( 'j5-armorsync', $uri . '/assets/css/j5-armorsync.css', array(), (string) filemtime( $dir . '/assets/css/j5-armorsync.css' ) );
+	wp_enqueue_script( 'j5-armorsync', $uri . '/assets/js/j5-armorsync.js', array( 'jquery' ), (string) filemtime( $dir . '/assets/js/j5-armorsync.js' ), true );
+}, 30 );
+
+/**
+ * Empty shell inside the variations form (woocommerce/single-product.php).
+ * The list is filled by assets/js/j5-armorsync.js after a variation is chosen.
+ *
+ * @param WC_Product $product
+ */
+function j5as_render( $product ) {
+	if ( ! j5as_enabled_for( $product ) ) {
+		return;
+	}
+	printf(
+		'<fieldset class="j5-as" data-j5-as data-endpoint="%s" hidden>'
+			. '<legend class="j5-as__name">Choose your plate</legend>'
+			. '<p class="j5-as__help">Order factory new, or pick a plate we have on the shelf. Older plates are discounted by age.</p>'
+			. '<div class="j5-as__list" data-j5-as-list></div>'
+			. '<p class="j5-as__note" data-j5-as-note hidden>The discount is applied in your cart.</p>'
+			. '<input type="hidden" name="j5_as_unit" value="" data-j5-as-input />'
+		. '</fieldset>',
+		esc_url( WC_AJAX::get_endpoint( 'j5_as_units' ) )
+	);
+}
+
+/** wc-ajax=j5_as_units&variation_id=N -> { units: [...] } (no prices, masked serials). */
+function j5as_ajax_units() {
+	nocache_headers();
+	header( 'X-Robots-Tag: noindex, nofollow', true );
+	$vid = isset( $_GET['variation_id'] ) ? absint( $_GET['variation_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
+	$var = $vid ? wc_get_product( $vid ) : null;
+	if ( ! $var || ! $var->is_type( 'variation' ) || 'publish' !== get_post_status( $var->get_parent_id() ) || ! j5as_enabled_for( $var ) ) {
+		wp_send_json( array( 'units' => array() ) );
+	}
+	$units = j5as_available( $var->get_sku() );
+	$out   = array();
+	foreach ( (array) $units as $u ) {
+		$out[] = array(
+			'id'       => $u['unit_id'],
+			'kind'     => $u['kind'],
+			'serials'  => $u['serials'],
+			'made'     => j5as_month( $u['mfg_date'] ),
+			'warranty' => j5as_month( $u['warranty_ends'] ),
+			'pct'      => $u['discount_pct'],
+		);
+	}
+	wp_send_json( array( 'units' => $out, 'ok' => null !== $units ) );
+}
+add_action( 'wc_ajax_j5_as_units', 'j5as_ajax_units' );
+
+/* =========================================================================
+ * 4. ADD TO CART
+ * ====================================================================== */
+
+function j5as_posted_unit() {
+	return isset( $_POST['j5_as_unit'] ) ? preg_replace( '/[^A-Za-z0-9_\-]/', '', wp_unslash( (string) $_POST['j5_as_unit'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+}
+
+function j5as_cart_items() {
+	$out = array();
+	if ( function_exists( 'WC' ) && WC()->cart ) {
+		foreach ( WC()->cart->get_cart() as $key => $item ) {
+			if ( ! empty( $item[ J5AS_CART_KEY ]['unit_id'] ) ) {
+				$out[ $key ] = $item;
+			}
+		}
+	}
+	return $out;
+}
+
+function j5as_cart_has_sku( $sku ) {
+	foreach ( j5as_cart_items() as $item ) {
+		if ( ( $item[ J5AS_CART_KEY ]['sku'] ?? '' ) === $sku ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/** Unit picked: re-read it from the DP, hold it, stash it for the cart item. */
+add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_id, $quantity = 1, $variation_id = 0 ) {
+	$uid = j5as_posted_unit();
+	if ( ! $passed || '' === $uid ) {
+		return $passed;
+	}
+	$var = $variation_id ? wc_get_product( $variation_id ) : null;
+	if ( ! $var || ! j5as_enabled_for( $var ) ) {
+		wc_add_notice( 'That in-stock plate is not available for this option. Please choose again.', 'error' );
+		return false;
+	}
+	foreach ( j5as_cart_items() as $item ) {
+		if ( $item[ J5AS_CART_KEY ]['unit_id'] === $uid ) {
+			wc_add_notice( 'That plate is already in your cart.', 'error' );
+			return false;
+		}
+	}
+	$units = j5as_available( $var->get_sku(), true );
+	if ( null === $units ) {
+		wc_add_notice( 'We could not check our in-stock plates just now. Please try again, or choose Factory new.', 'error' );
+		return false;
+	}
+	$unit = null;
+	foreach ( $units as $u ) {
+		if ( $u['unit_id'] === $uid ) {
+			$unit = $u;
+			break;
+		}
+	}
+	if ( ! $unit ) {
+		wc_add_notice( 'Sorry, that plate was just sold. Please pick another one.', 'error' );
+		return false;
+	}
+	if ( WC()->session && ! WC()->session->has_session() ) {
+		WC()->session->set_customer_session_cookie( true ); // stable wc_ref for the hold
+	}
+	$hold = j5as_hold( $uid );
+	if ( 'ok' !== $hold ) {
+		wc_add_notice( 'error' === $hold ? 'We could not reserve that plate just now. Please try again.' : 'Sorry, that plate was just taken. Please pick another one.', 'error' );
+		return false;
+	}
+	$unit['sku']    = $var->get_sku();
+	$unit['wc_ref'] = j5as_wc_ref();
+	$GLOBALS['j5as_pending'] = $unit;
+	return true;
+}, 30, 4 );
+
+/** A unit is one item. Normalized before WC's form handler (wp_loaded 20) reads it, so the "added" notice says 1. */
+add_action( 'wp_loaded', function () {
+	if ( '' !== j5as_posted_unit() ) {
+		$_REQUEST['quantity'] = $_POST['quantity'] = 1; // phpcs:ignore WordPress.Security.NonceVerification
+	}
+}, 5 );
+add_filter( 'woocommerce_add_to_cart_quantity', function ( $qty ) {
+	return '' !== j5as_posted_unit() ? 1 : $qty;
+}, 20 );
+
+add_filter( 'woocommerce_add_cart_item_data', function ( $data ) {
+	if ( ! empty( $GLOBALS['j5as_pending'] ) ) {
+		$data[ J5AS_CART_KEY ] = $GLOBALS['j5as_pending'];
+		unset( $GLOBALS['j5as_pending'] );
+	}
+	return $data;
+}, 20 );
+
+add_filter( 'woocommerce_get_cart_item_from_session', function ( $item, $values ) {
+	if ( ! empty( $values[ J5AS_CART_KEY ] ) ) {
+		$item[ J5AS_CART_KEY ] = $values[ J5AS_CART_KEY ];
+	}
+	return $item;
+}, 10, 2 );
+
+/** Quantity is fixed at 1 in the cart. */
+add_filter( 'woocommerce_cart_item_quantity', function ( $html, $key, $item ) {
+	return ! empty( $item[ J5AS_CART_KEY ] ) ? '<span class="j5-as-qty">1</span>' : $html;
+}, 20, 3 );
+add_filter( 'woocommerce_update_cart_validation', function ( $passed, $key, $values, $qty ) {
+	if ( ! empty( $values[ J5AS_CART_KEY ] ) && (int) $qty > 1 ) {
+		wc_add_notice( 'Each in-stock plate is a single item. Add another plate to buy more than one.', 'error' );
+		return false;
+	}
+	return $passed;
+}, 20, 4 );
+
+/** Removed from the cart: let the DP list it again right away. */
+add_action( 'woocommerce_remove_cart_item', function ( $key, $cart ) {
+	$item = $cart->cart_contents[ $key ] ?? null;
+	if ( ! empty( $item[ J5AS_CART_KEY ]['unit_id'] ) ) {
+		j5as_release( $item[ J5AS_CART_KEY ]['unit_id'], (string) ( $item[ J5AS_CART_KEY ]['wc_ref'] ?? '' ) );
+		delete_transient( 'j5as_' . md5( (string) ( $item[ J5AS_CART_KEY ]['sku'] ?? '' ) ) );
+	}
+}, 10, 2 );
+
+/** "Plate: In stock, made Mar 2025 · XXXX1847, XXXX1848" on cart and checkout lines. */
+function j5as_line_text( $u ) {
+	$made = j5as_month( $u['mfg_date'] ?? '' );
+	$txt  = 'In stock' . ( $made ? ', made ' . $made : '' );
+	if ( ! empty( $u['serials'] ) ) {
+		$txt .= ' · ' . implode( ', ', (array) $u['serials'] );
+	}
+	return $txt;
+}
+add_filter( 'woocommerce_get_item_data', function ( $item_data, $item ) {
+	if ( ! empty( $item[ J5AS_CART_KEY ] ) ) {
+		$item_data[] = array( 'key' => 'Plate', 'value' => j5as_line_text( $item[ J5AS_CART_KEY ] ) );
+	}
+	return $item_data;
+}, 25, 2 );
+
+/* =========================================================================
+ * 5. DISCOUNT: virtual auto coupon, unit lines only
+ * ====================================================================== */
+
+function j5as_is_code( $coupon_or_code ) {
+	$code = $coupon_or_code instanceof WC_Coupon ? $coupon_or_code->get_code() : (string) $coupon_or_code;
+	return wc_format_coupon_code( $code ) === J5AS_CODE;
+}
+
+function j5as_item_pct( $item ) {
+	return is_array( $item ) && ! empty( $item[ J5AS_CART_KEY ] ) ? (int) $item[ J5AS_CART_KEY ]['discount_pct'] : 0;
+}
+
+add_filter( 'woocommerce_get_shop_coupon_data', function ( $data, $code ) {
+	if ( ! j5as_is_code( $code ) ) {
+		return $data;
+	}
+	return array( 'discount_type' => 'percent', 'amount' => 1, 'individual_use' => false, 'usage_limit' => 0, 'description' => J5AS_LABEL );
+}, 10, 2 );
+
+add_filter( 'woocommerce_coupon_is_valid_for_product', function ( $valid, $product, $coupon, $values ) {
+	return j5as_is_code( $coupon ) ? j5as_item_pct( $values ) > 0 : $valid;
+}, 20, 4 );
+
+add_filter( 'woocommerce_coupon_get_discount_amount', function ( $discount, $discounting_amount, $cart_item, $single, $coupon ) {
+	if ( ! j5as_is_code( $coupon ) ) {
+		return $discount;
+	}
+	$pct = j5as_item_pct( $cart_item );
+	return $pct > 0 ? (float) $discounting_amount * $pct / 100 : 0;
+}, 20, 5 );
+
+/** Auto apply / remove without notices (same pattern as factory order savings). */
+add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
+	static $busy = false;
+	if ( $busy || ! $cart instanceof WC_Cart || ( is_admin() && ! wp_doing_ajax() ) ) {
+		return;
+	}
+	$busy = true;
+	$want = false;
+	foreach ( $cart->get_cart() as $item ) {
+		if ( j5as_item_pct( $item ) > 0 ) {
+			$want = true;
+			break;
+		}
+	}
+	$applied = $cart->get_applied_coupons();
+	$has     = in_array( J5AS_CODE, $applied, true );
+	if ( $want && ! $has ) {
+		$applied[] = J5AS_CODE;
+		$cart->set_applied_coupons( $applied );
+	} elseif ( ! $want && $has ) {
+		$cart->set_applied_coupons( array_values( array_diff( $applied, array( J5AS_CODE ) ) ) );
+	}
+	$busy = false;
+}, 6 );
+
+add_filter( 'woocommerce_cart_totals_coupon_label', function ( $label, $coupon ) {
+	return j5as_is_code( $coupon ) ? J5AS_LABEL : $label;
+}, 20, 2 );
+add_filter( 'woocommerce_cart_totals_coupon_html', function ( $html, $coupon, $amount_html ) {
+	return j5as_is_code( $coupon ) ? $amount_html : $html;
+}, 20, 3 );
+
+/* =========================================================================
+ * 6. CHECKOUT: hold again (extends it); stop if the plate is gone
+ * ====================================================================== */
+
+add_action( 'woocommerce_after_checkout_validation', function ( $data, $errors ) {
+	foreach ( j5as_cart_items() as $item ) {
+		$u    = $item[ J5AS_CART_KEY ];
+		$hold = j5as_hold( $u['unit_id'], (string) ( $u['wc_ref'] ?? '' ) );
+		$name = isset( $item['data'] ) && $item['data'] instanceof WC_Product ? $item['data']->get_name() : 'your plate';
+		if ( 'ok' === $hold ) {
+			continue;
+		}
+		if ( 'error' === $hold ) {
+			$errors->add( 'j5as', sprintf( 'We could not confirm the in-stock plate for %s just now. Please try again in a moment.', esc_html( $name ) ) );
+		} else {
+			$errors->add( 'j5as', sprintf( 'Sorry, the in-stock plate you picked for %s (%s) was just sold. Please remove it from your cart and choose another.', esc_html( $name ), esc_html( implode( ', ', (array) $u['serials'] ) ) ) );
+		}
+	}
+}, 20, 2 );
+
+/* =========================================================================
+ * 7. ORDER LINE META (the DP reads these on import)
+ * ====================================================================== */
+
+add_action( 'woocommerce_checkout_create_order_line_item', function ( $line_item, $cart_item_key, $values ) {
+	if ( empty( $values[ J5AS_CART_KEY ] ) ) {
+		return;
+	}
+	$u = $values[ J5AS_CART_KEY ];
+	$line_item->add_meta_data( '_j5_as_unit_id', $u['unit_id'], true );
+	$line_item->add_meta_data( '_j5_as_serials', implode( ', ', (array) $u['serials'] ), true );
+	$line_item->add_meta_data( '_j5_as_mfg', (string) $u['mfg_date'], true );
+	$line_item->add_meta_data( '_j5_as_discount_pct', (string) (int) $u['discount_pct'], true );
+	$line_item->add_meta_data( 'Plate', j5as_line_text( $u ), true );
+}, 20, 3 );

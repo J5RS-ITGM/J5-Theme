@@ -1,0 +1,109 @@
+/**
+ * J5 ArmorSync units on the product page. Markup shell: j5as_render() in inc/j5-armorsync-units.php.
+ * After cut and size are chosen, asks wc-ajax=j5_as_units for that variation's in-stock
+ * units and lists them under "Factory new". Picking one posts j5_as_unit with Add to Cart
+ * and locks quantity at 1. Nothing here is in the page HTML, so search engines never see it.
+ */
+( function ( $ ) {
+	'use strict';
+
+	function esc( s ) {
+		return String( s == null ? '' : s ).replace( /[&<>"']/g, function ( c ) {
+			return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ c ];
+		} );
+	}
+
+	$( function () {
+		var $box = $( '[data-j5-as]' );
+		if ( ! $box.length ) { return; }
+		var $form = $box.closest( 'form.variations_form' );
+		var $list = $box.find( '[data-j5-as-list]' );
+		var $note = $box.find( '[data-j5-as-note]' );
+		var $input = $box.find( '[data-j5-as-input]' );
+		var endpoint = $box.attr( 'data-endpoint' );
+		var name = 'j5as-' + ( $form.attr( 'data-product_id' ) || '0' );
+		var seq = 0, cache = {};
+
+		function qtyLock( on ) {
+			var $q = $form.find( 'input[name="quantity"]' );
+			if ( on ) { $q.val( 1 ); }
+			$q.prop( 'readonly', on ).attr( 'aria-readonly', on ? 'true' : null );
+			$form.find( '.j5-qty-btn' ).prop( 'disabled', on );
+			$form.find( '.j5-qty-wrap' ).toggleClass( 'is-locked', on );
+		}
+
+		function pick( id ) {
+			$input.val( id || '' );
+			qtyLock( !! id );
+			// The factory order callout doesn't apply to a plate from the shelf.
+			$( '[data-j5-fs]' ).toggleClass( 'j5-as-hide', !! id );
+			$list.find( '.j5-as__choice' ).each( function () {
+				$( this ).toggleClass( 'is-on', $( this ).find( 'input' ).val() === ( id || '' ) );
+			} );
+		}
+
+		function clear() {
+			seq++;
+			pick( '' );
+			$list.empty();
+			$note.prop( 'hidden', true );
+			$box.prop( 'hidden', true );
+		}
+
+		function row( u, i ) {
+			var id = name + '-' + ( i + 1 );
+			var serial = ( u.serials || [] ).join( ', ' );
+			var sub = [];
+			if ( serial ) { sub.push( ( u.kind === 'set' ? 'Serials ' : 'Serial ' ) + esc( serial ) ); }
+			if ( u.warranty ) { sub.push( 'Warranty through ' + esc( u.warranty ) ); }
+			return '<label class="j5-as__choice" for="' + id + '">'
+				+ '<input type="radio" id="' + id + '" name="' + name + '" value="' + esc( u.id ) + '" />'
+				+ '<span class="j5-as__text">'
+					+ '<span class="j5-as__label">In stock' + ( u.made ? ', made ' + esc( u.made ) : '' ) + '</span>'
+					+ ( sub.length ? '<span class="j5-as__desc">' + sub.join( ' <span aria-hidden="true">&middot;</span> ' ) + '</span>' : '' )
+				+ '</span>'
+				+ ( u.pct > 0 ? '<span class="j5-as__pct">' + esc( u.pct ) + '% off</span>' : '' )
+			+ '</label>';
+		}
+
+		function render( units ) {
+			if ( ! units || ! units.length ) { clear(); return; }
+			var html = '<label class="j5-as__choice is-on" for="' + name + '-0">'
+				+ '<input type="radio" id="' + name + '-0" name="' + name + '" value="" checked />'
+				+ '<span class="j5-as__text"><span class="j5-as__label">Factory new</span>'
+				+ '<span class="j5-as__desc">Newest production, lead time as shown above</span></span>'
+			+ '</label>';
+			for ( var i = 0; i < units.length; i++ ) { html += row( units[ i ], i ); }
+			$list.html( html );
+			$note.prop( 'hidden', ! units.some( function ( u ) { return u.pct > 0; } ) );
+			$box.prop( 'hidden', false );
+			pick( '' );
+		}
+
+		function load( vid ) {
+			var mine = ++seq;
+			pick( '' );
+			if ( cache[ vid ] && Date.now() - cache[ vid ].t < 30000 ) { render( cache[ vid ].u ); return; }
+			$.ajax( { url: endpoint, data: { variation_id: vid }, dataType: 'json', timeout: 8000 } )
+				.done( function ( r ) {
+					if ( mine !== seq ) { return; }
+					var units = r && r.units ? r.units : [];
+					cache[ vid ] = { t: Date.now(), u: units };
+					render( units );
+				} )
+				.fail( function () { if ( mine === seq ) { clear(); } } );
+		}
+
+		$list.on( 'change', 'input[type="radio"]', function () { pick( this.value ); } );
+
+		$form
+			.on( 'found_variation', function ( e, v ) {
+				if ( v && v.variation_id && v.is_purchasable !== false ) { load( v.variation_id ); }
+				else { clear(); }
+			} )
+			.on( 'hide_variation reset_data', clear );
+
+		// Back after a failed add to cart: drop the stale cache so a sold plate disappears.
+		$( document.body ).on( 'added_to_cart wc_fragments_refreshed', function () { cache = {}; } );
+	} );
+} )( jQuery );

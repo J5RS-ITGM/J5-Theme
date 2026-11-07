@@ -373,6 +373,11 @@ get_header();
                             j5_render_product_options( $product );
                         }
 
+                        // ArmorSync in-stock plates ("Choose your plate"), filled by JS after a variation is chosen. See inc/j5-armorsync-units.php. J5AS-1
+                        if ( function_exists( 'j5as_render' ) ) {
+                            j5as_render( $product );
+                        }
+
                         /*
                          * Acknowledgment gate (placement = 'product'). MUST be
                          * inside the form so the checkboxes post with the
