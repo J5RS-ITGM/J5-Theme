@@ -268,7 +268,10 @@ function j5as_ajax_units() {
 	header( 'X-Robots-Tag: noindex, nofollow', true );
 	$vid = isset( $_GET['variation_id'] ) ? absint( $_GET['variation_id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification
 	$var = $vid ? wc_get_product( $vid ) : null;
-	if ( ! $var || ! $var->is_type( 'variation' ) || 'publish' !== get_post_status( $var->get_parent_id() ) || ! j5as_enabled_for( $var ) ) {
+	// Published products for everyone; drafts only for staff previewing them.
+	$pid = $var && $var->is_type( 'variation' ) ? $var->get_parent_id() : 0;
+	$vis = $pid && ( 'publish' === get_post_status( $pid ) || current_user_can( 'edit_post', $pid ) );
+	if ( ! $vis || ! j5as_enabled_for( $var ) ) {
 		wp_send_json( array( 'units' => array() ) );
 	}
 	$units = j5as_available( $var->get_sku() );
