@@ -81,15 +81,16 @@ $cart_count = WC()->cart->get_cart_contents_count();
 
                             <div class="j5-cart-item__meta">
                                 <?php
-                                if ( $_product->get_sku() ) {
-                                    echo 'SKU: ' . esc_html( $_product->get_sku() );
-                                }
+                                // One detail per line, label | value (J5-CART-META-2): SKU first, then options,
+                                // acknowledgments, in-stock plate, etc. from wc_get_formatted_cart_item_data().
+                                $sku_row        = $_product->get_sku() ? '<dt class="variation-sku">SKU:</dt><dd class="variation-sku"><p>' . esc_html( $_product->get_sku() ) . '</p></dd>' : '';
                                 $formatted_meta = wc_get_formatted_cart_item_data( $cart_item );
-                                if ( $formatted_meta ) {
-                                    if ( $_product->get_sku() ) {
-                                        echo ' · ';
-                                    }
-                                    echo wp_kses_post( $formatted_meta );
+                                if ( $formatted_meta && false !== strpos( $formatted_meta, '<dl class="variation">' ) ) {
+                                    echo wp_kses_post( str_replace( '<dl class="variation">', '<dl class="variation">' . $sku_row, $formatted_meta ) );
+                                } elseif ( $formatted_meta ) {
+                                    echo wp_kses_post( ( $sku_row ? '<dl class="variation">' . $sku_row . '</dl>' : '' ) . $formatted_meta );
+                                } elseif ( $sku_row ) {
+                                    echo wp_kses_post( '<dl class="variation">' . $sku_row . '</dl>' );
                                 }
                                 ?>
                             </div>

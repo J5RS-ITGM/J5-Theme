@@ -936,3 +936,48 @@ body.woocommerce-cart .shipping-calculator-form button[name="calc_shipping"]:foc
 
 
 
+
+/* === J5-CART-META-2: item details one per line, label | value (matches checkout). === */
+body.woocommerce-cart .j5-cart-item__meta dl.variation {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 4px;
+    margin: 0;
+}
+body.woocommerce-cart .j5-cart-item__meta dl.variation dt,
+body.woocommerce-cart .j5-cart-item__meta dl.variation dd {
+    display: block;
+    margin: 0;
+    padding: 0;
+    line-height: 1.45;
+}
+body.woocommerce-cart .j5-cart-item__meta dl.variation dt {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8b8d94;
+    padding-top: 1px;
+}
+body.woocommerce-cart .j5-cart-item__meta dl.variation dd {
+    color: var(--j5c-bone);
+    overflow-wrap: anywhere;
+}
+body.woocommerce-cart .j5-cart-item__meta dl.variation dd p { display: inline; margin: 0; color: inherit; }
+body.woocommerce-cart .j5-cart-item__meta dl.variation dt::after,
+body.woocommerce-cart .j5-cart-item__meta dl.variation dd::after { content: none; }
+body.woocommerce-cart .j5-as-qty {
+    display: inline-block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--j5c-bone-mute);
+}
+@media (max-width: 420px) {
+    body.woocommerce-cart .j5-cart-item__meta dl.variation { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+    body.woocommerce-cart .j5-cart-item__meta dl.variation dd { margin-bottom: 5px; }
+}

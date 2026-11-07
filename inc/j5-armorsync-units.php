@@ -443,7 +443,7 @@ add_filter( 'woocommerce_get_cart_item_from_session', function ( $item, $values 
 
 /** Quantity is fixed at 1 in the cart. */
 add_filter( 'woocommerce_cart_item_quantity', function ( $html, $key, $item ) {
-	return ! empty( $item[ J5AS_CART_KEY ] ) ? '<span class="j5-as-qty">1</span>' : $html;
+	return ! empty( $item[ J5AS_CART_KEY ] ) ? '<span class="j5-as-qty">Qty 1</span>' : $html; // one specific set: no +/- (same look as checkout's "QTY 1")
 }, 20, 3 );
 add_filter( 'woocommerce_update_cart_validation', function ( $passed, $key, $values, $qty ) {
 	if ( ! empty( $values[ J5AS_CART_KEY ] ) && (int) $qty > 1 ) {
@@ -489,7 +489,17 @@ function j5as_line_text( $u ) {
 }
 add_filter( 'woocommerce_get_item_data', function ( $item_data, $item ) {
 	if ( ! empty( $item[ J5AS_CART_KEY ] ) ) {
-		$item_data[] = array( 'key' => 'In-stock plate', 'value' => j5as_line_text( $item[ J5AS_CART_KEY ] ) );
+		// Cart and checkout: one row per detail. (Order line keeps the single "In-stock plate" line for emails and documents.)
+		$u  = $item[ J5AS_CART_KEY ];
+		$sn = array_values( (array) ( $u['serials'] ?? array() ) );
+		$item_data[] = array( 'key' => 'In-stock plate', 'value' => 1 === count( $sn ) ? 'Yes' : 'Yes, matched set' );
+		foreach ( $sn as $i => $s ) {
+			$item_data[] = array( 'key' => count( $sn ) > 1 ? 'Plate ' . ( $i + 1 ) . ' SN' : 'SN', 'value' => $s );
+		}
+		$made = j5as_month( $u['mfg_date'] ?? '' );
+		if ( $made ) {
+			$item_data[] = array( 'key' => 'MFG Date', 'value' => $made );
+		}
 	}
 	return $item_data;
 }, 25, 2 );
