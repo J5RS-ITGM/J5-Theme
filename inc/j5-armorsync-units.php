@@ -106,6 +106,27 @@ function j5as_month( $ym ) {
 	return $d ? $d->format( 'M Y' ) : '';
 }
 
+/** ArmorSync acquisition number: short plain text only. */
+function j5as_acq_clean( $v ) {
+	return substr( preg_replace( '/[^A-Za-z0-9 #._\/\-]/', '', trim( (string) $v ) ), 0, 40 );
+}
+
+/** "A-1042" when every plate shares one, else "Plate 1: A-1042 | Plate 2: A-1043". */
+function j5as_acq_text( $acqs ) {
+	$acqs = array_values( array_filter( (array) $acqs, 'strlen' ) );
+	if ( ! $acqs ) {
+		return '';
+	}
+	if ( 1 === count( array_unique( $acqs ) ) ) {
+		return $acqs[0];
+	}
+	$out = array();
+	foreach ( $acqs as $i => $a ) {
+		$out[] = 'Plate ' . ( $i + 1 ) . ': ' . $a;
+	}
+	return implode( ' | ', $out );
+}
+
 /** One DP unit -> the clean record WC keeps (no prices). Null when unusable. */
 function j5as_clean_unit( $u ) {
 	if ( ! is_array( $u ) || empty( $u['unit_id'] ) ) {
@@ -115,14 +136,31 @@ function j5as_clean_unit( $u ) {
 	if ( '' === $id ) {
 		return null;
 	}
-	$serials = array_values( array_filter( array_map( 'j5as_mask', (array) ( $u['serials'] ?? array() ) ) ) );
-	natcasesort( $serials ); // lower serial first: Plate 1, Plate 2
-	$serials = array_values( $serials );
+	// Serials (masked) paired with ArmorSync acquisition numbers (internal, never sent to the browser),
+	// then sorted lower serial first so Plate 1 / Plate 2 stay matched to their acquisition #.
+	$raw  = array_values( (array) ( $u['serials'] ?? array() ) );
+	$acqs = isset( $u['acquisition_nos'] ) ? array_values( (array) $u['acquisition_nos'] ) : array();
+	$one  = isset( $u['acquisition_no'] ) ? j5as_acq_clean( $u['acquisition_no'] ) : '';
+	$rows = array();
+	foreach ( $raw as $i => $sn ) {
+		$m = j5as_mask( $sn );
+		if ( '' === $m ) {
+			continue;
+		}
+		$rows[] = array( 'sn' => $m, 'acq' => isset( $acqs[ $i ] ) ? j5as_acq_clean( $acqs[ $i ] ) : $one );
+	}
+	usort( $rows, function ( $a, $b ) { return strnatcasecmp( $a['sn'], $b['sn'] ); } );
+	$serials = array_column( $rows, 'sn' );
+	$acq     = array_column( $rows, 'acq' );
+	if ( ! $rows && '' !== $one ) {
+		$acq = array( $one );
+	}
 	$pct     = isset( $u['discount_pct'] ) ? (int) round( (float) $u['discount_pct'] ) : 0;
 	return array(
 		'unit_id'        => $id,
 		'kind'           => 'set' === ( $u['kind'] ?? '' ) ? 'set' : 'single',
 		'serials'        => $serials,
+		'acquisitions'   => array_values( array_filter( $acq, 'strlen' ) ) ? $acq : array(),
 		'mfg_date'       => preg_match( '/^\d{4}-\d{2}/', (string) ( $u['mfg_date'] ?? '' ) ) ? substr( $u['mfg_date'], 0, 7 ) : '',
 		'age_months'     => isset( $u['age_months'] ) ? max( 0, (int) $u['age_months'] ) : null,
 		'warranty_years' => isset( $u['warranty_years'] ) ? (float) $u['warranty_years'] : null,
@@ -548,5 +586,50 @@ add_action( 'woocommerce_checkout_create_order_line_item', function ( $line_item
 	$line_item->add_meta_data( '_j5_as_serials', j5as_serial_text( $u['serials'] ), true );
 	$line_item->add_meta_data( '_j5_as_mfg', (string) $u['mfg_date'], true );
 	$line_item->add_meta_data( '_j5_as_discount_pct', (string) (int) $u['discount_pct'], true );
+	if ( ! empty( $u['acquisitions'] ) ) {
+		// Contract format: "BA-00058" when shared, else "BA-00058, BA-00059" in Plate 1, Plate 2 order. Staff only.
+		$acqs = array_values( array_filter( (array) $u['acquisitions'], 'strlen' ) );
+		$line_item->add_meta_data( '_j5_as_acquisition', 1 === count( array_unique( $acqs ) ) ? $acqs[0] : implode( ', ', $acqs ), true );
+	}
 	$line_item->add_meta_data( 'In-stock plate', j5as_line_text( $u ), true );
 }, 20, 3 );
+
+/* =========================================================================
+ * 8. ACQUISITION # (staff only): wp-admin order screen + admin emails,
+ *    printed just above the item's meta (so above the serials).
+ * ====================================================================== */
+
+/** Display text from the stored contract value: "BA-00058" or "Plate 1: BA-00058 | Plate 2: BA-00059". */
+function j5as_acq_line( $item ) {
+	$raw = $item instanceof WC_Order_Item_Product ? trim( (string) $item->get_meta( '_j5_as_acquisition' ) ) : '';
+	return '' === $raw ? '' : j5as_acq_text( array_map( 'trim', explode( ',', $raw ) ) );
+}
+
+add_action( 'woocommerce_before_order_itemmeta', function ( $item_id, $item ) {
+	$a = j5as_acq_line( $item );
+	if ( '' !== $a ) {
+		echo '<div class="j5-as-acq" style="margin:4px 0 2px"><strong>Acquisition #:</strong> ' . esc_html( $a ) . '</div>';
+	}
+}, 10, 2 );
+
+/* Emails: only when the email is going to the store (New order, Cancelled, Failed). */
+add_action( 'woocommerce_email_before_order_table', function ( $order, $sent_to_admin ) {
+	$GLOBALS['j5as_email_admin'] = (bool) $sent_to_admin;
+}, 1, 2 );
+add_action( 'woocommerce_email_after_order_table', function () {
+	$GLOBALS['j5as_email_admin'] = false;
+}, 99 );
+add_action( 'woocommerce_order_item_meta_start', function ( $item_id, $item, $order, $plain_text = false ) {
+	if ( empty( $GLOBALS['j5as_email_admin'] ) ) {
+		return;
+	}
+	$a = j5as_acq_line( $item );
+	if ( '' === $a ) {
+		return;
+	}
+	if ( $plain_text ) {
+		echo "\nAcquisition #: " . esc_html( $a );
+	} else {
+		echo '<div style="margin:6px 0 0;font-size:small"><strong>Acquisition #:</strong> ' . esc_html( $a ) . '</div>';
+	}
+}, 10, 4 );
