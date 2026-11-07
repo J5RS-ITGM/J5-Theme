@@ -56,6 +56,7 @@
 			var id = name + '-' + ( i + 1 );
 			var sn = ( u.serials || [] ).slice().sort( function ( a, b ) { return String( a ).localeCompare( String( b ), undefined, { numeric: true } ); } );
 			var sub = [];
+			if ( u.acq ) { sub.push( '<span class="j5-as__acq">Acquisition #: ' + esc( u.acq ) + '</span>' ); } // staff only (sent only to logged-in staff)
 			if ( sn.length === 1 ) { sub.push( 'SN: ' + esc( sn[ 0 ] ) ); }
 			else if ( sn.length > 1 ) { sub.push( sn.map( function ( s, k ) { return 'Plate ' + ( k + 1 ) + ' SN: ' + esc( s ); } ).join( ' <span class="j5-as__sep" aria-hidden="true">|</span> ' ) ); }
 			if ( u.made ) { sub.push( 'MFG Date: ' + esc( u.made ) ); }

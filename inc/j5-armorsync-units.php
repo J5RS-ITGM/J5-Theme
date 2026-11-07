@@ -317,8 +317,9 @@ function j5as_ajax_units() {
 	}
 	$units = j5as_available( $var->get_sku() );
 	$out   = array();
+	$staff = current_user_can( 'edit_shop_orders' ); // acquisition # is internal: staff see it, customers don't
 	foreach ( (array) $units as $u ) {
-		$out[] = array(
+		$row = array(
 			'id'       => $u['unit_id'],
 			'kind'     => $u['kind'],
 			'serials'  => $u['serials'],
@@ -326,6 +327,10 @@ function j5as_ajax_units() {
 			'warranty' => j5as_month( $u['warranty_ends'] ),
 			'pct'      => $u['discount_pct'],
 		);
+		if ( $staff && ! empty( $u['acquisitions'] ) ) {
+			$row['acq'] = j5as_acq_text( $u['acquisitions'] );
+		}
+		$out[] = $row;
 	}
 	wp_send_json( array( 'units' => $out, 'ok' => null !== $units ) );
 }
