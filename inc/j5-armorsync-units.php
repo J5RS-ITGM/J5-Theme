@@ -5,7 +5,7 @@
  * The DP (dealer.j5rescue.com) is the system of record for serialized plates.
  * WooCommerce stores no units: after the customer picks cut and size, the page
  * asks WC (wc-ajax=j5_as_units), WC asks the DP live, and the list shows
- * "Factory new" plus each in-stock unit (masked serials, month made, % off).
+ * "Standard order" plus each in-stock unit the DP's website rules display (masked serials, month made, % off).
  * Nothing is in page HTML, schema, sitemap or feeds.
  *
  * Picking a unit:
@@ -287,7 +287,7 @@ function j5as_render( $product ) {
 	if ( ! j5as_enabled_for( $product ) ) {
 		return;
 	}
-	// Final stock / discontinued: nothing new is coming, so no "Factory new" row; the customer picks one of the last plates.
+	// Final stock / discontinued: nothing new is coming, so "Standard order" ships from remaining stock (wording only).
 	$f       = function_exists( 'j5_get_fulfillment' ) ? j5_get_fulfillment( $product ) : null;
 	$factory = ! ( $f && in_array( $f['type'] ?? '', array( 'final_stock', 'discontinued', 'out' ), true ) );
 	printf(
@@ -384,7 +384,7 @@ add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_i
 	}
 	$units = j5as_available( $var->get_sku(), true );
 	if ( null === $units ) {
-		wc_add_notice( 'We could not check our in-stock plates just now. Please try again, or choose Factory new.', 'error' );
+		wc_add_notice( 'We could not check our in-stock plates just now. Please try again, or choose Standard order.', 'error' );
 		return false;
 	}
 	$unit = null;
