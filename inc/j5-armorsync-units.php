@@ -246,15 +246,19 @@ function j5as_render( $product ) {
 	if ( ! j5as_enabled_for( $product ) ) {
 		return;
 	}
+	// Final stock / discontinued: nothing new is coming, so no "Factory new" row; the customer picks one of the last plates.
+	$f       = function_exists( 'j5_get_fulfillment' ) ? j5_get_fulfillment( $product ) : null;
+	$factory = ! ( $f && in_array( $f['type'] ?? '', array( 'final_stock', 'discontinued', 'out' ), true ) );
 	printf(
-		'<fieldset class="j5-as" data-j5-as data-endpoint="%s" hidden>'
+		'<fieldset class="j5-as" data-j5-as data-endpoint="%s" data-factory="%s" hidden>'
 			. '<legend class="j5-as__name">Choose your plate</legend>'
-			. '<p class="j5-as__help">Order factory new, or pick a plate we have on the shelf. Older plates are discounted by age.</p>'
+			. '<p class="j5-as__help" data-j5-as-help></p>'
 			. '<div class="j5-as__list" data-j5-as-list></div>'
 			. '<p class="j5-as__note" data-j5-as-note hidden>The discount is applied in your cart.</p>'
 			. '<input type="hidden" name="j5_as_unit" value="" data-j5-as-input />'
 		. '</fieldset>',
-		esc_url( WC_AJAX::get_endpoint( 'j5_as_units' ) )
+		esc_url( WC_AJAX::get_endpoint( 'j5_as_units' ) ),
+		$factory ? '1' : '0'
 	);
 }
 

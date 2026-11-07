@@ -21,6 +21,8 @@
 		var $note = $box.find( '[data-j5-as-note]' );
 		var $input = $box.find( '[data-j5-as-input]' );
 		var endpoint = $box.attr( 'data-endpoint' );
+		var factory = $box.attr( 'data-factory' ) !== '0';
+		var $help = $box.find( '[data-j5-as-help]' );
 		var name = 'j5as-' + ( $form.attr( 'data-product_id' ) || '0' );
 		var seq = 0, cache = {};
 
@@ -68,16 +70,28 @@
 
 		function render( units ) {
 			if ( ! units || ! units.length ) { clear(); return; }
-			var html = '<label class="j5-as__choice is-on" for="' + name + '-0">'
-				+ '<input type="radio" id="' + name + '-0" name="' + name + '" value="" checked />'
-				+ '<span class="j5-as__text"><span class="j5-as__label">Factory new</span>'
-				+ '<span class="j5-as__desc">Newest production, lead time as shown above</span></span>'
-			+ '</label>';
-			for ( var i = 0; i < units.length; i++ ) { html += row( units[ i ], i ); }
+			var n = units.length, html = '';
+			var left = n + ( n === 1 ? ' plate' : ' plates' );
+			if ( factory ) {
+				html = '<label class="j5-as__choice is-on" for="' + name + '-0">'
+					+ '<input type="radio" id="' + name + '-0" name="' + name + '" value="" checked />'
+					+ '<span class="j5-as__text"><span class="j5-as__label">Factory new</span>'
+					+ '<span class="j5-as__desc">Newest production, lead time as shown above</span></span>'
+				+ '</label>';
+				$help.html( 'Order factory new, or pick one of the <strong>' + left + '</strong> we have on the shelf. Older plates are discounted by age.' );
+			} else {
+				$help.html( '<strong>' + ( n === 1 ? 'Last plate' : left + ' remaining' ) + '.</strong> Pick the one you want. Older plates are discounted by age.' );
+			}
+			for ( var i = 0; i < n; i++ ) { html += row( units[ i ], i ); }
 			$list.html( html );
 			$note.prop( 'hidden', ! units.some( function ( u ) { return u.pct > 0; } ) );
 			$box.prop( 'hidden', false );
-			pick( '' );
+			if ( factory ) { pick( '' ); }
+			else {
+				// No factory option: start on the first plate (biggest discount, from the DP's order).
+				$list.find( 'input[type="radio"]' ).first().prop( 'checked', true );
+				pick( units[ 0 ].id );
+			}
 		}
 
 		function load( vid ) {
@@ -102,6 +116,12 @@
 				else { clear(); }
 			} )
 			.on( 'hide_variation reset_data', clear );
+
+		// The size may already be chosen when the page loads (one option, or a default), and
+		// Woo announces it before this script is listening. Pick that up.
+		var vid0 = parseInt( $form.find( 'input.variation_id' ).val(), 10 );
+		if ( vid0 > 0 ) { load( vid0 ); }
+		else { setTimeout( function () { var v = parseInt( $form.find( 'input.variation_id' ).val(), 10 ); if ( v > 0 && ! $input.val() && $box.prop( 'hidden' ) ) { load( v ); } }, 400 ); }
 
 		// Back after a failed add to cart: drop the stale cache so a sold plate disappears.
 		$( document.body ).on( 'added_to_cart wc_fragments_refreshed', function () { cache = {}; } );

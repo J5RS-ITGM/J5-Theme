@@ -4,6 +4,7 @@
 .j5-as[hidden] { display: none; }
 .j5-as__name { padding: 0; margin: 0 0 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--j5-gold); }
 .j5-as__help { margin: 0 0 10px; font-size: 14px; line-height: 1.45; color: var(--j5-ink-dim); }
+.j5-as__help strong { color: var(--j5-bone); font-weight: 600; }
 .j5-as__list { display: flex; flex-direction: column; gap: 6px; }
 .j5-as__choice { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--j5-bg-card); border: 1px solid var(--j5-border-hi); cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 0; }
 .j5-as__choice:hover { border-color: var(--j5-gold); }
