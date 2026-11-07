@@ -55,6 +55,8 @@ require_once get_stylesheet_directory() . '/inc/j5-product-options.php';
 require_once get_stylesheet_directory() . '/inc/j5-factory-savings.php';
 // ArmorSync in-stock plates on plate product pages: live from the DP, masked serials, age discount in cart. Off until wp-config sets J5_ARMORSYNC_SECRET.
 require_once get_stylesheet_directory() . '/inc/j5-armorsync-units.php';
+// Named discount rows (Factory order savings / Plate Age Discount / Coupon: CODE) in emails, documents, thank-you; per-line "Savings" meta.
+require_once get_stylesheet_directory() . '/inc/j5-order-discounts.php';
 // Shipping rates/totals rounded to cents: MxMerchant rejects sub-cent shipAmount (orders cancelled unpaid).
 require_once get_stylesheet_directory() . '/inc/j5-shipping-rounding.php';
 // Documents: Receipt / Invoice / Packing slip PDFs (emails, My Account, wp-admin). Self-contained in inc/j5-documents/.

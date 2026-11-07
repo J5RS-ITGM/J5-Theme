@@ -98,6 +98,9 @@ td, th { vertical-align: top; padding: 0; }
 .sku { font-size: 8.5pt; color: #6b6d72; margin-top: 1px; }
 .meta { margin-top: 3px; font-size: 8.5pt; color: #3a3c41; }
 .meta b { font-weight: 600; color: #1b1d21; }
+.meta-plate { margin-top: 3px; }
+.meta-save { margin-top: 2px; color: #1f6f3a; }
+.meta-save b { color: #1f6f3a; }
 .note { margin-top: 3px; font-size: 8.5pt; color: #a8862f; font-weight: 600; }
 .ack { margin-top: 3px; font-size: 8pt; color: #2e7d4f; }
 .le { display: inline-block; margin-top: 3px; padding: 1px 5px; font-family: 'Barlow Condensed', sans-serif; font-weight: bold; font-size: 7.5pt; letter-spacing: 1px; text-transform: uppercase; color: #c41e24; border: 1px solid #c41e24; }
@@ -221,17 +224,29 @@ td, th { vertical-align: top; padding: 0; }
 				<div class="name"><?php echo $e( $it['name'] ); ?></div>
 				<?php if ( $it['sku'] ) : ?><div class="sku">SKU <?php echo $e( $it['sku'] ); ?></div><?php endif; ?>
 				<?php if ( $it['meta'] ) : ?>
-					<div class="meta">
-						<?php
-						$parts = array();
-						foreach ( $it['meta'] as $m ) {
-							// Packers don't need option prices: "XE strap (+$6.00)" -> "XE strap".
-							$val     = $slip ? preg_replace( '/\s*\([+-][^)]*\)\s*$/u', '', $m['value'] ) : $m['value'];
-							$parts[] = '<b>' . $e( $m['label'] ) . ':</b> ' . $e( $val );
+					<?php
+					// Short attributes share one line; longer details (in-stock plate serials, savings) get their own. J5-DOC-META-2
+					$own   = array( 'In-stock plate', 'Savings' );
+					$parts = array();
+					$lines = array();
+					foreach ( $it['meta'] as $m ) {
+						if ( $slip && 'Savings' === $m['label'] ) {
+							continue; // packers don't need prices
 						}
-						echo implode( ' &nbsp;·&nbsp; ', $parts ); // escaped above
-						?>
-					</div>
+						// Packers don't need option prices: "XE strap (+$6.00)" -> "XE strap".
+						$val = $slip ? preg_replace( '/\s*\([+-][^)]*\)\s*$/u', '', $m['value'] ) : $m['value'];
+						$html = '<b>' . $e( $m['label'] ) . ':</b> ' . $e( $val );
+						if ( in_array( $m['label'], $own, true ) ) {
+							$lines[] = '<div class="meta meta-' . ( 'Savings' === $m['label'] ? 'save' : 'plate' ) . '">' . $html . '</div>';
+						} else {
+							$parts[] = $html;
+						}
+					}
+					if ( $parts ) {
+						echo '<div class="meta">' . implode( ' &nbsp;·&nbsp; ', $parts ) . '</div>'; // escaped above
+					}
+					echo implode( '', $lines ); // escaped above
+					?>
 				<?php endif; ?>
 				<?php if ( $it['note'] ) : ?><div class="note"><?php echo $e( $it['note'] ); ?></div><?php endif; ?>
 				<?php if ( $it['le_only'] ) : ?><div class="le">Law enforcement only</div><?php endif; ?>

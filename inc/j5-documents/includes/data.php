@@ -264,7 +264,8 @@ function j5doc_build( $order, $type = 'billing' ) {
 			'total'     => j5doc_money( (float) $item->get_subtotal(), $order ),
 			'meta'      => $meta,
 			'acks'      => $acks,
-			'note'      => j5doc_fulfillment_note( $product ),
+			// A picked in-stock ArmorSync plate ships from the shelf, so the variation's stock note doesn't apply.
+			'note'      => '' !== (string) $item->get_meta( '_j5_as_unit_id' ) ? '' : j5doc_fulfillment_note( $product ),
 			'le_only'   => $product && function_exists( 'j5_is_le_only' ) && j5_is_le_only( $product ),
 			'img_path'  => j5doc_image_path( $product ),
 			'img_url'   => j5doc_image_url( $product ),

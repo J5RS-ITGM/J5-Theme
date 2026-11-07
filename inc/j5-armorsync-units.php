@@ -11,7 +11,7 @@
  * Picking a unit:
  *   - add to cart: WC re-reads the unit from the DP (never trusts the post),
  *     holds it for this cart (POST /hold), forces quantity 1.
- *   - cart: virtual auto coupon "in-stock-plate-savings" takes discount_pct off
+ *   - cart: virtual auto coupon "plate-age-discount" (Plate Age Discount) takes discount_pct off
  *     that line only. Factory order savings never applies to a unit line.
  *   - checkout: hold again (extends it); a 409 stops checkout with a message.
  *   - order line meta: _j5_as_unit_id, _j5_as_serials, _j5_as_mfg,
@@ -27,8 +27,9 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 const J5AS_CART_KEY = 'j5_as';
-const J5AS_CODE     = 'in-stock-plate-savings';
-const J5AS_LABEL    = 'In-stock plate savings';
+const J5AS_CODE     = 'plate-age-discount';
+const J5AS_LABEL    = 'Plate Age Discount';
+const J5AS_OLD_CODE = 'in-stock-plate-savings'; // pre-2026-11-07 name; dropped from live carts, still named on old orders
 const J5AS_HOLD_MIN = 30;
 
 /* =========================================================================
@@ -430,18 +431,18 @@ function j5as_serial_text( $serials ) {
 /** "Plate: In stock · Plate 1 SN: XXXX1847 | Plate 2 SN: XXXX1848 · MFG Date: Mar 2025" on cart, checkout and order lines. */
 function j5as_line_text( $u ) {
 	$made = j5as_month( $u['mfg_date'] ?? '' );
-	$txt  = 'In stock';
+	$bits = array();
 	if ( ! empty( $u['serials'] ) ) {
-		$txt .= ' · ' . j5as_serial_text( $u['serials'] );
+		$bits[] = j5as_serial_text( $u['serials'] );
 	}
 	if ( $made ) {
-		$txt .= ' · MFG Date: ' . $made;
+		$bits[] = 'MFG Date: ' . $made;
 	}
-	return $txt;
+	return $bits ? implode( ' · ', $bits ) : 'Yes';
 }
 add_filter( 'woocommerce_get_item_data', function ( $item_data, $item ) {
 	if ( ! empty( $item[ J5AS_CART_KEY ] ) ) {
-		$item_data[] = array( 'key' => 'Plate', 'value' => j5as_line_text( $item[ J5AS_CART_KEY ] ) );
+		$item_data[] = array( 'key' => 'In-stock plate', 'value' => j5as_line_text( $item[ J5AS_CART_KEY ] ) );
 	}
 	return $item_data;
 }, 25, 2 );
@@ -493,6 +494,10 @@ add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
 		}
 	}
 	$applied = $cart->get_applied_coupons();
+	if ( in_array( J5AS_OLD_CODE, $applied, true ) ) {
+		$applied = array_values( array_diff( $applied, array( J5AS_OLD_CODE ) ) );
+		$cart->set_applied_coupons( $applied );
+	}
 	$has     = in_array( J5AS_CODE, $applied, true );
 	if ( $want && ! $has ) {
 		$applied[] = J5AS_CODE;
@@ -543,5 +548,5 @@ add_action( 'woocommerce_checkout_create_order_line_item', function ( $line_item
 	$line_item->add_meta_data( '_j5_as_serials', j5as_serial_text( $u['serials'] ), true );
 	$line_item->add_meta_data( '_j5_as_mfg', (string) $u['mfg_date'], true );
 	$line_item->add_meta_data( '_j5_as_discount_pct', (string) (int) $u['discount_pct'], true );
-	$line_item->add_meta_data( 'Plate', j5as_line_text( $u ), true );
+	$line_item->add_meta_data( 'In-stock plate', j5as_line_text( $u ), true );
 }, 20, 3 );
