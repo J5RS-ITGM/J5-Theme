@@ -5,7 +5,7 @@
  * The DP (dealer.j5rescue.com) is the system of record for serialized plates.
  * WooCommerce stores no units: after the customer picks cut and size, the page
  * asks WC (wc-ajax=j5_as_units), WC asks the DP live, and the list shows
- * "Standard order" plus each in-stock unit the DP's website rules display (masked serials, month made, % off).
+ * "Standard order" (not on Final Stock products) plus each in-stock unit the DP's website rules display (masked serials, month made, % off).
  * Nothing is in page HTML, schema, sitemap or feeds.
  *
  * Picking a unit:
@@ -287,11 +287,14 @@ function j5as_render( $product ) {
 	if ( ! j5as_enabled_for( $product ) ) {
 		return;
 	}
-	// Final stock / discontinued: nothing new is coming, so "Standard order" ships from remaining stock (wording only).
+	// Final stock / discontinued: the shelf sets ARE the remaining stock, so no "Standard order" row;
+	// the customer picks one (first set pre-picked) and gets its age discount. Model ("4400") comes
+	// from the first word in the product name that has a digit in it, for the "last customer" line.
 	$f       = function_exists( 'j5_get_fulfillment' ) ? j5_get_fulfillment( $product ) : null;
 	$factory = ! ( $f && in_array( $f['type'] ?? '', array( 'final_stock', 'discontinued', 'out' ), true ) );
+	$model   = preg_match( '/(?<![A-Za-z0-9])([A-Za-z0-9-]*\d[A-Za-z0-9-]*)(?![A-Za-z0-9])/', wp_strip_all_tags( $product->get_name() ), $mm ) ? $mm[1] : '';
 	printf(
-		'<fieldset class="j5-as" data-j5-as data-endpoint="%s" data-factory="%s" hidden>'
+		'<fieldset class="j5-as" data-j5-as data-endpoint="%s" data-factory="%s" data-model="%s" hidden>'
 			. '<legend class="j5-as__name">Choose your plate</legend>'
 			. '<p class="j5-as__help" data-j5-as-help></p>'
 			. '<div class="j5-as__list" data-j5-as-list></div>'
@@ -299,7 +302,8 @@ function j5as_render( $product ) {
 			. '<input type="hidden" name="j5_as_unit" value="" data-j5-as-input />'
 		. '</fieldset>',
 		esc_url( WC_AJAX::get_endpoint( 'j5_as_units' ) ),
-		$factory ? '1' : '0'
+		$factory ? '1' : '0',
+		esc_attr( $model )
 	);
 }
 
@@ -384,7 +388,7 @@ add_filter( 'woocommerce_add_to_cart_validation', function ( $passed, $product_i
 	}
 	$units = j5as_available( $var->get_sku(), true );
 	if ( null === $units ) {
-		wc_add_notice( 'We could not check our in-stock plates just now. Please try again, or choose Standard order.', 'error' );
+		wc_add_notice( 'We could not check our in-stock plates just now. Please try again in a moment.', 'error' );
 		return false;
 	}
 	$unit = null;

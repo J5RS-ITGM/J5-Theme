@@ -1,7 +1,7 @@
 /**
  * J5 ArmorSync units on the product page. Markup shell: j5as_render() in inc/j5-armorsync-units.php.
  * After cut and size are chosen, asks wc-ajax=j5_as_units for that variation's in-stock
- * units and lists them under "Standard order" (ships from stock or the factory as usual). Picking one posts j5_as_unit with Add to Cart
+ * units and lists them under "Standard order" (ships from stock or the factory as usual; not shown on Final Stock). Picking one posts j5_as_unit with Add to Cart
  * and locks quantity at 1. Nothing here is in the page HTML, so search engines never see it.
  */
 ( function ( $ ) {
@@ -75,20 +75,28 @@
 			var n = units.length, html = '';
 			var sets = units.some( function ( u ) { return u.kind === 'set'; } );
 			var one = sets ? 'plate set' : 'plate', many = sets ? 'plate sets' : 'plates';
-			// "Standard order" is always offered: ArmorSync can hold sets the website rules don't display.
-			html = '<label class="j5-as__choice is-on" for="' + name + '-0">'
-				+ '<input type="radio" id="' + name + '-0" name="' + name + '" value="" checked />'
-				+ '<span class="j5-as__text"><span class="j5-as__label">Standard order</span>'
-				+ '<span class="j5-as__desc">' + ( factory
-					? 'We ship from current stock or order it from the factory. Availability as shown above.'
-					: 'We ship one of our remaining ' + many + '.' ) + '</span></span>'
-			+ '</label>';
-			$help.html( 'Order as usual, or pick one of the ' + many + ' we have on the shelf. Older ' + many + ' are discounted by age.' );
+			if ( factory ) {
+				// ArmorSync can hold sets the website rules don't display, so "Standard order" stays offered.
+				html = '<label class="j5-as__choice is-on" for="' + name + '-0">'
+					+ '<input type="radio" id="' + name + '-0" name="' + name + '" value="" checked />'
+					+ '<span class="j5-as__text"><span class="j5-as__label">Standard order</span>'
+					+ '<span class="j5-as__desc">We ship from current stock or order it from the factory. Availability as shown above.</span></span>'
+				+ '</label>';
+				$help.html( 'Order as usual, or pick one of the ' + many + ' we have on the shelf. Older ' + many + ' are discounted by age.' );
+			} else {
+				// Final stock: these sets are all that's left. No catch-all row; the first set starts picked.
+				var model = $box.attr( 'data-model' ) || '';
+				$help.html( '<strong>' + ( model ? 'Be our last customer to ever buy a ' + esc( model ) + '.' : 'These are the last ones we\u2019ll ever sell.' ) + '</strong> Pick your ' + ( sets ? 'set' : 'plate' ) + '. Older ' + many + ' are discounted by age.' );
+			}
 			for ( var i = 0; i < n; i++ ) { html += row( units[ i ], i ); }
 			$list.html( html );
 			$note.prop( 'hidden', ! units.some( function ( u ) { return u.pct > 0; } ) );
 			$box.prop( 'hidden', false );
-			pick( '' );
+			if ( factory ) { pick( '' ); }
+			else {
+				$list.find( 'input[type="radio"]' ).first().prop( 'checked', true );
+				pick( units[ 0 ].id );
+			}
 		}
 
 		function load( vid ) {
