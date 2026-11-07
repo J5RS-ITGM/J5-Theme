@@ -54,15 +54,16 @@
 
 		function row( u, i ) {
 			var id = name + '-' + ( i + 1 );
-			var serial = ( u.serials || [] ).join( ', ' );
+			var sn = ( u.serials || [] ).slice().sort( function ( a, b ) { return String( a ).localeCompare( String( b ), undefined, { numeric: true } ); } );
 			var sub = [];
-			if ( serial ) { sub.push( ( u.kind === 'set' ? 'Serials ' : 'Serial ' ) + esc( serial ) ); }
+			if ( sn.length === 1 ) { sub.push( 'SN: ' + esc( sn[ 0 ] ) ); }
+			else if ( sn.length > 1 ) { sub.push( sn.map( function ( s, k ) { return 'Plate ' + ( k + 1 ) + ' SN: ' + esc( s ); } ).join( ' <span class="j5-as__sep" aria-hidden="true">|</span> ' ) ); }
 			if ( u.warranty ) { sub.push( 'Warranty through ' + esc( u.warranty ) ); }
 			return '<label class="j5-as__choice" for="' + id + '">'
 				+ '<input type="radio" id="' + id + '" name="' + name + '" value="' + esc( u.id ) + '" />'
 				+ '<span class="j5-as__text">'
 					+ '<span class="j5-as__label">In stock' + ( u.made ? ', made ' + esc( u.made ) : '' ) + '</span>'
-					+ ( sub.length ? '<span class="j5-as__desc">' + sub.join( ' <span aria-hidden="true">&middot;</span> ' ) + '</span>' : '' )
+					+ sub.map( function ( t ) { return '<span class="j5-as__desc">' + t + '</span>'; } ).join( '' )
 				+ '</span>'
 				+ ( u.pct > 0 ? '<span class="j5-as__pct">' + esc( u.pct ) + '% off</span>' : '' )
 			+ '</label>';

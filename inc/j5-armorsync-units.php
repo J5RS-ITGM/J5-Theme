@@ -115,6 +115,8 @@ function j5as_clean_unit( $u ) {
 		return null;
 	}
 	$serials = array_values( array_filter( array_map( 'j5as_mask', (array) ( $u['serials'] ?? array() ) ) ) );
+	natcasesort( $serials ); // lower serial first: Plate 1, Plate 2
+	$serials = array_values( $serials );
 	$pct     = isset( $u['discount_pct'] ) ? (int) round( (float) $u['discount_pct'] ) : 0;
 	return array(
 		'unit_id'        => $id,
@@ -412,12 +414,25 @@ add_action( 'woocommerce_remove_cart_item', function ( $key, $cart ) {
 	}
 }, 10, 2 );
 
-/** "Plate: In stock, made Mar 2025 · XXXX1847, XXXX1848" on cart and checkout lines. */
+/** "Plate 1 SN: XXXX1847 | Plate 2 SN: XXXX1848" (one plate: "SN: XXXX1847"). */
+function j5as_serial_text( $serials ) {
+	$serials = array_values( (array) $serials );
+	if ( count( $serials ) < 2 ) {
+		return $serials ? 'SN: ' . $serials[0] : '';
+	}
+	$out = array();
+	foreach ( $serials as $i => $s ) {
+		$out[] = 'Plate ' . ( $i + 1 ) . ' SN: ' . $s;
+	}
+	return implode( ' | ', $out );
+}
+
+/** "Plate: In stock, made Mar 2025 · Plate 1 SN: XXXX1847 | Plate 2 SN: XXXX1848" on cart, checkout and order lines. */
 function j5as_line_text( $u ) {
 	$made = j5as_month( $u['mfg_date'] ?? '' );
 	$txt  = 'In stock' . ( $made ? ', made ' . $made : '' );
 	if ( ! empty( $u['serials'] ) ) {
-		$txt .= ' · ' . implode( ', ', (array) $u['serials'] );
+		$txt .= ' · ' . j5as_serial_text( $u['serials'] );
 	}
 	return $txt;
 }
@@ -507,7 +522,7 @@ add_action( 'woocommerce_after_checkout_validation', function ( $data, $errors )
 		if ( 'error' === $hold ) {
 			$errors->add( 'j5as', sprintf( 'We could not confirm the in-stock plate for %s just now. Please try again in a moment.', esc_html( $name ) ) );
 		} else {
-			$errors->add( 'j5as', sprintf( 'Sorry, the in-stock plate you picked for %s (%s) was just sold. Please remove it from your cart and choose another.', esc_html( $name ), esc_html( implode( ', ', (array) $u['serials'] ) ) ) );
+			$errors->add( 'j5as', sprintf( 'Sorry, the in-stock plate you picked for %s (%s) was just sold. Please remove it from your cart and choose another.', esc_html( $name ), esc_html( j5as_serial_text( $u['serials'] ) ) ) );
 		}
 	}
 }, 20, 2 );
@@ -522,7 +537,7 @@ add_action( 'woocommerce_checkout_create_order_line_item', function ( $line_item
 	}
 	$u = $values[ J5AS_CART_KEY ];
 	$line_item->add_meta_data( '_j5_as_unit_id', $u['unit_id'], true );
-	$line_item->add_meta_data( '_j5_as_serials', implode( ', ', (array) $u['serials'] ), true );
+	$line_item->add_meta_data( '_j5_as_serials', j5as_serial_text( $u['serials'] ), true );
 	$line_item->add_meta_data( '_j5_as_mfg', (string) $u['mfg_date'], true );
 	$line_item->add_meta_data( '_j5_as_discount_pct', (string) (int) $u['discount_pct'], true );
 	$line_item->add_meta_data( 'Plate', j5as_line_text( $u ), true );

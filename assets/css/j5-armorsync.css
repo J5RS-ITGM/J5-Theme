@@ -27,3 +27,4 @@
 	.j5-as__text { flex: 1 1 calc(100% - 30px); }
 	.j5-as__pct { margin-left: 30px; }
 }
+.j5-as__sep { color: var(--j5-ink-mute); margin: 0 4px; }
