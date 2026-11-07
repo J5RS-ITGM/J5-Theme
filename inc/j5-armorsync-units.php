@@ -427,12 +427,15 @@ function j5as_serial_text( $serials ) {
 	return implode( ' | ', $out );
 }
 
-/** "Plate: In stock, made Mar 2025 · Plate 1 SN: XXXX1847 | Plate 2 SN: XXXX1848" on cart, checkout and order lines. */
+/** "Plate: In stock · Plate 1 SN: XXXX1847 | Plate 2 SN: XXXX1848 · MFG Date: Mar 2025" on cart, checkout and order lines. */
 function j5as_line_text( $u ) {
 	$made = j5as_month( $u['mfg_date'] ?? '' );
-	$txt  = 'In stock' . ( $made ? ', made ' . $made : '' );
+	$txt  = 'In stock';
 	if ( ! empty( $u['serials'] ) ) {
 		$txt .= ' · ' . j5as_serial_text( $u['serials'] );
+	}
+	if ( $made ) {
+		$txt .= ' · MFG Date: ' . $made;
 	}
 	return $txt;
 }
