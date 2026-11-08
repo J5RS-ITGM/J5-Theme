@@ -467,6 +467,31 @@
             }
         }
 
+        /* J5-VAR-DEFAULT-1: a group flagged data-j5-default (plate Configuration ->
+         * "Set of 2 plates") picks that option when it becomes visible with nothing
+         * chosen, as long as that combination exists. The cascade above clears later
+         * groups on every earlier change, so the server-side default alone never sticks. */
+        function applyDefaults() {
+            var changed = null;
+            groups.forEach( function ( group ) {
+                var def = group.getAttribute( 'data-j5-default' );
+                if ( ! def || group.classList.contains( 'j5-vg-hidden' ) || group.classList.contains( 'j5-vg-na' ) ) { return; }
+                var select = groupSelect( group );
+                if ( ! select || select.value ) { return; }
+                if ( ! select.querySelector( 'option[value="' + CSS.escape( def ) + '"]' ) ) { return; }
+                var opt = groupOptions( group ).filter( function ( o ) { return o.getAttribute( 'data-value' ) === def; } )[ 0 ];
+                if ( opt && ( opt.classList.contains( 'j5-opt-none' ) || opt.classList.contains( 'j5-opt-na' ) ) ) { return; }
+                select.value = def;
+                if ( opt ) { opt.classList.add( 'active' ); }
+                changed = select;
+            } );
+            if ( changed ) {
+                refresh();
+                fitAll();
+                triggerWoo( changed );
+            }
+        }
+
         groups.forEach( function ( group, i ) {
             var select = groupSelect( group );
             if ( ! select ) { return; }
@@ -485,6 +510,7 @@
                     refresh();
                     fitAll();
                     triggerWoo( select );
+                    if ( ! group.hasAttribute( 'data-j5-default' ) ) { applyDefaults(); }
                 } );
             } );
 
@@ -495,6 +521,7 @@
                 clearAfter( i );
                 refresh();
                 fitAll();
+                if ( ! group.hasAttribute( 'data-j5-default' ) ) { applyDefaults(); }
             } );
         } );
 
@@ -612,6 +639,7 @@
 
         refresh();
         fitAll();
+        applyDefaults();
     } )();
 
     /* ============ 8. STICKY MOBILE CART ============ */

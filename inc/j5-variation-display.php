@@ -220,9 +220,14 @@ function j5_render_variation_groups( $product, $attributes, $available_variation
 			$group_classes .= ' j5-vg-last';
 		}
 		?>
+		<?php
+		/* J5-VAR-DEFAULT-1: option this group picks by itself once it appears, if that combination
+		 * exists (e.g. plate Configuration -> "Set of 2 plates", inc/j5-plate-singles.php). */
+		$group_default = (string) apply_filters( 'j5_variation_group_default', '', $product, $attribute_name );
+		?>
 		<div class="<?php echo esc_attr( $group_classes ); ?>"
 		     data-attribute="<?php echo esc_attr( $field_name ); ?>"
-		     data-display="<?php echo esc_attr( $display ); ?>">
+		     data-display="<?php echo esc_attr( $display ); ?>"<?php echo '' !== $group_default ? ' data-j5-default="' . esc_attr( $group_default ) . '"' : ''; ?>>
 
 			<label class="j5-variant-label"><?php echo esc_html( wc_attribute_label( $attribute_name ) ); ?></label>
 
