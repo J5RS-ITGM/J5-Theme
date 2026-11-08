@@ -218,6 +218,8 @@ if ( is_admin() ) {
 // for hub vocabulary sync. Loaded unconditionally: rest_api_init fires on
 // front-end requests, not only in wp-admin.
 require_once get_stylesheet_directory() . '/inc/j5-hub-definitions.php';
+// POST /wp-json/j5/v1/cache-flush: DP clears stale object cache between parent and variation updates (J5-DP-CACHE-1).
+require_once get_stylesheet_directory() . '/inc/j5-dp-cache.php';
 // === J5-HUB-DEFINITIONS-REQUIRES-END ===
 
 // === J5-ACKNOWLEDGMENTS-REQUIRES-START ===
