@@ -214,6 +214,43 @@ function j5_ship_settings_page() {
 		<h1>J5 Shipping Restrictions</h1>
 		<p class="description">Block shipments of certain products to certain destinations (e.g. no body armor to Connecticut). Rules from the hub and rules you add here are <strong>both enforced</strong> — a destination is blocked if either matches. Enforcement: a cart warning plus a hard block at checkout.</p>
 
+		<?php
+		// Dealer portal rules (inc/j5-shipping-rules-dp.php). J5-SHIP-DP-1
+		if ( function_exists( 'j5_ship_dp_stored' ) ) :
+			$dp_set   = j5_ship_dp_stored();
+			$dp_rules = (array) ( $dp_set['rules'] ?? array() );
+			j5_ship_dp_rules_resolved();
+			$dp_miss  = isset( $GLOBALS['j5_ship_dp_missing'] ) ? (array) $GLOBALS['j5_ship_dp_missing'] : array();
+			?>
+			<h2 style="margin-top:22px;">From the dealer portal <span style="font-weight:400;color:#888;font-size:13px;">(read-only — edit in the dealer portal)</span></h2>
+			<?php if ( $dp_miss ) : ?>
+				<div class="notice notice-error inline"><p><strong>Not enforced:</strong> these no longer exist on the store, so the rules naming them can't block anything through them: <?php echo esc_html( implode( ', ', $dp_miss ) ); ?>. Fix them in the dealer portal and push again.</p></div>
+			<?php endif; ?>
+			<?php if ( ! $dp_rules ) : ?>
+				<p class="description">Nothing pushed yet.</p>
+			<?php else : ?>
+				<p class="description">Last push: <?php echo esc_html( (string) ( $dp_set['stored_at'] ?? '' ) ); ?> UTC (version <?php echo esc_html( (string) ( $dp_set['version'] ?? '' ) ); ?>). Categories include all their subcategories.</p>
+				<table class="widefat striped">
+					<thead><tr><th>Label</th><th>Applies to</th><th>Blocked destination</th></tr></thead>
+					<tbody>
+						<?php foreach ( $dp_rules as $r ) :
+							$applies = array();
+							if ( ! empty( $r['categories'] ) ) { $applies[] = 'Categories: ' . implode( ', ', $r['categories'] ); }
+							if ( ! empty( $r['tags'] ) ) { $applies[] = 'Tags: ' . implode( ', ', $r['tags'] ); }
+							if ( ! empty( $r['skus'] ) ) { $applies[] = count( $r['skus'] ) . ' SKU(s)'; }
+							$dest = ! empty( $r['states'] ) ? 'State: ' . implode( ', ', $r['states'] ) : 'City: ' . implode( ', ', array_map( function ( $c ) { return $c['city'] . ', ' . $c['state']; }, (array) $r['cities'] ) );
+							?>
+							<tr>
+								<td><?php echo esc_html( $r['label'] ? $r['label'] : '—' ); ?></td>
+								<td><?php echo esc_html( implode( ' | ', $applies ) ); ?></td>
+								<td><?php echo esc_html( $dest ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		<?php endif; ?>
+
 		<?php if ( ! empty( $hub ) ) : ?>
 			<h2 style="margin-top:22px;">From the hub <span style="font-weight:400;color:#888;font-size:13px;">(read-only — edit in the hub)</span></h2>
 			<table class="widefat striped">

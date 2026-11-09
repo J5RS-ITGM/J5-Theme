@@ -784,3 +784,123 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1480px; }
 	.j5ac-gd h2 { font-size: 28px; }
 }
 /* === J5-AC-GUIDE-END === */
+
+/* === J5-AC-CMPGRID (2026-11-08): compare grid overlay + sticky Compare button ===
+   The comparison no longer renders under the results. The sticky stack gets a gold Compare
+   button with the pick count (shown as soon as anything is picked); it opens .j5ac-cmpov, a
+   full-screen grid (specs down the side, picks across). While open, the button reads
+   Exit compare and Top / Reset all step aside. 900px and under: one block per spec. */
+.j5ac-hint { display: none; }
+.j5ac .j5ac-float-btn[hidden] { display: none; }
+.j5ac .j5ac-float-btn--cmp { gap: 10px; }
+.j5ac .j5ac-float-btn--cmp:hover { background: var(--gh); border-color: var(--gh); }
+.j5ac .j5ac-float-n { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 12px; background: #15110a; color: var(--gh); font: 700 13px/1 'Barlow', sans-serif; letter-spacing: 0; }
+.j5ac .j5ac-float-n[hidden] { display: none; }
+.j5ac .j5ac-float-btn--cmp.is-exit { background: var(--bone); border-color: var(--bone); color: #15110a; }
+.j5ac .j5ac-float-btn--cmp.is-exit::before { content: "\2715"; font-size: 15px; }
+.j5ac .j5ac-float-btn--cmp.is-flash { animation: j5acNudge .35s ease 2; }
+@keyframes j5acNudge { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+/* Top was the gold button; gold now means Compare, so Top goes neutral. */
+.j5ac .j5ac-float-btn--top { background: var(--card); border-color: var(--line-hi); color: var(--bone); }
+.j5ac .j5ac-float-btn--top:hover { background: var(--card); border-color: var(--g); color: var(--gh); }
+.j5ac-float.is-open { z-index: 8600; }
+html.j5ac-cmp-open, html.j5ac-cmp-open body { overflow: hidden; }
+
+.j5ac .j5ac-cmpbar-go { font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: #15110a; background: var(--g); border-radius: 4px; padding: 0 14px; min-height: 36px; }
+.j5ac .j5ac-cmpbar-go:hover { background: var(--gh); }
+
+.j5ac-cmpov { position: fixed; inset: 0; z-index: 8500; display: flex; padding: 24px 28px 104px; background: rgba(5, 6, 8, .84); }
+.j5ac-cmpov[hidden] { display: none; }
+.j5ac-cmpov-box { flex: 1 1 auto; min-width: 0; max-width: 1640px; margin: 0 auto; display: flex; flex-direction: column; background: #0f1114; border: 1px solid var(--line-hi); border-radius: 10px; box-shadow: 0 30px 80px rgba(0, 0, 0, .7); overflow: hidden; }
+.j5ac-cmpov-box:focus { outline: none; }
+.j5ac-cmpov-head { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; padding: 16px 22px; border-bottom: 1px solid var(--line); }
+.j5ac-cmpov .j5ac-cmpov-h { margin: 0; font-family: var(--disp); font-weight: 400; font-size: 32px; line-height: 1; letter-spacing: .03em; color: var(--bone); border: 0; padding: 0; }
+.j5ac-cmpov-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+.j5ac-cmpov-diff { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); cursor: pointer; }
+.j5ac-cmpov-diff input { width: 16px; height: 16px; margin: 0; accent-color: var(--g); }
+.j5ac-cmpov-key { font-size: 13px; color: var(--dim); }
+.j5ac-cmpov-key::first-letter { color: var(--gh); }
+.j5ac .j5ac-cmpov-clear { min-height: 36px; padding: 0 14px; border: 1px solid var(--line-hi); border-radius: 4px; background: var(--card); font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
+.j5ac .j5ac-cmpov-clear:hover { border-color: var(--g); color: var(--gh); }
+.j5ac .j5ac-cmpov-x { width: 40px; height: 40px; font-size: 20px; color: var(--dim); border-radius: 4px; }
+.j5ac .j5ac-cmpov-x:hover { color: var(--bone); background: var(--card); }
+.j5ac-cmpov .j5ac-compare { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 16px 22px 22px; }
+.j5ac-cmpov .j5ac-mixed { margin: 0 0 14px; border-color: #6b2a2a; border-left: 3px solid var(--r); background: #1a0f10; color: #e8d6d6; }
+.j5ac-cmpov .j5ac-mixed strong { color: #fff; font-weight: 600; }
+.j5ac-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+.j5ac-cg { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+.j5ac-cg th, .j5ac-cg td { padding: 11px 14px; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); text-align: left; vertical-align: middle; overflow-wrap: anywhere; color: var(--ink); }
+.j5ac-cg tr > :first-child { border-left: 0; }
+.j5ac-cg tbody tr:last-child > * { border-bottom: 0; }
+.j5ac-cg thead > tr > * { position: sticky; top: -16px; z-index: 1; background: #15181d; vertical-align: top; }
+.j5ac-cg .j5ac-cg-corner { width: 180px; vertical-align: bottom; font-family: var(--cond); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.j5ac-cg tbody th { font-family: var(--cond); font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a8a80; background: #121418; }
+.j5ac-cg-plate { position: relative; padding-right: 34px !important; }
+.j5ac-cg-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-family: var(--disp); font-weight: 400; font-size: 24px; line-height: 1; letter-spacing: .03em; color: var(--bone); }
+.j5ac-cg-name .j5ac-j5 { width: 20px; height: 20px; font-size: 12px; }
+.j5ac-cg-maker { display: block; margin-top: 4px; font-family: var(--cond); font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.j5ac-cg-uneq { display: inline-block; margin-top: 6px; padding: 2px 7px; border: 1px solid var(--r); border-radius: 3px; font-family: var(--cond); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #ff8a8a; cursor: help; }
+.j5ac .j5ac-cg-rm { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 4px; font-size: 14px; color: var(--mute); }
+.j5ac .j5ac-cg-rm:hover { color: var(--bone); background: #23272f; }
+.j5ac-cg .j5ac-cg-addc { width: 150px; background: transparent; }
+.j5ac-cg thead .j5ac-cg-addc { vertical-align: middle; }
+.j5ac .j5ac-cg-add { width: 100%; min-height: 64px; border: 1px dashed var(--line-hi); border-radius: 6px; font-family: var(--cond); font-weight: 600; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.j5ac .j5ac-cg-add:hover { border-color: var(--g); color: var(--gh); }
+.j5ac-cg .is-diff > td, .j5ac-cg .is-diff > th { background-color: rgba(212, 160, 68, .045); }
+.j5ac-cg tbody .is-diff > th { background: #17160f; }
+.j5ac-cg td.is-best .j5ac-cg-v { color: var(--gh); font-weight: 600; }
+.j5ac-cg td.is-best .j5ac-cg-v::after { content: " \2605"; font-size: 11px; }
+.j5ac-cg-v small { color: var(--g); font-family: var(--cond); letter-spacing: .06em; }
+.j5ac-compare.is-diffonly .j5ac-cg tr.is-same { display: none; }
+.j5ac-cg-src a { color: var(--dim); font-size: 13px; }
+.j5ac-cg-src small { color: var(--mute); font-size: 12px; }
+.j5ac-cg-buy .j5ac-btn { display: inline-block; width: auto; margin: 0 0 6px; padding: 9px 14px; font-size: 13px; }
+.j5ac-cg-buy .j5ac-report { display: block; }
+.j5ac-cg-ref { display: block; margin: 0 0 6px; font-size: 13px; color: var(--mute); }
+
+/* 900px and under: one block per spec, every pick listed under it. No sideways scrolling. */
+@media (max-width: 900px) {
+	.j5ac-cmpov { padding: 0 0 76px; background: #0b0d10; }
+	.j5ac-cmpov-box { border-radius: 0; border-width: 0; }
+	.j5ac-cmpov-head { padding: 12px 16px; }
+	.j5ac-cmpov .j5ac-cmpov-h { font-size: 26px; order: 1; }
+	.j5ac-cmpov-tools { display: contents; }
+	.j5ac .j5ac-cmpov-x { order: 2; }
+	.j5ac-cmpov-diff { order: 3; }
+	.j5ac-cmpov-key { order: 4; }
+	.j5ac .j5ac-cmpov-clear { order: 5; margin-left: auto; }
+	.j5ac-cmpov .j5ac-compare { padding: 12px 16px 20px; }
+	.j5ac-cg, .j5ac-cg thead, .j5ac-cg tbody, .j5ac-cg tr, .j5ac-cg th, .j5ac-cg td { display: block; width: auto; }
+	.j5ac-cg { border: 0; }
+	.j5ac-cg th, .j5ac-cg td { border: 0; padding: 0; background: none !important; }
+	.j5ac-cg thead > tr > * { position: static; }
+	.j5ac-cg thead > tr > .j5ac-cg-plate { position: relative; top: auto; }
+	.j5ac-cg thead tr { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+	.j5ac-cg .j5ac-cg-corner { display: none; }
+	.j5ac-cg-plate { display: inline-flex !important; flex-wrap: wrap; align-items: center; gap: 2px 8px; padding: 6px 34px 6px 10px !important; border: 1px solid var(--line-hi) !important; border-radius: 4px; background: var(--card) !important; }
+	.j5ac-cg-name { font-size: 18px; }
+	.j5ac-cg-maker { margin: 0; font-size: 11px; }
+	.j5ac-cg-uneq { margin: 0; flex-basis: 100%; }
+	.j5ac .j5ac-cg-rm { top: 50%; transform: translateY(-50%); right: 4px; }
+	.j5ac-cg thead .j5ac-cg-addc { display: none; }
+	.j5ac-cg tbody .j5ac-cg-addc { display: none; }
+	.j5ac-cg tbody tr { padding: 10px 0; border-top: 1px solid var(--line); }
+	.j5ac-cg tbody th { margin: 0 0 6px; background: none; }
+	.j5ac-cg tbody td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 3px 0; }
+	.j5ac-cg tbody td::before { content: attr(data-m); flex: 0 0 auto; max-width: 45%; font-family: var(--cond); font-weight: 700; font-size: 14px; letter-spacing: .05em; color: var(--dim); }
+	.j5ac-cg-v { text-align: right; }
+	.j5ac-cg-buy { flex-wrap: wrap; }
+	.j5ac-cg-buy .j5ac-btn { margin: 0; }
+	.j5ac-cg-buy .j5ac-report { flex-basis: 100%; text-align: right; }
+	.j5ac-float.is-open { left: 12px; right: 12px; }
+	.j5ac-float.is-open .j5ac-float-btn--cmp { flex: 1 1 auto; }
+}
+@media (max-width: 720px) {
+	.j5ac-float { left: 12px; }
+	.j5ac-float .j5ac-float-btn--cmp { flex: 1 1 auto; }
+	.j5ac .j5ac-float-btn--top, .j5ac .j5ac-float-btn--reset { font-size: 0; gap: 0; padding: 14px 16px; }
+	.j5ac .j5ac-float-btn--top::before, .j5ac .j5ac-float-btn--reset::before { font-size: 18px; }
+	.j5ac-float:not(:has(.j5ac-float-btn--cmp:not([hidden]))) { left: auto; }
+}
+/* === J5-AC-CMPGRID-END === */

@@ -349,7 +349,7 @@
 		this.clearBtn.hidden = true;
 		this.lockSizes();
 		this.renderCards();
-		this.compare(false);
+		this.compare();
 	};
 
 	Panel.prototype.syncOutputs = function () {
@@ -902,6 +902,7 @@
 			if (mo) { var mk = mo.getAttribute('data-j5ac-more'); self.moreOpen = self.moreOpen || {}; self.moreOpen[mk] = !self.moreOpen[mk]; self.renderView(); var mb = self.viewBox.querySelector('[data-j5ac-more="' + mk + '"]'); if (mb) mb.focus(); return; }
 			var clr = t.closest('[data-j5ac-clearpicks]');
 			if (clr) { self.clearPicks(); return; }
+			if (t.closest('[data-j5ac-opencmp]')) { self.openCompare(); return; }
 			var cmp = t.closest('[data-j5ac-cmp]');
 			if (cmp) { if (!cmp.disabled) self.toggleFam(cmp.getAttribute('data-j5ac-cmp'), cmp.getAttribute('data-slug')); return; }
 			var open = t.closest('[data-j5ac-fam]');
@@ -1001,7 +1002,7 @@
 		b.setAttribute('aria-pressed', on ? 'true' : 'false');
 		b.setAttribute('aria-label', (on ? 'Remove from compare: ' : 'Compare ') + label);
 		b.appendChild(el('span', 'j5ac-cmp-i'));
-		b.appendChild(el('span', 'j5ac-cmp-t', on ? 'Comparing' : (anyway ? 'Compare anyway' : 'Compare')));
+		b.appendChild(el('span', 'j5ac-cmp-t', on ? 'Added' : (anyway ? 'Compare anyway' : 'Compare')));
 		if (locked) { b.disabled = true; b.title = 'Different size from your first pick. Clear the selection to compare this one.'; }
 		return b;
 	}
@@ -1135,6 +1136,8 @@
 			bar.appendChild(el('span', 'j5ac-cmpbar-h', 'Comparing ' + this.picked.length));
 			var facts = bd ? [bd.specs.level, bd.specs.standard, bsz ? (bsz.sub || bsz.label) : null, bd.specs.weight_lb !== undefined ? fmt(bd.specs.weight_lb) + ' lb' : null].filter(Boolean).join(' \u00b7 ') : '';
 			bar.appendChild(el('span', 'j5ac-cmpbar-t', (facts ? facts + '. ' : '') + 'Models that differ in size, threat level, standard or weight are marked with the reason. You can still add them.'));
+			var oc = el('button', 'j5ac-cmpbar-go', 'Open compare'); oc.type = 'button'; oc.setAttribute('data-j5ac-opencmp', '');
+			bar.appendChild(oc);
 			var cl = el('button', 'j5ac-cmpbar-x', 'Clear selection'); cl.type = 'button'; cl.setAttribute('data-j5ac-clearpicks', '');
 			bar.appendChild(cl);
 			box.appendChild(bar);
@@ -1507,6 +1510,7 @@
 			if (this.picked.length >= MAX_PICK) {
 				if (input) input.checked = false;
 				this.hint.textContent = 'Up to ' + MAX_PICK + ' at a time. Uncheck one to add another.';
+				if (this.root.j5acFlash) this.root.j5acFlash('Up to ' + MAX_PICK);
 				return;
 			}
 			this.picked.push(slug);
@@ -1521,14 +1525,79 @@
 			? (this.picked.length < MAX_PICK ? 'Comparing ' + this.picked.length + '. Add up to ' + MAX_PICK + '.' : 'Comparing ' + MAX_PICK + '.')
 			: 'Check up to ' + MAX_PICK + ' to compare side by side.';
 		this.clearBtn.hidden = this.picked.length === 0;
-		this.compare(on && this.picked.length === 1);
+		this.compare();
 	};
 
-	Panel.prototype.compare = function (scroll) {
+	/**
+	 * J5-AC-CMPGRID (2026-11-08): the comparison opens as a grid overlay from the sticky Compare
+	 * button instead of a section under the results. Specs run down the side, picked models across.
+	 * At 900px and under the same table restacks to one block per spec (no sideways scrolling).
+	 */
+	Panel.prototype.compareShell = function () {
+		if (this.ov) return this.ov;
+		var self = this, root = this.root;
+		var ov = el('div', 'j5ac-cmpov'); ov.hidden = true;
+		var box = el('div', 'j5ac-cmpov-box'); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.tabIndex = -1;
+		var head = el('div', 'j5ac-cmpov-head');
+		var h = el('h2', 'j5ac-cmpov-h', 'Compare ' + String(this.config.label || 'models').toLowerCase()); h.id = 'j5ac-cmpov-h-' + this.config.category;
+		box.setAttribute('aria-labelledby', h.id);
+		var tools = el('div', 'j5ac-cmpov-tools');
+		var dl = el('label', 'j5ac-cmpov-diff'); var dcb = el('input'); dcb.type = 'checkbox'; dl.appendChild(dcb); dl.appendChild(el('span', null, 'Only rows that differ'));
+		var key = el('span', 'j5ac-cmpov-key', '★ leads on that spec');
+		var clr = el('button', 'j5ac-cmpov-clear', 'Clear all'); clr.type = 'button';
+		var x = el('button', 'j5ac-cmpov-x'); x.type = 'button'; x.setAttribute('aria-label', 'Close compare'); x.textContent = '✕';
+		tools.appendChild(dl); tools.appendChild(key); tools.appendChild(clr); tools.appendChild(x);
+		head.appendChild(h); head.appendChild(tools);
+		box.appendChild(head);
+		box.appendChild(this.out);
+		this.out.hidden = false;
+		ov.appendChild(box);
+		root.appendChild(ov);
+		dcb.addEventListener('change', function () { self.out.classList.toggle('is-diffonly', dcb.checked); });
+		clr.addEventListener('click', function () { self.closeCompare(); self.clearPicks(); });
+		x.addEventListener('click', function () { self.closeCompare(); });
+		ov.addEventListener('click', function (e) {
+			if (e.target === ov) { self.closeCompare(); return; }
+			var rm = e.target.closest && e.target.closest('[data-j5ac-cg-rm]');
+			if (rm) { self.unpick(rm.getAttribute('data-j5ac-cg-rm')); return; }
+			if (e.target.closest && e.target.closest('[data-j5ac-cg-add]')) self.closeCompare();
+		});
+		document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ov.hidden) self.closeCompare(); });
+		this.ov = ov; this.ovBox = box;
+		return ov;
+	};
+	Panel.prototype.openCompare = function () {
+		if (!this.picked.length) return;
+		this.compareShell();
+		this.compare(false);
+		this.ovReturn = document.activeElement;
+		this.ov.hidden = false;
+		document.documentElement.classList.add('j5ac-cmp-open');
+		this.ovBox.focus({ preventScroll: true });
+		if (this.root.j5acSync) this.root.j5acSync();
+	};
+	Panel.prototype.closeCompare = function () {
+		if (!this.ov || this.ov.hidden) return;
+		this.ov.hidden = true;
+		document.documentElement.classList.remove('j5ac-cmp-open');
+		if (this.root.j5acSync) this.root.j5acSync();
+		var back = this.ovReturn; this.ovReturn = null;
+		if (back && back.focus && document.body.contains(back)) back.focus({ preventScroll: true });
+	};
+	Panel.prototype.isComparing = function () { return !!(this.ov && !this.ov.hidden); };
+	Panel.prototype.unpick = function (slug) {
+		var r = this.rowBySlug(slug), cb = r && r.tr.querySelector('.j5ac-pick');
+		if (cb) cb.checked = false;
+		this.pick(slug, false, cb);
+	};
+
+	Panel.prototype.compare = function () {
 		var self = this;
 		var rows = this.picked.map(this.rowBySlug, this).filter(Boolean);
+		if (this.root.j5acSync) this.root.j5acSync();
+		if (!rows.length) { this.out.textContent = ''; this.closeCompare(); return; }
+		if (!this.ov) return; // built the first time Compare is pressed
 		this.out.textContent = '';
-		if (!rows.length) { this.out.hidden = true; return; }
 		var cfg = this.config, quote = this.root.getAttribute('data-quote') || '/request-a-quote/';
 
 		var specRows = [];
@@ -1569,89 +1638,135 @@
 			else if (HIGHER_BETTER.test(sr.key)) best[sr.key] = Math.max.apply(null, nums);
 		});
 		if (cfg.category === 'shield') { best.viewport_sqin = Math.max.apply(null, rows.map(function (r) { return viewportArea(r.data.specs.viewport); })); if (!(best.viewport_sqin > 0) || rows.length < 2) delete best.viewport_sqin; }
-		if (rows.length > 1 && Object.keys(best).length) {
-			var key = el('p', 'j5ac-scorenote');
-			key.textContent = 'Gold marks where a model leads on a listed spec: lightest, most coverage, fewest ounces per square inch' + (cfg.category === 'shield' ? ', largest viewport' : '') + (cfg.sizes ? ', most sizes' : '') + '. No overall winner is picked.';
-			this.out.appendChild(key);
-		}
-		var grid = el('div', 'j5ac-cards');
+		this.ov.querySelector('.j5ac-cmpov-key').hidden = !(rows.length > 1 && Object.keys(best).length);
+
+		var first = rows[0].data;
+		function nameOf(d) { var csz = sizeOf(d); return famName(d) + (d.family && csz && csz.w ? ' ' + csz.label.replace(' in', '') : ''); }
+		var t = el('table', 'j5ac-cg');
+		t.style.setProperty('--n', rows.length);
+		var cap = el('caption', 'j5ac-sr', 'Side by side specs for ' + rows.length + ' picked models'); t.appendChild(cap);
+		var thead = el('thead'), htr = el('tr');
+		htr.appendChild(el('td', 'j5ac-cg-corner', rows.length + ' of ' + MAX_PICK + ' picked'));
 		rows.forEach(function (r, idx) {
-			var card = el('div', 'j5ac-card');
+			var d = r.data, th = el('th', 'j5ac-cg-plate'); th.scope = 'col';
+			var rm = el('button', 'j5ac-cg-rm'); rm.type = 'button'; rm.setAttribute('data-j5ac-cg-rm', d.slug); rm.setAttribute('aria-label', 'Remove ' + d.manufacturer + ' ' + nameOf(d) + ' from compare'); rm.textContent = '✕';
+			th.appendChild(rm);
+			var nm = el('span', 'j5ac-cg-name', nameOf(d));
+			if (d.carried) { var mk = el('span', 'j5ac-j5', 'J5'); mk.title = 'Available from J5'; nm.appendChild(document.createTextNode(' ')); nm.appendChild(mk); }
+			th.appendChild(nm);
+			th.appendChild(el('span', 'j5ac-cg-maker', d.manufacturer));
+			if (idx > 0) {
+				var why = unequalReasons(d, [first], cfg.unequal);
+				if (why.length) { var u = el('span', 'j5ac-cg-uneq', 'Not an equal comparison'); u.title = why.join('\n'); th.appendChild(u); }
+			}
+			htr.appendChild(th);
+		});
+		var addCell = rows.length < MAX_PICK;
+		if (addCell) { var at = el('td', 'j5ac-cg-addc'); var ab = el('button', 'j5ac-cg-add', '+ Add a ' + (cfg.category === 'plate' ? 'plate' : 'model')); ab.type = 'button'; ab.setAttribute('data-j5ac-cg-add', ''); at.appendChild(ab); htr.appendChild(at); }
+		thead.appendChild(htr); t.appendChild(thead);
 
-			var csz = sizeOf(r.data);
-			card.appendChild(el('span', 'j5ac-model', famName(r.data) + (r.data.family && csz && csz.w ? ' ' + csz.label.replace(' in', '') : '')));
-			card.appendChild(el('span', 'j5ac-maker', r.data.manufacturer));
-
-			var leads = 0;
-			var t = el('table'), tb = el('tbody');
-			specRows.forEach(function (sr) {
+		var tb = el('tbody');
+		function rowEl(label, cells, cls) {
+			var tr = el('tr', cls || '');
+			var th = el('th', null, label); th.scope = 'row'; tr.appendChild(th);
+			cells.forEach(function (td) { tr.appendChild(td); });
+			if (addCell) tr.appendChild(el('td', 'j5ac-cg-addc'));
+			tb.appendChild(tr);
+			return tr;
+		}
+		specRows.forEach(function (sr) {
+			var texts = [];
+			var cells = rows.map(function (r) {
 				var v = sr.derived ? r.data.derived[sr.key] : r.data.specs[sr.key];
-				var tr = el('tr');
-				tr.appendChild(el('td', null, sr.label));
-				var td = el('td');
+				var td = el('td'); td.setAttribute('data-m', nameOf(r.data));
 				var text = sr.places !== undefined && typeof v === 'number' ? v.toFixed(sr.places) : fmt(v, sr.field);
 				if (sr.sizes) { v = v || 1; text = String(v); }
-				if (text === null) td.appendChild(el('span', 'j5ac-na', 'not listed'));
-				else if (sr.key === 'level') td.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(v), text));
-				else if (sr.key === 'size' && sizeOf(r.data) && sizeOf(r.data).w) { var szc = sizeOf(r.data); td.textContent = szc.label; if (szc.sub) td.appendChild(el('small', null, ' ' + szc.sub)); }
-				else if (sr.sizes) { td.textContent = text; if (r.data.derived.size_list) { td.appendChild(el('small', null, ' ' + r.data.derived.size_list)); } }
-				else td.textContent = sr.unit && typeof v === 'number' ? text + ' ' + sr.unit : text;
-				if ((best[sr.key] !== undefined && num(v) === best[sr.key]) || (sr.key === 'viewport' && best.viewport_sqin !== undefined && viewportArea(v) === best.viewport_sqin)) { td.classList.add('is-best'); leads++; }
-				tr.appendChild(td);
-				tb.appendChild(tr);
+				var box = el('span', 'j5ac-cg-v');
+				if (text === null) box.appendChild(el('span', 'j5ac-na', 'not listed'));
+				else if (sr.key === 'level') box.appendChild(el('span', 'j5ac-lv j5ac-lv--' + tier(v), text));
+				else if (sr.key === 'size' && sizeOf(r.data) && sizeOf(r.data).w) { var szc = sizeOf(r.data); box.textContent = szc.label; if (szc.sub) box.appendChild(el('small', null, ' ' + szc.sub)); }
+				else if (sr.sizes) { box.textContent = text; if (r.data.derived.size_list) box.appendChild(el('small', null, ' ' + r.data.derived.size_list)); }
+				else box.textContent = sr.unit && typeof v === 'number' ? text + ' ' + sr.unit : text;
+				if ((best[sr.key] !== undefined && num(v) === best[sr.key]) || (sr.key === 'viewport' && best.viewport_sqin !== undefined && viewportArea(v) === best.viewport_sqin)) td.classList.add('is-best');
+				texts.push(box.textContent);
+				td.appendChild(box);
+				return td;
 			});
-			t.appendChild(tb);
-			if (leads) card.insertBefore(el('p', 'j5ac-card-best', 'Leads on ' + leads + (leads === 1 ? ' spec' : ' specs')), card.firstChild);
-			card.appendChild(t);
-
-			var src = el('p', 'j5ac-card-src');
+			var same = texts.every(function (s) { return s === texts[0]; });
+			rowEl(sr.label, cells, same ? 'is-same' : 'is-diff');
+		});
+		rowEl('Spec sheet', rows.map(function (r) {
+			var td = el('td', 'j5ac-cg-src'); td.setAttribute('data-m', nameOf(r.data));
 			if (r.data.sheet && r.data.sheet.url) {
-				src.appendChild(document.createTextNode('Source: '));
-				var a = el('a', null, r.data.manufacturer + ' spec sheet');
-				a.href = r.data.sheet.url; a.target = '_blank'; a.rel = 'noopener';
-				src.appendChild(a);
-				if (r.data.sheet.pulled_at) src.appendChild(document.createTextNode(', pulled ' + r.data.sheet.pulled_at));
-			} else src.textContent = 'Source: spec sheet not on file';
-			card.appendChild(src);
-
+				var a = el('a', null, r.data.manufacturer + ' sheet'); a.href = r.data.sheet.url; a.target = '_blank'; a.rel = 'noopener';
+				td.appendChild(a);
+				if (r.data.sheet.pulled_at) td.appendChild(el('small', null, ' · pulled ' + r.data.sheet.pulled_at));
+			} else td.appendChild(el('span', 'j5ac-na', 'not on file'));
+			return td;
+		}), 'j5ac-cg-meta');
+		rowEl('Buy', rows.map(function (r) {
+			var td = el('td', 'j5ac-cg-buy'); td.setAttribute('data-m', nameOf(r.data));
 			// Only what we carry gets a button: a store page if it has one, otherwise a quote.
-			if (r.data.wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = r.data.wc; card.appendChild(buy); }
+			if (r.data.wc) { var buy = el('a', 'j5ac-btn j5ac-btn--buy', 'View product'); buy.href = r.data.wc; td.appendChild(buy); }
 			else if (r.data.carried) {
 				var q = el('a', 'j5ac-btn j5ac-btn--quote', 'Request a quote');
 				q.href = quote + (quote.indexOf('?') === -1 ? '?' : '&') + 'item=' + encodeURIComponent(r.data.manufacturer + ' ' + r.data.model) + '&ref=armor-compare';
-				card.appendChild(q);
-			} else card.appendChild(el('p', 'j5ac-card-nocarry', 'Reference only. Not a J5 product.'));
-			var crep = el('button', 'j5ac-report', 'Report incorrect information'); crep.type = 'button';
+				td.appendChild(q);
+			} else td.appendChild(el('span', 'j5ac-cg-ref', 'Reference only'));
+			var crep = el('button', 'j5ac-report', 'Report an error'); crep.type = 'button';
 			crep.addEventListener('click', function () { openReport(self.root, cfg.category, r.data); });
-			var crw = el('p', 'j5ac-pcard-report'); crw.appendChild(crep); card.appendChild(crw);
-			if (r.data.carried) card.classList.add('is-carried');
-			grid.appendChild(card);
-		}, this);
-		this.out.appendChild(grid);
-		this.out.hidden = false;
-		if (scroll) this.out.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'nearest' });
+			td.appendChild(crep);
+			return td;
+		}), 'j5ac-cg-meta');
+		t.appendChild(tb);
+		this.out.appendChild(t);
 	};
 
+	/** Sticky buttons: Compare (when anything is picked), Top and Reset all (once scrolled). */
 	function floatingBar(root, panels) {
 		var bar = el('div', 'j5ac-float');
+		var cmp = el('button', 'j5ac-float-btn j5ac-float-btn--cmp'); cmp.type = 'button'; cmp.hidden = true;
+		var cmpT = el('span', 'j5ac-float-t', 'Compare'), cmpN = el('b', 'j5ac-float-n', '0');
+		cmp.appendChild(cmpT); cmp.appendChild(cmpN);
 		var top = el('button', 'j5ac-float-btn j5ac-float-btn--top', 'Top'); top.type = 'button'; top.setAttribute('aria-label', 'Back to the top of the comparison tool');
 		var reset = el('button', 'j5ac-float-btn j5ac-float-btn--reset', 'Reset all'); reset.type = 'button'; reset.setAttribute('aria-label', 'Clear all selections and filters');
-		bar.appendChild(top); bar.appendChild(reset);
+		bar.appendChild(cmp); bar.appendChild(top); bar.appendChild(reset);
 		root.appendChild(bar);
+		function active() { var k = Object.keys(panels).filter(function (c) { return !panels[c].section.hidden; })[0]; return k ? panels[k] : null; }
+		cmp.addEventListener('click', function () {
+			var p = active(); if (!p) return;
+			if (p.isComparing()) p.closeCompare(); else p.openCompare();
+		});
 		top.addEventListener('click', function () { root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
 		reset.addEventListener('click', function () {
-			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.clearPicks(); p.form.reset(); p.sizeTarget = null; p.sizeSel = {}; p.helpOpen = false; p.renderGuide(); p.filter(); });
+			Object.keys(panels).forEach(function (k) { var p = panels[k]; p.closeCompare(); p.clearPicks(); p.form.reset(); p.sizeTarget = null; p.sizeSel = {}; p.helpOpen = false; p.renderGuide(); p.filter(); });
 			root.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
 		});
+		var flashT = 0;
+		root.j5acFlash = function (msg) {
+			cmpT.textContent = msg; cmp.classList.add('is-flash');
+			clearTimeout(flashT); flashT = setTimeout(function () { cmp.classList.remove('is-flash'); tick(); }, 2200);
+		};
 		function tick() {
+			var p = active(), n = p ? p.picked.length : 0, open = !!(p && p.isComparing());
 			var r = root.getBoundingClientRect();
-			var show = r.top < -240 && r.bottom > 160;
-			bar.classList.toggle('is-on', show);
+			var scrolled = r.top < -240 && r.bottom > 160;
+			cmp.hidden = !n && !open;
+			if (!cmp.classList.contains('is-flash')) cmpT.textContent = open ? 'Exit compare' : 'Compare';
+			cmpN.textContent = String(n); cmpN.hidden = open;
+			cmp.classList.toggle('is-exit', open);
+			cmp.setAttribute('aria-label', open ? 'Exit compare' : 'Compare ' + n + ' picked');
+			top.hidden = open || !scrolled;
+			reset.hidden = open || !scrolled;
+			bar.classList.toggle('is-open', open);
+			bar.classList.toggle('is-on', open || n > 0 || scrolled);
 		}
+		root.j5acSync = tick;
 		window.addEventListener('scroll', tick, { passive: true });
 		window.addEventListener('resize', tick);
 		tick();
 	}
+
 
 	function init(root) {
 		var panels = {};

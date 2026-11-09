@@ -5,9 +5,10 @@
  * Blocks shipments of certain products to certain destinations (e.g. no body
  * armor to Connecticut). A compliance feature: fail-closed.
  *
- * Two rule sets, MERGED at enforcement (union — a destination is blocked if
- * EITHER set matches):
- *   - j5_shipping_rules_hub    : published by the hub (business-management layer)
+ * Rule sets, MERGED at enforcement (union — a destination is blocked if
+ * ANY set matches):
+ *   - j5_shipping_rules_dp     : pushed by the dealer portal (inc/j5-shipping-rules-dp.php)
+ *   - j5_shipping_rules_hub    : published by the old hub (legacy; nothing writes it now)
  *   - j5_shipping_rules_local  : authored in WP admin (J5 Apps → Shipping Restrictions)
  *
  * Neither set can overwrite the other, so a rule can never be silently erased
@@ -175,8 +176,27 @@ function j5_ship_read_rules( $option ) {
 function j5_ship_all_rules() {
 	return array_merge(
 		j5_ship_read_rules( J5_SHIP_HUB_OPTION ),
-		j5_ship_read_rules( J5_SHIP_LOCAL_OPTION )
+		j5_ship_read_rules( J5_SHIP_LOCAL_OPTION ),
+		// Dealer portal set (inc/j5-shipping-rules-dp.php), resolved from slugs on each request. J5-SHIP-DP-1
+		function_exists( 'j5_ship_dp_rules_resolved' ) ? j5_ship_dp_rules_resolved() : array()
 	);
+}
+
+/**
+ * Does a cart item match a rule? Checks the product and, for a variation, the variation itself
+ * (DP rules can list variant SKUs). J5-SHIP-DP-1
+ *
+ * @param array $item cart item
+ * @param array $rule
+ * @return bool
+ */
+function j5_ship_item_matches( $item, $rule ) {
+	$pid = ! empty( $item['product_id'] ) ? (int) $item['product_id'] : 0;
+	$vid = ! empty( $item['variation_id'] ) ? (int) $item['variation_id'] : 0;
+	if ( $pid && j5_ship_product_matches( $pid, $rule ) ) {
+		return true;
+	}
+	return $vid && ! empty( $rule['products'] ) && in_array( $vid, array_map( 'intval', $rule['products'] ), true );
 }
 
 /**
@@ -226,6 +246,10 @@ function j5_ship_destination_blocked( $rule, $state, $city ) {
 		return in_array( strtoupper( $state ), $rule['states'], true );
 	}
 	if ( 'city' === $rule['block_type'] ) {
+		// DP rules name the state with the city (Chicago, IL); local rules are city only.
+		if ( ! empty( $rule['city_states'] ) ) {
+			return in_array( strtolower( trim( $city ) ) . '|' . strtoupper( trim( $state ) ), $rule['city_states'], true );
+		}
 		return in_array( strtolower( trim( $city ) ), $rule['cities'], true );
 	}
 	return false;
@@ -255,7 +279,7 @@ function j5_ship_violations( $state, $city ) {
 			continue;
 		}
 		foreach ( $rules as $rule ) {
-			if ( j5_ship_product_matches( $pid, $rule ) && j5_ship_destination_blocked( $rule, $state, $city ) ) {
+			if ( j5_ship_item_matches( $item, $rule ) && j5_ship_destination_blocked( $rule, $state, $city ) ) {
 				$p                = wc_get_product( $pid );
 				$violations[]     = array(
 					'product_id'   => $pid,
@@ -286,7 +310,7 @@ function j5_ship_restricted_items_in_cart() {
 			continue;
 		}
 		foreach ( $rules as $rule ) {
-			if ( j5_ship_product_matches( $pid, $rule ) ) {
+			if ( j5_ship_item_matches( $item, $rule ) ) {
 				$p      = wc_get_product( $pid );
 				$hits[] = array(
 					'product_id'   => $pid,
