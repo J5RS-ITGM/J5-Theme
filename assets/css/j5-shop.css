@@ -1637,6 +1637,19 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 .j5-ack-term + .j5-ack-term { margin-top: 8px; }
 .j5-ack-term strong { color: var(--j5-bone); font-weight: 600; }
 .j5-ack-term.j5-ack-cond-hidden { display: none; }
-.j5-ack-all { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; color: var(--j5-ink); cursor: pointer; }
-.j5-ack-all input { flex: 0 0 auto; width: 20px; height: 20px; margin: 0; accent-color: var(--j5-gold); cursor: pointer; }
-.j5-ack-gate--compact.j5-ack-gate-flash { animation: none; outline: 2px solid var(--j5-red); outline-offset: 4px; }
+/* The one agreement box: reads as a required step until ticked, then turns green. */
+.j5-ack-all { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 14px; border: 2px solid var(--j5-gold); background: rgba(224, 180, 74, 0.08); font-size: 15px; font-weight: 600; color: var(--j5-bone); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.j5-ack-all:hover { background: rgba(224, 180, 74, 0.14); }
+.j5-ack-all input { flex: 0 0 auto; width: 24px; height: 24px; margin: 0; accent-color: var(--j5-gold); cursor: pointer; }
+.j5-ack-all input:focus-visible { outline: 2px solid var(--j5-gold); outline-offset: 3px; }
+.j5-ack-all-text { flex: 1 1 auto; min-width: 0; }
+.j5-ack-req { flex: 0 0 auto; padding: 3px 8px; background: var(--j5-gold); color: #0b0c0e; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.j5-ack-req-done { display: none; }
+.j5-ack-all:has(input:checked) { border-color: var(--j5-success); background: rgba(92, 194, 122, 0.08); }
+.j5-ack-all:has(input:checked) .j5-ack-req { background: var(--j5-success); }
+.j5-ack-all:has(input:checked) .j5-ack-req-todo { display: none; }
+.j5-ack-all:has(input:checked) .j5-ack-req-done { display: inline; }
+.j5-ack-gate--compact.j5-ack-gate-flash { animation: none; }
+.j5-ack-gate--compact.j5-ack-gate-flash .j5-ack-all { border-color: var(--j5-red); background: rgba(200, 16, 46, 0.12); animation: j5AckShake 0.4s ease-in-out 2; }
+@keyframes j5AckShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .j5-ack-gate--compact.j5-ack-gate-flash .j5-ack-all { animation: none; } }

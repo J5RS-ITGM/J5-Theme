@@ -421,7 +421,7 @@ function j5_render_ack_gate( $product ) {
 		echo '<div class="j5-ack-gate j5-ack-gate--compact">'
 			. '<div class="j5-ack-tags">' . $tags . '</div>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
 			. '<details class="j5-ack-more"><summary>What this means</summary><div class="j5-ack-terms">' . $terms . '</div></details>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
-			. '<label class="j5-ack-all" for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" data-j5-ack-all /><span>I&#8217;ve read and accept <span data-j5-ack-count>these terms</span></span></label>'
+			. '<label class="j5-ack-all" for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" data-j5-ack-all aria-required="true" /><span class="j5-ack-all-text">I&#8217;ve read and accept <span data-j5-ack-count>these terms</span></span><span class="j5-ack-req" aria-hidden="true"><span class="j5-ack-req-todo">Required</span><span class="j5-ack-req-done">&#10003; Accepted</span></span></label>'
 			. '</div>';
 		return;
 	}

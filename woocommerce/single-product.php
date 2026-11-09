@@ -448,7 +448,11 @@ get_header();
                 }
                 ?>
 
-                <!-- Trust signals -->
+                <?php
+                /* Trust signals (Ships Daily, Life Safety Guarantee) under Add to Cart: off since
+                 * 2026-11-08 (the guarantee shows as a badge under the product name). Turn back on with
+                 * add_filter( 'j5_product_trust_signals', '__return_true' ). J5-TRUST-OFF-1 */
+                if ( apply_filters( 'j5_product_trust_signals', false, $product ) ) : ?>
                 <div class="j5-product-trust">
                     <div class="trust-item">
                         <span class="icon">✈</span>
@@ -461,6 +465,7 @@ get_header();
                     </div>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
                 <!-- LE Portal callout (gated: see inc/j5-portal-flag.php) -->
                 <?php if ( function_exists( 'j5_portal_enabled' ) && j5_portal_enabled() ) : ?>
