@@ -5,7 +5,8 @@
  * The DP (dealer.j5rescue.com) is the system of record for serialized plates.
  * WooCommerce stores no units: after the customer picks cut and size, the page
  * asks WC (wc-ajax=j5_as_units), WC asks the DP live, and the list shows
- * "Standard order" (not on Final Stock products) plus each in-stock unit the DP's website rules display (masked serials, month made, % off).
+ * a "Standard" price card (not on Final Stock products) and a "Shelf set" card with a serial
+ * dropdown of the in-stock units the DP's website rules display (J5AS-B, 2026-11-08).
  * Nothing is in page HTML, schema, sitemap or feeds.
  *
  * Picking a unit:
@@ -296,9 +297,9 @@ function j5as_render( $product ) {
 	printf(
 		'<fieldset class="j5-as" data-j5-as data-endpoint="%s" data-factory="%s" data-model="%s" hidden>'
 			. '<legend class="j5-as__name">Choose your plate</legend>'
-			. '<p class="j5-as__help" data-j5-as-help></p>'
+			. '<p class="j5-as__help" data-j5-as-help hidden></p>'
 			. '<div class="j5-as__list" data-j5-as-list></div>'
-			. '<p class="j5-as__note" data-j5-as-note hidden>The discount is applied in your cart.</p>'
+			. '<p class="j5-as__note" data-j5-as-note hidden>The Plate Age Discount comes off in your cart.</p>'
 			. '<input type="hidden" name="j5_as_unit" value="" data-j5-as-input />'
 		. '</fieldset>',
 		esc_url( WC_AJAX::get_endpoint( 'j5_as_units' ) ),

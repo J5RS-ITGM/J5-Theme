@@ -348,6 +348,20 @@ function j5_render_ack_notices( $product ) {
  * ====================================================================== */
 
 /**
+ * Short tag label from an acknowledgment title: the part before " | ", " / " or " - ".
+ * "ITAR / Export-Controlled Item" -> "ITAR", "Non Returnable | Ballistic Armor & PPE" -> "Non Returnable".
+ *
+ * @param string $title
+ * @return string
+ */
+function j5_ack_short_title( $title ) {
+	$title = wp_specialchars_decode( (string) $title );
+	$parts = preg_split( '/\s*[|\/]\s*|\s+[\x{2014}\x{2013}-]\s+/u', $title, 2 );
+	$short = trim( (string) ( $parts[0] ?? '' ) );
+	return '' !== $short ? $short : $title;
+}
+
+/**
  * Render the product-page acknowledgment gate. MUST be called from inside the
  * add-to-cart <form>, or the checkboxes will not post and every add will fail
  * validation.
@@ -368,6 +382,49 @@ function j5_render_ack_gate( $product ) {
 	$pid         = is_numeric( $product ) ? absint( $product ) : $product->get_id();
 	$conditional = j5_ack_status_slugs( $pid );
 	$is_variable = ! is_numeric( $product ) && $product->is_type( 'variable' );
+
+	/*
+	 * J5-ACK-COMPACT-1 (2026-11-08): short tags + one "I've read and accept" box,
+	 * full wording behind "What this means". Each tag still carries its own
+	 * j5_ack[slug] checkbox (ticked together by the one box, see the product-page
+	 * footer script), so validation, the cart record and the order line record
+	 * are unchanged. Return false from the filter for the old one-row-per-ack gate.
+	 */
+	if ( apply_filters( 'j5_ack_gate_compact', true, $product ) ) {
+		$tags  = '';
+		$terms = '';
+		foreach ( $slugs as $slug ) {
+			if ( ! isset( $defs[ $slug ] ) ) {
+				continue;
+			}
+			$d    = $defs[ $slug ];
+			$cond = in_array( $slug, $conditional, true ) ? ' j5-ack-cond' . ( $is_variable ? ' j5-ack-cond-hidden' : '' ) : '';
+			$tags .= sprintf(
+				'<span class="j5-ack-gate-row j5-ack-tag%1$s" data-j5-ack-slug="%2$s">%3$s<input type="checkbox" class="j5-ack-tag-box" name="j5_ack[%2$s]" value="1" tabindex="-1" aria-hidden="true" %4$s /></span>',
+				esc_attr( $cond ),
+				esc_attr( $slug ),
+				esc_html( j5_ack_short_title( $d['title'] ) ),
+				$d['required'] ? 'data-j5-ack-required="1"' : ''
+			);
+			$terms .= sprintf(
+				'<p class="j5-ack-term%1$s" data-j5-ack-slug="%2$s"><strong>%3$s</strong> %4$s</p>',
+				esc_attr( $cond ),
+				esc_attr( $slug ),
+				esc_html( $d['title'] ),
+				esc_html( $d['body'] )
+			);
+		}
+		if ( '' === $tags ) {
+			return;
+		}
+		$id = 'j5_ack_all_' . $pid;
+		echo '<div class="j5-ack-gate j5-ack-gate--compact">'
+			. '<div class="j5-ack-tags">' . $tags . '</div>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			. '<details class="j5-ack-more"><summary>What this means</summary><div class="j5-ack-terms">' . $terms . '</div></details>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
+			. '<label class="j5-ack-all" for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" data-j5-ack-all /><span>I&#8217;ve read and accept <span data-j5-ack-count>these terms</span></span></label>'
+			. '</div>';
+		return;
+	}
 
 	echo '<div class="j5-ack-gate">';
 	foreach ( $slugs as $slug ) {
@@ -701,6 +758,70 @@ add_action( 'woocommerce_after_order_itemmeta', function ( $item_id, $item ) {
 	}
 	echo '</div>';
 }, 10, 2 );
+
+/**
+ * Product page (J5-ACK-COMPACT-1):
+ *  - variable products: show or hide status-inherited acks (special order, made to order)
+ *    from the chosen variation's real stock state, as the server does in
+ *    j5_ack_for_variation_placed(). Before this, that toggle only ran on the checkout page,
+ *    so on product pages those rows stayed hidden and the server refused the add.
+ *  - compact gate: the one "I've read and accept" box ticks every visible tag's checkbox;
+ *    when a new ack appears (a special-order variation), the box clears so it's re-affirmed.
+ * Runs before the sync script below (priority 100), which still decides the button state.
+ */
+add_action( 'wp_footer', function () {
+	if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+		return;
+	}
+	?>
+	<script>
+	( function () {
+		function poke( gate ) {
+			gate.dispatchEvent( new Event( 'change', { bubbles: true } ) ); // lets the sync script re-check the button
+		}
+		function refresh( gate ) {
+			gate.querySelectorAll( '.j5-ack-cond-hidden input[type="checkbox"]' ).forEach( function ( b ) { b.checked = false; } );
+			var all = gate.querySelector( '[data-j5-ack-all]' );
+			if ( ! all ) { return; }
+			var boxes = gate.querySelectorAll( '.j5-ack-gate-row:not(.j5-ack-cond-hidden) input[type="checkbox"]' );
+			var ok = boxes.length > 0;
+			boxes.forEach( function ( b ) { if ( ! b.checked ) { ok = false; } } );
+			all.checked = ok;
+			var n = gate.querySelectorAll( '.j5-ack-gate-row:not(.j5-ack-cond-hidden)' ).length;
+			var c = gate.querySelector( '[data-j5-ack-count]' );
+			if ( c ) { c.textContent = n < 2 ? 'this term' : ( 2 === n ? 'both terms' : 'all of these terms' ); }
+		}
+		document.addEventListener( 'DOMContentLoaded', function () {
+			document.querySelectorAll( '.j5-ack-gate--compact' ).forEach( function ( gate ) {
+				var all = gate.querySelector( '[data-j5-ack-all]' );
+				if ( all ) {
+					all.addEventListener( 'change', function () {
+						gate.querySelectorAll( '.j5-ack-gate-row:not(.j5-ack-cond-hidden) input[type="checkbox"]' ).forEach( function ( b ) { b.checked = all.checked; } );
+					} );
+				}
+				refresh( gate );
+			} );
+			if ( ! window.jQuery ) { return; }
+			jQuery( '.variations_form' ).each( function () {
+				var $form = jQuery( this );
+				var gate = this.querySelector( '.j5-ack-gate' );
+				if ( ! gate || ! gate.querySelector( '.j5-ack-cond' ) ) { return; }
+				function apply( stocked ) {
+					var changed = false;
+					gate.querySelectorAll( '.j5-ack-cond' ).forEach( function ( el ) {
+						if ( el.classList.contains( 'j5-ack-cond-hidden' ) !== stocked ) { changed = true; }
+						el.classList.toggle( 'j5-ack-cond-hidden', stocked );
+					} );
+					if ( changed ) { refresh( gate ); poke( gate ); }
+				}
+				$form.on( 'found_variation', function ( e, v ) { apply( 'in' === ( v && v.j5_stock_state ? v.j5_stock_state : '' ) ); } );
+				$form.on( 'reset_data hide_variation', function () { apply( true ); } );
+			} );
+		} );
+	} )();
+	</script>
+	<?php
+}, 99 );
 
 /**
  * Product page: disable Add to Cart until required gate boxes are ticked.

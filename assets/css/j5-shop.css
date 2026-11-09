@@ -1619,3 +1619,24 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 	.j5-badges__item, .j5-badge { position: static; }
 	.j5-badge__tip { left: 0; right: 0; transform: none; width: auto; max-width: none; text-align: center; }
 }
+
+/* ============================================================
+   J5-ACK-COMPACT-1 (2026-11-08) — acknowledgment gate as short
+   tags + one "I've read and accept" box. Full wording sits in
+   "What this means". See j5_render_ack_gate().
+   ============================================================ */
+.j5-ack-gate.j5-ack-gate--compact { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 16px; border: 0; background: none; border-radius: 0; }
+.j5-ack-gate--compact .j5-ack-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.j5-ack-gate--compact .j5-ack-gate-row.j5-ack-tag { position: relative; display: inline-flex; gap: 0; padding: 4px 8px; border: 1px solid var(--j5-gold); border-top: 1px solid var(--j5-gold); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--j5-gold); cursor: default; }
+.j5-ack-gate--compact .j5-ack-gate-row.j5-ack-tag.j5-ack-cond-hidden { display: none; }
+.j5-ack-gate--compact .j5-ack-tag-box { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.j5-ack-more summary { display: inline-block; min-height: 24px; font-size: 13px; color: var(--j5-gold); text-decoration: underline; cursor: pointer; list-style: none; }
+.j5-ack-more summary::-webkit-details-marker { display: none; }
+.j5-ack-terms { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--j5-border-hi); background: var(--j5-bg-card); }
+.j5-ack-term { margin: 0; font-size: 13px; line-height: 1.45; color: var(--j5-ink-dim); }
+.j5-ack-term + .j5-ack-term { margin-top: 8px; }
+.j5-ack-term strong { color: var(--j5-bone); font-weight: 600; }
+.j5-ack-term.j5-ack-cond-hidden { display: none; }
+.j5-ack-all { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; color: var(--j5-ink); cursor: pointer; }
+.j5-ack-all input { flex: 0 0 auto; width: 20px; height: 20px; margin: 0; accent-color: var(--j5-gold); cursor: pointer; }
+.j5-ack-gate--compact.j5-ack-gate-flash { animation: none; outline: 2px solid var(--j5-red); outline-offset: 4px; }
