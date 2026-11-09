@@ -689,3 +689,15 @@ main.j5-site-content:has(.j5ac), .j5-container:has(.j5ac) { max-width: 1840px; }
 	.j5ac .j5ac-helpbtn, .j5ac .j5ac-ftoggle { padding: 0 10px; letter-spacing: .06em; white-space: nowrap; }
 	.j5ac-vsizes .j5ac-vchips-l { padding-top: 2px; }
 }
+
+/* === J5-AC-GUTTER (2026-11-08): keep the page inside the screen ===
+   page.php wraps content in .j5-container, but the container's side padding lives in
+   j5-shop.css, which only loads on shop, cart and checkout. On this page the title and the
+   tool ran edge to edge, so the Sort box, Compare buttons and the "Available from J5" key
+   touched or slid past the screen edge. Give the comparison page its own gutter. */
+.j5-container:has(.j5ac) { box-sizing: border-box; width: 100%; max-width: 1840px; margin-left: auto; margin-right: auto; padding-left: 32px; padding-right: 32px; }
+.j5-container:has(.j5ac) .j5-page__content { min-width: 0; max-width: none; }
+.j5ac { max-width: 100%; min-width: 0; }
+@media (max-width: 900px) { .j5-container:has(.j5ac) { padding-left: 20px; padding-right: 20px; } }
+@media (max-width: 600px) { .j5-container:has(.j5ac) { padding-left: 16px; padding-right: 16px; } }
+/* === J5-AC-GUTTER-END === */
