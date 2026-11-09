@@ -627,7 +627,12 @@ function j5_armor_ref_render_category( array $feed, $open, $quote_base ) {
 
 	$dates = array_filter( array_map( function ( $m ) { return $m['spec_sheet']['pulled_at']; }, $models ) );
 	sort( $dates );
-	$pulled = $dates ? ( count( array_unique( $dates ) ) > 1 ? j5_armor_ref_date( reset( $dates ) ) . ' to ' . j5_armor_ref_date( end( $dates ) ) : j5_armor_ref_date( reset( $dates ) ) ) : '';
+	$pulled = '';
+	if ( $dates ) {
+		$p_from = j5_armor_ref_date( reset( $dates ) );
+		$p_to   = j5_armor_ref_date( end( $dates ) );
+		$pulled = ( $p_from === $p_to ) ? $p_from : $p_from . ' to ' . $p_to; // one month reads "Oct 2026", not "Oct 2026 to Oct 2026"
+	}
 
 	$featured = function_exists( 'j5_armor_ref_featured_makers' ) ? j5_armor_ref_featured_makers( $cat ) : array();
 	$sgroups  = ( 'plate' === $cat && function_exists( 'j5_armor_ref_size_group_settings' ) ) ? j5_armor_ref_size_group_settings() : array( 'order' => array(), 'hidden' => array() );
