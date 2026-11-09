@@ -1685,3 +1685,50 @@
 	function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-j5ac]'), init); }
 	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
+
+/* J5-AC-GUIDE (2026-11-08): quick start band hide/show (remembered per visitor) and the
+   "On this page" highlight in the guide below the tool. Markup is page content. */
+(function () {
+	'use strict';
+	var KEY = 'j5ac_qs_closed';
+	function store(v) { try { if (v) localStorage.setItem(KEY, '1'); else localStorage.removeItem(KEY); } catch (e) {} }
+	function stored() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+
+	function band(el) {
+		var btn = el.querySelector('[data-j5ac-qs-toggle]');
+		var body = el.querySelector('.j5ac-qs-body');
+		if (!btn || !body) return;
+		if (!body.id) body.id = 'j5ac-qs-body';
+		btn.setAttribute('aria-controls', body.id);
+		function set(closed, save) {
+			el.classList.toggle('is-closed', closed);
+			btn.setAttribute('aria-expanded', closed ? 'false' : 'true');
+			btn.textContent = closed ? 'Show' : 'Hide';
+			if (save) store(closed);
+		}
+		set(stored(), false);
+		btn.hidden = false;
+		btn.addEventListener('click', function () { set(!el.classList.contains('is-closed'), true); });
+		// "Full guide" link inside the band, or any link to the guide, opens nothing extra: plain anchors.
+	}
+
+	function nav(gd) {
+		var links = gd.querySelectorAll('.j5ac-gd-nav a[href^="#"]');
+		if (!links.length || !('IntersectionObserver' in window)) return;
+		var map = {};
+		Array.prototype.forEach.call(links, function (a) { var t = document.getElementById(a.getAttribute('href').slice(1)); if (t) map[t.id] = a; });
+		var io = new IntersectionObserver(function (entries) {
+			entries.forEach(function (en) {
+				if (!en.isIntersecting) return;
+				Array.prototype.forEach.call(links, function (a) { a.classList.toggle('is-on', a === map[en.target.id]); });
+			});
+		}, { rootMargin: '-20% 0px -60% 0px' });
+		Object.keys(map).forEach(function (id) { io.observe(document.getElementById(id)); });
+	}
+
+	function boot() {
+		Array.prototype.forEach.call(document.querySelectorAll('[data-j5ac-qs]'), band);
+		Array.prototype.forEach.call(document.querySelectorAll('[data-j5ac-gd]'), nav);
+	}
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
