@@ -1622,10 +1622,11 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 
 /* ============================================================
    J5-ACK-COMPACT-1 (2026-11-08) — acknowledgment gate as short
-   tags + one "I've read and accept" box. Full wording sits in
+   tags + one "I've read and agree to all terms" box. Full wording sits in
    "What this means". See j5_render_ack_gate().
    ============================================================ */
 .j5-ack-gate.j5-ack-gate--compact { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 16px; border: 0; background: none; border-radius: 0; }
+.j5-ack-head { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--j5-gold); }
 .j5-ack-gate--compact .j5-ack-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .j5-ack-gate--compact .j5-ack-gate-row.j5-ack-tag { position: relative; display: inline-flex; gap: 0; padding: 4px 8px; border: 1px solid var(--j5-gold); border-top: 1px solid var(--j5-gold); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--j5-gold); cursor: default; }
 .j5-ack-gate--compact .j5-ack-gate-row.j5-ack-tag.j5-ack-cond-hidden { display: none; }

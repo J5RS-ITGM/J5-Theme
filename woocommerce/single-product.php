@@ -84,7 +84,8 @@ $product_cats = get_the_terms( $product->get_id(), 'product_cat' );
 $primary_cat  = ! empty( $product_cats ) && ! is_wp_error( $product_cats ) ? $product_cats[0] : null;
 
 // Related products
-$related_ids = wc_get_related_products( $product->get_id(), 4 );
+// Same subcategory first, then its parent (inc/j5-related-products.php). J5-RELATED-1
+$related_ids = function_exists( 'j5_related_product_ids' ) ? j5_related_product_ids( $product, 4 ) : wc_get_related_products( $product->get_id(), 4 );
 $related_products = array_filter( array_map( 'wc_get_product', $related_ids ) );
 
 get_header();

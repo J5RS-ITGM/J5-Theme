@@ -384,7 +384,7 @@ function j5_render_ack_gate( $product ) {
 	$is_variable = ! is_numeric( $product ) && $product->is_type( 'variable' );
 
 	/*
-	 * J5-ACK-COMPACT-1 (2026-11-08): short tags + one "I've read and accept" box,
+	 * J5-ACK-COMPACT-1 (2026-11-08): short tags + one "I've read and agree to all terms" box,
 	 * full wording behind "What this means". Each tag still carries its own
 	 * j5_ack[slug] checkbox (ticked together by the one box, see the product-page
 	 * footer script), so validation, the cart record and the order line record
@@ -418,10 +418,11 @@ function j5_render_ack_gate( $product ) {
 			return;
 		}
 		$id = 'j5_ack_all_' . $pid;
-		echo '<div class="j5-ack-gate j5-ack-gate--compact">'
+		echo '<div class="j5-ack-gate j5-ack-gate--compact" role="group" aria-labelledby="' . esc_attr( $id ) . '_h">'
+			. '<div class="j5-ack-head" id="' . esc_attr( $id ) . '_h">Terms &amp; Agreements</div>'
 			. '<div class="j5-ack-tags">' . $tags . '</div>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
 			. '<details class="j5-ack-more"><summary>What this means</summary><div class="j5-ack-terms">' . $terms . '</div></details>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped above.
-			. '<label class="j5-ack-all" for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" data-j5-ack-all aria-required="true" /><span class="j5-ack-all-text">I&#8217;ve read and accept <span data-j5-ack-count>these terms</span></span><span class="j5-ack-req" aria-hidden="true"><span class="j5-ack-req-todo">Required</span><span class="j5-ack-req-done">&#10003; Accepted</span></span></label>'
+			. '<label class="j5-ack-all" for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" data-j5-ack-all aria-required="true" /><span class="j5-ack-all-text">I&#8217;ve read and agree to all terms</span><span class="j5-ack-req" aria-hidden="true"><span class="j5-ack-req-todo">Required</span><span class="j5-ack-req-done">&#10003; Accepted</span></span></label>'
 			. '</div>';
 		return;
 	}
@@ -765,7 +766,7 @@ add_action( 'woocommerce_after_order_itemmeta', function ( $item_id, $item ) {
  *    from the chosen variation's real stock state, as the server does in
  *    j5_ack_for_variation_placed(). Before this, that toggle only ran on the checkout page,
  *    so on product pages those rows stayed hidden and the server refused the add.
- *  - compact gate: the one "I've read and accept" box ticks every visible tag's checkbox;
+ *  - compact gate: the one "I've read and agree to all terms" box ticks every visible tag's checkbox;
  *    when a new ack appears (a special-order variation), the box clears so it's re-affirmed.
  * Runs before the sync script below (priority 100), which still decides the button state.
  */
@@ -787,9 +788,6 @@ add_action( 'wp_footer', function () {
 			var ok = boxes.length > 0;
 			boxes.forEach( function ( b ) { if ( ! b.checked ) { ok = false; } } );
 			all.checked = ok;
-			var n = gate.querySelectorAll( '.j5-ack-gate-row:not(.j5-ack-cond-hidden)' ).length;
-			var c = gate.querySelector( '[data-j5-ack-count]' );
-			if ( c ) { c.textContent = n < 2 ? 'this term' : ( 2 === n ? 'both terms' : 'all of these terms' ); }
 		}
 		document.addEventListener( 'DOMContentLoaded', function () {
 			document.querySelectorAll( '.j5-ack-gate--compact' ).forEach( function ( gate ) {

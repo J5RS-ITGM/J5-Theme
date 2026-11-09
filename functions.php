@@ -272,6 +272,11 @@ require_once get_stylesheet_directory() . '/inc/j5-guide-tables.php';
 require_once get_stylesheet_directory() . '/inc/j5-product-schema.php';
 // === J5-PRODUCT-SCHEMA-REQUIRES-END ===
 
+// === J5-RELATED-REQUIRES-START ===
+// Related gear: same subcategory first, then its parent (inc/j5-related-products.php).
+require_once get_stylesheet_directory() . '/inc/j5-related-products.php';
+// === J5-RELATED-REQUIRES-END ===
+
 /* === J5-MOBILE-INLINE-START === */
 /**
  * J5 Mobile CSS — inlined via wp_head priority 999
