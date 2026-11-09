@@ -1656,3 +1656,17 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 .j5-ack-gate--compact.j5-ack-gate-flash .j5-ack-all { border-color: var(--j5-red); background: rgba(200, 16, 46, 0.12); animation: j5AckShake 0.4s ease-in-out 2; }
 @keyframes j5AckShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @media (prefers-reduced-motion: reduce) { .j5-ack-gate--compact.j5-ack-gate-flash .j5-ack-all { animation: none; } }
+
+/* ============================================================================
+ * J5-VAR-STACK-1 (2026-11-09): when the last option row has 3 or more visible
+ * pills, the stock state / lead time goes on its own line under the option name
+ * ("MEDIUM" / "4-6 WEEKS") instead of inline after a dot. Rows of 1 or 2 pills
+ * keep the inline look. Hidden options (j5-opt-none / j5-opt-na) don't count.
+ * ========================================================================== */
+.j5-vg-last .j5-variant-pills:has(> .j5-variant-pill:nth-child(3 of :not(.j5-opt-none):not(.j5-opt-na))) .j5-variant-pill { white-space: normal; text-align: center; line-height: 1.25; }
+.j5-vg-last .j5-variant-pills:has(> .j5-variant-pill:nth-child(3 of :not(.j5-opt-none):not(.j5-opt-na))) .j5-variant-pill::after { display: block; margin-top: 3px; font-size: 10px; letter-spacing: 0.1em; line-height: 1.2; }
+.j5-vg-last .j5-variant-pills:has(> .j5-variant-pill:nth-child(3 of :not(.j5-opt-none):not(.j5-opt-na))) .j5-variant-pill.j5-opt-in::after { content: "In stock"; }
+.j5-vg-last .j5-variant-pills:has(> .j5-variant-pill:nth-child(3 of :not(.j5-opt-none):not(.j5-opt-na))) .j5-variant-pill.j5-opt-oos::after { content: "Out of stock"; }
+.j5-vg-last .j5-variant-pills:has(> .j5-variant-pill:nth-child(3 of :not(.j5-opt-none):not(.j5-opt-na))) .j5-variant-pill.j5-opt-special::after { content: "Special order"; }
+.j5-vg-last .j5-variant-pills:has(> .j5-variant-pill:nth-child(3 of :not(.j5-opt-none):not(.j5-opt-na))) .j5-variant-pill.j5-opt-special.j5-opt-factory::after { content: attr(data-j5-lead-short); }
+/* === J5-VAR-STACK-1 END === */
