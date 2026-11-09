@@ -333,7 +333,6 @@ function j5_brand_title_rules() {
 		'blade-tech'                    => array( 'Blade-Tech', '/\bblade-?tech\b/i' ),
 		'dji'                           => array( 'DJI', '/\bdji\b/i' ),
 		'mckesson'                      => array( 'McKesson', '/\bmckesson\b/i' ),
-		'spyderco'                      => array( 'Spyderco', '/\bspyderco\b/i' ),
 		'skb'                           => array( 'SKB', '/\bskb\b/i' ),
 		'streamlight'                   => array( 'Streamlight', '/\bstreamlight\b/i' ),
 		'esstac'                        => array( 'Esstac', '/\besstac\b/i' ),

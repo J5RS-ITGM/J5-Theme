@@ -277,6 +277,11 @@ require_once get_stylesheet_directory() . '/inc/j5-product-schema.php';
 require_once get_stylesheet_directory() . '/inc/j5-related-products.php';
 // === J5-RELATED-REQUIRES-END ===
 
+// === J5-GONE-REQUIRES-START ===
+// 410 Gone for retired URLs, only when they would otherwise 404 (inc/j5-gone.php).
+require_once get_stylesheet_directory() . '/inc/j5-gone.php';
+// === J5-GONE-REQUIRES-END ===
+
 /* === J5-MOBILE-INLINE-START === */
 /**
  * J5 Mobile CSS — inlined via wp_head priority 999
