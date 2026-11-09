@@ -1477,6 +1477,8 @@ body.j5-shop-template .j5-container {
 .j5-fs-callout__text { font-size: 14.5px; line-height: 1.5; color: #d6d3ca; margin: 0; }
 .j5-fs-callout__text strong { color: #f5f1e8; }
 .j5-fs-callout__how { margin: 8px 0 0; font-size: 13px; color: #a4a49a; }
+.j5-fs-callout__link { display: inline-block; margin-left: 6px; color: #f0bc5a; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.j5-fs-callout__link:hover { color: #f5f1e8; }
 @media (max-width: 480px) {
 	.j5-fs-callout { flex-direction: column; gap: 10px; }
 	.j5-fs-callout__badge { flex-direction: row; gap: 8px; min-width: 0; padding: 6px 10px; }

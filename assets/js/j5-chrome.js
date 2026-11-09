@@ -232,3 +232,22 @@
 	}
 })();
 /* J5-CHROME-STICKY-JS-END */
+
+/* J5-CHROME-DETAILS-HASH: a link to /faq/#factory-orders opens that answer and scrolls to it. */
+(function () {
+	function openHash() {
+		var id = decodeURIComponent((window.location.hash || '').slice(1));
+		if (!id) { return; }
+		var el = document.getElementById(id);
+		if (!el || el.tagName !== 'DETAILS') { return; }
+		el.open = true;
+		el.scrollIntoView({ block: 'start' });
+	}
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', openHash);
+	} else {
+		openHash();
+	}
+	window.addEventListener('hashchange', openHash);
+})();
+/* J5-CHROME-DETAILS-HASH-END */

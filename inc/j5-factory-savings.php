@@ -102,6 +102,16 @@ add_filter( 'woocommerce_available_variation', function ( $data, $product, $vari
 }, 22, 3 );
 
 /**
+ * FAQ answer the callout links to: the FAQ page (ID 9041, filter j5_faq_page_id) at #factory-orders.
+ * The answer is added by content/pages/add-factory-order-faq.php. Empty when the page is gone.
+ */
+function j5fs_faq_url() {
+	$id  = (int) apply_filters( 'j5_faq_page_id', 9041 );
+	$url = $id && 'publish' === get_post_status( $id ) ? get_permalink( $id ) : '';
+	return $url ? $url . '#factory-orders' : '';
+}
+
+/**
  * The callout, printed right after the stock banner (woocommerce/single-product.php).
  * Variable products start at "Up to <max>%"; the inline script switches to the
  * selected option's own percent, or hides the callout for options without one.
@@ -113,18 +123,20 @@ function j5fs_render_line( $product ) {
 	if ( $max <= 0 ) {
 		return;
 	}
-	$m = esc_html( j5fs_fmt( $max ) );
+	$m   = esc_html( j5fs_fmt( $max ) );
+	$faq = j5fs_faq_url();
 	printf(
 		'<div class="j5-fs-callout" data-j5-fs data-max="%1$s">'
 			. '<div class="j5-fs-callout__badge" aria-hidden="true"><span data-j5-fs-upto>Up to</span><b><span data-j5-fs-pct>%1$s</span>%%</b><span>off</span></div>'
 			. '<div class="j5-fs-callout__body">'
 				. '<p class="j5-fs-callout__title">%2$s</p>'
-				. '<p class="j5-fs-callout__text">Order this as a <strong>factory order</strong> and save <strong><span data-j5-fs-upto>up to </span><span data-j5-fs-pct>%1$s</span>%%</strong>. It is built for you by the manufacturer, so it takes a little longer to ship.</p>'
-				. '<p class="j5-fs-callout__how">Your discount is applied automatically in the cart. No code needed.</p>'
+				. '<p class="j5-fs-callout__text">Not on our shelf? Place a <strong>factory order</strong> and save <strong><span data-j5-fs-upto>up to </span><span data-j5-fs-pct>%1$s</span>%%</strong>. We order your armor straight from the manufacturer and ship it to you as soon as it is ready. It takes a little longer, so you pay less.</p>'
+				. '<p class="j5-fs-callout__how">Discount applied automatically in your cart. No code needed.%3$s</p>'
 			. '</div>'
 		. '</div>',
 		$m,
-		esc_html( J5FS_LABEL )
+		esc_html( J5FS_LABEL ),
+		$faq ? ' <a class="j5-fs-callout__link" href="' . esc_url( $faq ) . '">How factory orders work &rarr;</a>' : ''
 	);
 }
 
