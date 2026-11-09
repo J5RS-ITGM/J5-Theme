@@ -313,3 +313,21 @@ body.j5-custom-chrome.elementor-page:not(.woocommerce-page):not(.j5-home-templat
 /* J5-SIGNIN-LABEL (2026-11-03): visible "Sign in" next to the account icon when logged out */
 body.j5-custom-chrome .j5-icon-btn--account { gap: 7px; }
 body.j5-custom-chrome .j5-icon-btn__label { font-family: var(--j5c-body); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+
+/* J5-MEGA-CATS-1 (2026-11-09): product counts in the mega menu + phone drawer category list */
+body.j5-custom-chrome .j5-mega-menu__count { margin-left: 4px; font-size: 11px; color: var(--j5c-bone-soft); }
+body.j5-custom-chrome .j5-mega-menu__items a:hover .j5-mega-menu__count { color: var(--j5c-gold-soft); }
+body.j5-custom-chrome .j5-mobile-cats { padding: 4px 0 12px; border-bottom: 1px solid var(--j5c-border); margin-bottom: 8px; }
+body.j5-custom-chrome .j5-mobile-cats__title { margin: 8px 0 6px; font-family: var(--j5c-cond); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mobile-cats__group { border-top: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mobile-cats__group summary,
+body.j5-custom-chrome .j5-mobile-cats__link--top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 2px; font-family: var(--j5c-cond); font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--j5c-bone); text-decoration: none; cursor: pointer; list-style: none; border-top: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mobile-cats__group summary { border-top: 0; }
+body.j5-custom-chrome .j5-mobile-cats__group summary::-webkit-details-marker { display: none; }
+body.j5-custom-chrome .j5-mobile-cats__group summary::after { content: "+"; font-family: var(--j5c-body); font-size: 20px; color: var(--j5c-bone-soft); }
+body.j5-custom-chrome .j5-mobile-cats__group[open] summary::after { content: "\2212"; color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mobile-cats__group[open] summary { color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mobile-cats__group ul { list-style: none; margin: 0 0 8px; padding: 0 0 0 12px; }
+body.j5-custom-chrome .j5-mobile-cats__group li a { display: flex; align-items: center; min-height: 40px; font-size: 15px; color: var(--j5c-bone-mute); text-decoration: none; }
+body.j5-custom-chrome .j5-mobile-cats__group li a:hover,
+body.j5-custom-chrome .j5-mobile-cats__all { color: var(--j5c-gold) !important; }

@@ -35,7 +35,154 @@ function j5_flatten_children( $parent_id, $tree ) {
 	return $out;
 }
 
+/* =========================================================================
+ * J5-MEGA-CATS-1 (2026-11-09): the mega menu, the phone drawer's Shop list and the
+ * footer Shop column are built from the product category tree (the DP pushes it),
+ * not from a hand-kept WP menu. Only categories with products show. Order: the
+ * category "order" set in WC (Products > Categories drag order), then name.
+ * Set add_filter( 'j5_mega_menu_source', fn() => 'menu' ) to go back to the old
+ * Shop Menu (ID 17) source.
+ * ====================================================================== */
+
+/** Products in a category including its subcategories (WC keeps this count). */
+function j5_cat_product_count( $term ) {
+	$n = get_term_meta( $term->term_id, 'product_count_product_cat', true );
+	return '' === $n ? (int) $term->count : (int) $n;
+}
+
+/**
+ * [ [ 'term' => WP_Term, 'url' => string, 'children' => [ WP_Term, ... ] ], ... ]
+ * Top-level categories with products, each with its subcategories that have products.
+ */
+function j5_shop_category_tree() {
+	static $memo = null;
+	if ( null !== $memo ) {
+		return $memo;
+	}
+	$key = 'j5_shop_cat_tree_' . md5( wp_cache_get_last_changed( 'terms' ) );
+	$hit = get_transient( $key );
+	if ( is_array( $hit ) ) {
+		return $memo = $hit;
+	}
+	$terms = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false ) );
+	if ( is_wp_error( $terms ) ) {
+		return $memo = array();
+	}
+	$skip   = (int) get_option( 'default_product_cat' ); // Uncategorized
+	$by_par = array();
+	foreach ( $terms as $t ) {
+		if ( (int) $t->term_id === $skip || 'uncategorized' === $t->slug || j5_cat_product_count( $t ) < 1 ) {
+			continue;
+		}
+		$by_par[ (int) $t->parent ][] = $t;
+	}
+	$sort = function ( &$list ) {
+		usort( $list, function ( $a, $b ) {
+			$oa = (int) get_term_meta( $a->term_id, 'order', true );
+			$ob = (int) get_term_meta( $b->term_id, 'order', true );
+			return $oa === $ob ? strnatcasecmp( $a->name, $b->name ) : $oa - $ob;
+		} );
+	};
+	$out = array();
+	$top = $by_par[0] ?? array();
+	$sort( $top );
+	foreach ( $top as $t ) {
+		$kids = $by_par[ (int) $t->term_id ] ?? array();
+		$sort( $kids );
+		$link = get_term_link( $t );
+		$out[] = array( 'term' => $t, 'url' => is_wp_error( $link ) ? home_url( '/shop/' ) : $link, 'children' => $kids );
+	}
+	set_transient( $key, $out, DAY_IN_SECONDS );
+	return $memo = $out;
+}
+
+function j5_mega_from_categories() {
+	return 'menu' !== apply_filters( 'j5_mega_menu_source', 'categories' );
+}
+
+/** Mega menu from the category tree (same markup and JS hooks as the menu-built one). */
+function j5_render_mega_menu_categories() {
+	$tree = j5_shop_category_tree();
+	if ( ! $tree ) {
+		return;
+	}
+	$label = function ( $t ) { return html_entity_decode( $t->name, ENT_QUOTES, 'UTF-8' ); };
+	?>
+	<div id="j5-mega-menu" class="j5-mega-menu" aria-hidden="true" role="region" aria-label="Shop categories">
+		<div class="j5-mega-menu__inner">
+			<div class="j5-mega-menu__cats" role="tablist">
+				<?php foreach ( $tree as $i => $row ) : $t = $row['term']; ?>
+					<button type="button"
+						class="j5-mega-menu__cat<?php echo 0 === $i ? ' is-active' : ''; ?>"
+						role="tab"
+						aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+						aria-controls="j5-mega-panel-c<?php echo (int) $t->term_id; ?>"
+						data-j5-mega-cat="c<?php echo (int) $t->term_id; ?>"
+						data-j5-mega-url="<?php echo esc_attr( $row['url'] ); ?>">
+						<span><?php echo esc_html( $label( $t ) ); ?></span>
+						<span class="j5-mega-menu__cat-arrow" aria-hidden="true">&rsaquo;</span>
+					</button>
+				<?php endforeach; ?>
+			</div>
+			<div class="j5-mega-menu__content">
+				<?php foreach ( $tree as $i => $row ) : $t = $row['term']; ?>
+					<div id="j5-mega-panel-c<?php echo (int) $t->term_id; ?>"
+						class="j5-mega-menu__panel<?php echo 0 === $i ? ' is-active' : ''; ?>"
+						role="tabpanel"<?php echo 0 === $i ? '' : ' hidden'; ?>>
+						<div class="j5-mega-menu__panel-head">
+							<h3 class="j5-mega-menu__panel-title"><?php echo esc_html( $label( $t ) ); ?></h3>
+							<a href="<?php echo esc_url( $row['url'] ); ?>" class="j5-mega-menu__panel-viewall">Shop all <?php echo esc_html( $label( $t ) ); ?> &rarr;</a>
+						</div>
+						<?php if ( $row['children'] ) : ?>
+						<ul class="j5-mega-menu__items">
+							<?php foreach ( $row['children'] as $c ) : $cl = get_term_link( $c ); if ( is_wp_error( $cl ) ) { continue; } ?>
+								<li><a href="<?php echo esc_url( $cl ); ?>"><?php echo esc_html( $label( $c ) ); ?> <span class="j5-mega-menu__count"><?php echo (int) j5_cat_product_count( $c ); ?></span></a></li>
+							<?php endforeach; ?>
+						</ul>
+						<?php endif; ?>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+/** Phone drawer: "Shop by category", one expandable row per top-level category. */
+function j5_render_mobile_shop_categories() {
+	if ( ! j5_mega_from_categories() ) {
+		return;
+	}
+	$tree = j5_shop_category_tree();
+	if ( ! $tree ) {
+		return;
+	}
+	echo '<div class="j5-mobile-cats"><p class="j5-mobile-cats__title">Shop by category</p>';
+	foreach ( $tree as $row ) {
+		$t    = $row['term'];
+		$name = esc_html( html_entity_decode( $t->name, ENT_QUOTES, 'UTF-8' ) );
+		if ( ! $row['children'] ) {
+			echo '<a class="j5-mobile-cats__link j5-mobile-cats__link--top" href="' . esc_url( $row['url'] ) . '">' . $name . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			continue;
+		}
+		echo '<details class="j5-mobile-cats__group"><summary>' . $name . '</summary><ul>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '<li><a class="j5-mobile-cats__all" href="' . esc_url( $row['url'] ) . '">Shop all ' . $name . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		foreach ( $row['children'] as $c ) {
+			$cl = get_term_link( $c );
+			if ( ! is_wp_error( $cl ) ) {
+				echo '<li><a href="' . esc_url( $cl ) . '">' . esc_html( html_entity_decode( $c->name, ENT_QUOTES, 'UTF-8' ) ) . '</a></li>';
+			}
+		}
+		echo '</ul></details>';
+	}
+	echo '</div>';
+}
+
 function j5_render_mega_menu() {
+	if ( j5_mega_from_categories() ) {
+		j5_render_mega_menu_categories();
+		return;
+	}
 	$tree = j5_get_shop_menu_tree();
 	if ( empty( $tree[0] ) ) return;
 	$top_level = $tree[0];
@@ -90,6 +237,14 @@ function j5_render_mega_menu() {
 }
 
 function j5_render_footer_shop_menu() {
+	if ( j5_mega_from_categories() && j5_shop_category_tree() ) {
+		echo '<ul class="j5-footer-links">';
+		foreach ( array_slice( j5_shop_category_tree(), 0, 6 ) as $row ) {
+			echo '<li><a href="' . esc_url( $row['url'] ) . '">' . esc_html( html_entity_decode( $row['term']->name, ENT_QUOTES, 'UTF-8' ) ) . '</a></li>';
+		}
+		echo '<li class="j5-footer-links__all"><a href="' . esc_url( home_url( '/shop/' ) ) . '">View all categories &rarr;</a></li></ul>';
+		return;
+	}
 	$tree = j5_get_shop_menu_tree();
 	if ( empty( $tree[0] ) ) {
 		echo '<p class="j5-footer-links__empty">Shop Menu not configured.</p>';
