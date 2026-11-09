@@ -238,7 +238,10 @@ function j5_ship_settings_page() {
 							if ( ! empty( $r['categories'] ) ) { $applies[] = 'Categories: ' . implode( ', ', $r['categories'] ); }
 							if ( ! empty( $r['tags'] ) ) { $applies[] = 'Tags: ' . implode( ', ', $r['tags'] ); }
 							if ( ! empty( $r['skus'] ) ) { $applies[] = count( $r['skus'] ) . ' SKU(s)'; }
-							$dest = ! empty( $r['states'] ) ? 'State: ' . implode( ', ', $r['states'] ) : 'City: ' . implode( ', ', array_map( function ( $c ) { return $c['city'] . ', ' . $c['state']; }, (array) $r['cities'] ) );
+							$dest = array();
+							if ( ! empty( $r['states'] ) ) { $dest[] = 'States: ' . implode( ', ', $r['states'] ); }
+							if ( ! empty( $r['cities'] ) ) { $dest[] = 'Cities: ' . implode( '; ', array_map( function ( $c ) { return $c['city'] . ', ' . $c['state']; }, (array) $r['cities'] ) ); }
+							$dest = implode( ' | ', $dest );
 							?>
 							<tr>
 								<td><?php echo esc_html( $r['label'] ? $r['label'] : '—' ); ?></td>

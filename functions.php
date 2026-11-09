@@ -241,6 +241,7 @@ if ( is_admin() ) {
 // === J5-SHIPPING-RESTRICTIONS-REQUIRES-START ===
 require_once get_stylesheet_directory() . '/inc/j5-shipping-restrictions.php';
 require_once get_stylesheet_directory() . '/inc/j5-shipping-rules-dp.php'; // DP-pushed rules + /j5/v1/shipping-rules
+require_once get_stylesheet_directory() . '/inc/j5-shipping-rates-dp.php'; // DP-pushed rates + /j5/v1/shipping-rates + J5 shipping method
 if ( is_admin() ) {
 	require_once get_stylesheet_directory() . '/inc/j5-shipping-restrictions-admin.php';
 }

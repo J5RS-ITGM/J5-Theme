@@ -242,6 +242,13 @@ function j5_ship_product_matches( $product_id, $rule ) {
  * @return bool
  */
 function j5_ship_destination_blocked( $rule, $state, $city ) {
+	// Dealer portal rules: states and cities together, either one blocks (city matches with its state).
+	if ( 'dp' === $rule['block_type'] ) {
+		if ( in_array( strtoupper( trim( (string) $state ) ), (array) $rule['states'], true ) ) {
+			return true;
+		}
+		return in_array( strtolower( trim( (string) $city ) ) . '|' . strtoupper( trim( (string) $state ) ), (array) $rule['city_states'], true );
+	}
 	if ( 'state' === $rule['block_type'] ) {
 		return in_array( strtoupper( $state ), $rule['states'], true );
 	}
@@ -330,6 +337,14 @@ function j5_ship_restricted_items_in_cart() {
  * @return string
  */
 function j5_ship_rule_dest_text( $rule ) {
+	if ( 'dp' === $rule['block_type'] ) {
+		$parts = (array) $rule['states'];
+		foreach ( (array) $rule['city_states'] as $cs ) {
+			list( $c, $st ) = array_pad( explode( '|', $cs ), 2, '' );
+			$parts[] = ucwords( $c ) . ', ' . $st;
+		}
+		return implode( '; ', $parts );
+	}
 	if ( 'state' === $rule['block_type'] ) {
 		return implode( ', ', $rule['states'] );
 	}
