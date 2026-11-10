@@ -38,8 +38,8 @@ function j5_flatten_children( $parent_id, $tree ) {
 /* =========================================================================
  * J5-MEGA-CATS-1 (2026-11-09; departments layout J5-MEGA-DEPTS-1): the mega menu, the phone drawer's Shop list and the
  * footer Shop column are built from the product category tree (the DP pushes it),
- * not from a hand-kept WP menu. Only categories with products show. Order: the
- * category "order" set in WC (Products > Categories drag order), then name.
+ * not from a hand-kept WP menu. Only categories with products show. Subcategories A to Z;
+ * top-level order from j5_mega_departments().
  * Set add_filter( 'j5_mega_menu_source', fn() => 'menu' ) to go back to the old
  * Shop Menu (ID 17) source.
  * ====================================================================== */
@@ -76,11 +76,10 @@ function j5_shop_category_tree() {
 		}
 		$by_par[ (int) $t->parent ][] = $t;
 	}
+	// A to Z by name (J5-MEGA-AZ-1, 2026-11-09). Top-level order on the menu comes from j5_mega_departments().
 	$sort = function ( &$list ) {
 		usort( $list, function ( $a, $b ) {
-			$oa = (int) get_term_meta( $a->term_id, 'order', true );
-			$ob = (int) get_term_meta( $b->term_id, 'order', true );
-			return $oa === $ob ? strnatcasecmp( $a->name, $b->name ) : $oa - $ob;
+			return strnatcasecmp( html_entity_decode( $a->name, ENT_QUOTES, 'UTF-8' ), html_entity_decode( $b->name, ENT_QUOTES, 'UTF-8' ) );
 		} );
 	};
 	$out = array();
