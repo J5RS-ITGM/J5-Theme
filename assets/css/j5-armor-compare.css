@@ -904,3 +904,36 @@ html.j5ac-cmp-open, html.j5ac-cmp-open body { overflow: hidden; }
 	.j5ac-float:not(:has(.j5ac-float-btn--cmp:not([hidden]))) { left: auto; }
 }
 /* === J5-AC-CMPGRID-END === */
+
+/* ==========================================================================
+   J5-AC-FIT-1 + J5-AC-SIZES-B (2026-11-09): "Your plate size" picker and the
+   summary-first sizes cell (cut tags + counts, shown size, "All N sizes").
+   ========================================================================== */
+.j5ac-fitbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 0 16px; padding: 14px 16px; background: var(--card); border: 1px solid var(--line-hi); border-radius: 6px; }
+.j5ac-fitbar-h { font-weight: 600; font-size: 15px; color: var(--bone); }
+.j5ac-fitbar-b { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.j5ac .j5ac-fitbtn { min-height: 38px; padding: 0 14px; border: 1px solid var(--line-hi); border-radius: 4px; background: transparent; color: var(--ink); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.j5ac .j5ac-fitbtn:hover { border-color: var(--g); color: var(--gh); }
+.j5ac .j5ac-fitbtn.is-on { background: var(--g); border-color: var(--g); color: #0a0b0d; }
+.j5ac .j5ac-fitbtn:focus-visible, .j5ac .j5ac-fitsel:focus-visible { outline: 2px solid var(--g); outline-offset: 2px; }
+.j5ac .j5ac-fitsel { min-height: 38px; padding: 0 10px; border: 1px solid var(--line-hi); border-radius: 4px; background: #1d2128; color: var(--ink); font-family: inherit; font-size: 14px; }
+.j5ac-fitbar-s { margin-left: auto; font-size: 14px; color: var(--dim); }
+.j5ac-vfit { display: block; margin: 2px 0 6px; font-size: 15px; font-weight: 700; }
+.j5ac-vfit.is-yes { color: #5cc27a; }
+.j5ac-vfit.is-no { color: var(--dim); font-weight: 600; }
+.j5ac-vrow.is-nofit > .j5ac-vname, .j5ac-vrow.is-nofit > .j5ac-vspecs,
+.j5ac-vcard.is-nofit .j5ac-vcard-top, .j5ac-vcard.is-nofit .j5ac-vtags, .j5ac-vcard.is-nofit .j5ac-vcard-stats, .j5ac-vcard.is-nofit .j5ac-vcard-img { opacity: .45; }
+.j5ac-vcuts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.j5ac-vcut { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border: 1px solid var(--line-hi); border-radius: 4px; font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.j5ac-vcut-n { font-weight: 500; color: var(--dim); }
+.j5ac-vshownl { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 8px; font-size: 14px; color: var(--dim); }
+.j5ac-vshown strong { color: var(--gh); font-weight: 700; }
+.j5ac .j5ac-vshownl .j5ac-vmore { margin: 0; min-height: 32px; padding: 0 4px; border: 0; background: none; color: var(--g); font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0; text-decoration: underline; text-underline-offset: 3px; }
+.j5ac-vall { margin-top: 10px; padding: 12px 14px; background: #121418; border: 1px solid var(--line); border-radius: 6px; }
+.j5ac-vall .j5ac-vchips:first-child { margin-top: 0; }
+@media (max-width: 720px) {
+	.j5ac-fitbar-s { margin-left: 0; flex-basis: 100%; }
+	.j5ac-fitbar-b { max-width: 100%; } /* buttons wrap; no sideways scrolling on phones */
+	.j5ac .j5ac-fitsel { flex: 1 1 100%; }
+}
+/* === J5-AC-FIT-1 + J5-AC-SIZES-B END === */

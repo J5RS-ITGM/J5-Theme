@@ -515,6 +515,7 @@
 			var trs = groups[k], rep = null;
 			trs.forEach(function (tr) { if (!rep && picked.indexOf(tr.getAttribute('data-slug')) !== -1) rep = tr; });
 			if (!rep && sel[k]) trs.forEach(function (tr) { if (!rep && tr.getAttribute('data-slug') === sel[k]) rep = tr; });
+			if (!rep && self.fit) trs.forEach(function (tr) { if (!rep && fitKey(tr._j5r.data) === self.fit) rep = tr; }); // J5-AC-FIT-1
 			if (!rep) {
 				var best = null, bs = Infinity;
 				trs.forEach(function (tr) {
@@ -808,6 +809,20 @@
 		members.forEach(function (r) { var v = r.data.specs.cut; if (v && c.indexOf(String(v)) === -1) c.push(String(v)); });
 		return c;
 	}
+	/* J5-AC-FIT-1 (2026-11-09): "Your plate size" picker. A size's fit key is "10 x 12" for
+	   dimensioned sizes and "SAPI M" for SAPI letter sizes, so a Shooter's and a Rectangle 10 x 12 match together. */
+	function fitKey(d) {
+		var sz = sizeOf(d);
+		if (!sz || !sz.w) return null;
+		if (sz.sub && SAPI_SHORT[sz.sub]) return 'SAPI ' + SAPI_SHORT[sz.sub];
+		return sz.label.replace(' in', '');
+	}
+	/** "Shooter's 10 x 12" / "SAPI M" / "10 x 12" for a member that matches the picked size. */
+	function fitLabel(d) {
+		var k = fitKey(d), cut = String(d.specs && d.specs.cut || '');
+		if (!k) return '';
+		return /^SAPI /.test(k) || !cut || /sapi/i.test(cut) ? k : cut + ' ' + k;
+	}
 	/** Size chips grouped under a label: [{ label: "Shooter's", sizes: ['8 x 10', ...] }, { label: 'SAPI', sizes: ['S', 'M'] }]. */
 	function sizeGroups(members, d) {
 		var groups = [], idx = {};
@@ -893,11 +908,16 @@
 			});
 		});
 		this.section.classList.add('has-view');
+		this.viewBox.addEventListener('change', function (e) {
+			if (e.target && e.target.matches && e.target.matches('[data-j5ac-fitsel]') && e.target.value) self.setFit(e.target.value);
+		});
 		this.viewBox.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t.closest) return;
 			var szb = t.closest('[data-j5ac-size]');
 			if (szb) { self.famSel = self.famSel || {}; self.famSel[szb.getAttribute('data-fam')] = szb.getAttribute('data-j5ac-size'); self.renderCards(); var again = self.viewBox.querySelector('[data-j5ac-size="' + szb.getAttribute('data-j5ac-size') + '"]'); if (again) again.focus(); return; }
+			var fb = t.closest('[data-j5ac-fit]');
+			if (fb) { self.setFit(fb.getAttribute('data-j5ac-fit')); return; }
 			var mo = t.closest('[data-j5ac-more]');
 			if (mo) { var mk = mo.getAttribute('data-j5ac-more'); self.moreOpen = self.moreOpen || {}; self.moreOpen[mk] = !self.moreOpen[mk]; self.renderView(); var mb = self.viewBox.querySelector('[data-j5ac-more="' + mk + '"]'); if (mb) mb.focus(); return; }
 			var clr = t.closest('[data-j5ac-clearpicks]');
@@ -965,6 +985,8 @@
 			carried: !!d.carried, wc: wc, picked: picked,
 			locked: false,
 			why: !picked && this.unequal ? (this.unequal[f.rep.data.slug] || []) : [],
+			// "Full & Shooter's 10 x 12" when a listing makes the picked size in more than one cut.
+			fitHit: this.fit ? (function () { var hit = '', cuts = []; m.forEach(function (r) { if (fitKey(r.data) !== self.fit) return; var l = fitLabel(r.data), c = l.slice(0, l.length - self.fit.length).trim(); if (!hit) hit = l; if (c && cuts.indexOf(c) === -1) cuts.push(c); }); return cuts.length > 1 ? cuts.join(' & ') + ' ' + self.fit : hit; })() : '',
 			shownLabel: (function () { var z = sizeOf(d); return z && z.w ? (z.sub || z.label.replace(' in', '')) : ''; })(),
 			shownW: num(d.specs.weight_lb),
 			shownEff: d.derived && typeof d.derived.oz_per_sqin === 'number' ? d.derived.oz_per_sqin : null
@@ -985,7 +1007,10 @@
 		if (by === 'level') order.sort(function (a, b) { var x = LEVEL_ORDER.indexOf(a.key), y = LEVEL_ORDER.indexOf(b.key); return (x === -1 ? 99 : x) - (y === -1 ? 99 : y); });
 		if (by === 'maker' || by === 'cut') order.sort(function (a, b) { return a.key.localeCompare(b.key); });
 		// J5-AC-SIDE: side plates get their own sub heading under each group, after the full-size plates.
+		// J5-AC-FIT-1: with a plate size picked, listings made in it come first in each group (order otherwise kept).
+		var fitOn = !!this.fit;
 		if (this.config.category === 'plate') order.forEach(function (g) {
+			if (fitOn) g.items = g.items.filter(function (f) { return !!f.fitHit; }).concat(g.items.filter(function (f) { return !f.fitHit; }));
 			var full = g.items.filter(function (f) { return !isSidePlate(f); }), side = g.items.filter(isSidePlate);
 			if (!side.length) return;
 			g.items = full.concat(side);
@@ -1018,38 +1043,66 @@
 		return b;
 	}
 	function vkv(k, v, cls) { var w = el('div', 'j5ac-kv' + (cls ? ' ' + cls : '')); w.appendChild(el('span', 'j5ac-k', k)); w.appendChild(el('span', 'j5ac-v', v === null || v === undefined || v === '' ? 'not listed' : v)); return w; }
-	var SIZE_SHOW = 6; // chips shown per listing before "+N more"
-	function vsizes(f, more) {
+	var SIZE_SHOW = 6; // (kept for reference; J5-AC-SIZES-B shows a summary and opens every size on demand)
+	/**
+	 * J5-AC-SIZES-B (2026-11-09): the sizes cell.
+	 *   - Picked size (J5-AC-FIT-1): "✓ Shooter's 10 x 12" or "Not made in 10 x 12".
+	 *   - Summary: one tag per cut with its size count, and the size shown ("Showing SAPI M").
+	 *   - "All N sizes" opens every size, grouped by cut; each is a button that switches the shown size.
+	 * One size: just that size, no toggle.
+	 */
+	function vsizes(f, more, fit) {
 		var w = el('div', 'j5ac-vsizes');
 		w.appendChild(el('span', 'j5ac-k', f.sizes.length > 1 ? 'Sizes' : 'Size'));
 		if (!f.sgroups.length) { w.appendChild(el('span', 'j5ac-na', 'not listed')); return w; }
-		var open = !!(more && more[f.key]), total = 0, shown = 0;
+		var open = !!(more && more[f.key]), total = 0;
 		f.sgroups.forEach(function (g) { total += (g.items || g.sizes).length; });
-		var cap = open || total <= SIZE_SHOW + 1 ? Infinity : SIZE_SHOW;
-		f.sgroups.forEach(function (g) {
-			var c = el('div', 'j5ac-vchips');
-			if (g.label) c.appendChild(el('span', 'j5ac-vchips-l', g.label));
-			var list = el('div', 'j5ac-vchips-s'); c.appendChild(list);
-			var items = (g.items || g.sizes.map(function (n) { return { n: n, slug: null }; }));
-			items.forEach(function (it) {
-				// keep the size being shown visible even past the cap
-				if (shown >= cap && it.slug !== f.rep.data.slug) return;
-				shown++;
-				if (!it.slug || f.members.length < 2) { list.appendChild(el('span', 'j5ac-vchip' + (it.slug && it.slug === f.rep.data.slug && f.members.length > 1 ? ' is-on' : ''), it.n)); return; }
-				var b = el('button', 'j5ac-vchip' + (it.slug === f.rep.data.slug ? ' is-on' : ''), it.n);
-				b.type = 'button';
-				b.setAttribute('data-j5ac-size', it.slug);
-				b.setAttribute('data-fam', f.key);
-				b.setAttribute('aria-pressed', it.slug === f.rep.data.slug ? 'true' : 'false');
-				b.setAttribute('aria-label', 'Show ' + f.name + ' ' + it.n);
-				list.appendChild(b);
+		var other = f.cuts.filter(function (c) { return !/shoot|sapi/i.test(c); }).join(' / ');
+		var gname = function (g) { return g.label || other || 'Sizes'; };
+		if (fit) {
+			if (f.fitHit) w.appendChild(el('span', 'j5ac-vfit is-yes', '✓ ' + f.fitHit));
+			else w.appendChild(el('span', 'j5ac-vfit is-no', 'Not made in ' + fit));
+		}
+		var chips = function () {
+			f.sgroups.forEach(function (g) {
+				var c = el('div', 'j5ac-vchips');
+				if (g.label || f.sgroups.length > 1) c.appendChild(el('span', 'j5ac-vchips-l', gname(g)));
+				var list = el('div', 'j5ac-vchips-s'); c.appendChild(list);
+				(g.items || g.sizes.map(function (n) { return { n: n, slug: null }; })).forEach(function (it) {
+					if (!it.slug || f.members.length < 2) { list.appendChild(el('span', 'j5ac-vchip' + (it.slug && it.slug === f.rep.data.slug && f.members.length > 1 ? ' is-on' : ''), it.n)); return; }
+					var b = el('button', 'j5ac-vchip' + (it.slug === f.rep.data.slug ? ' is-on' : ''), it.n);
+					b.type = 'button';
+					b.setAttribute('data-j5ac-size', it.slug);
+					b.setAttribute('data-fam', f.key);
+					b.setAttribute('aria-pressed', it.slug === f.rep.data.slug ? 'true' : 'false');
+					b.setAttribute('aria-label', 'Show ' + f.name + ' ' + it.n);
+					list.appendChild(b);
+				});
+				if (list.firstChild) w.appendChild(c);
 			});
-			if (list.firstChild) w.appendChild(c);
+		};
+		if (total <= 1) { chips(); return w; }
+		var sum = el('div', 'j5ac-vcuts');
+		f.sgroups.forEach(function (g) {
+			var t = el('span', 'j5ac-vcut', gname(g) + ' ');
+			t.appendChild(el('span', 'j5ac-vcut-n', String((g.items || g.sizes).length)));
+			sum.appendChild(t);
 		});
-		if (total > shown || open && total > SIZE_SHOW + 1) {
-			var mb = el('button', 'j5ac-vmore', open ? 'Fewer sizes' : '+' + (total - shown) + ' more');
-			mb.type = 'button'; mb.setAttribute('data-j5ac-more', f.key); mb.setAttribute('aria-expanded', open ? 'true' : 'false');
-			w.appendChild(mb);
+		w.appendChild(sum);
+		var line = el('div', 'j5ac-vshownl');
+		if (f.shownLabel) {
+			var sh = el('span', 'j5ac-vshown', 'Showing ');
+			sh.appendChild(el('strong', null, f.shownLabel));
+			line.appendChild(sh);
+		}
+		var mb = el('button', 'j5ac-vmore', open ? 'Hide sizes' : 'All ' + total + ' sizes');
+		mb.type = 'button'; mb.setAttribute('data-j5ac-more', f.key); mb.setAttribute('aria-expanded', open ? 'true' : 'false');
+		line.appendChild(mb);
+		w.appendChild(line);
+		if (open) {
+			var panel = el('div', 'j5ac-vall');
+			var keep = w; w = panel; chips(); w = keep;
+			w.appendChild(panel);
 		}
 		return w;
 	}
@@ -1130,6 +1183,7 @@
 		var box = this.viewBox;
 		box.textContent = '';
 		box.className = 'j5ac-view j5ac-view--' + view;
+		if (cfg.category === 'plate') { try { box.appendChild(this.fitBar(fams)); } catch (err) { if (window.console) console.error('j5ac fit bar', err); } } // J5-AC-FIT-1
 		if (this.picked.length) {
 			var p0 = this.rowBySlug(this.picked[0]), bd = p0 ? p0.data : null, bsz = bd ? sizeOf(bd) : null;
 			var bar = el('div', 'j5ac-cmpbar'); bar.setAttribute('role', 'status');
@@ -1151,7 +1205,7 @@
 				if (g.title) sec.appendChild(vhead(g, g.items.length));
 				g.items.forEach(function (f) {
 					if (f.subHead) sec.appendChild(vsubhead(f.subHead));
-					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
+					var row = el('div', 'j5ac-vrow' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : '') + (self.fit && !f.fitHit ? ' is-nofit' : ''));
 					row.setAttribute('data-j5ac-item', f.key);
 					var nm = el('div', 'j5ac-vname');
 					nm.appendChild(vnameline(f));
@@ -1166,7 +1220,7 @@
 					specs.appendChild(vweight(f));
 					if (cfg.eff) specs.appendChild(veff(f));
 					row.appendChild(specs);
-					row.appendChild(vsizes(f, self.moreOpen));
+					row.appendChild(vsizes(f, self.moreOpen, self.fit));
 					row.appendChild(vpick(f));
 					if (f.why.length) row.appendChild(vwhy(f));
 					sec.appendChild(row);
@@ -1180,7 +1234,7 @@
 				var grid = el('div', 'j5ac-vgrid');
 				g.items.forEach(function (f) {
 					if (f.subHead) { var shc = vsubhead(f.subHead); shc.classList.add('j5ac-vsubh--grid'); grid.appendChild(shc); }
-					var c = el('article', 'j5ac-vcard' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : ''));
+					var c = el('article', 'j5ac-vcard' + (f.carried ? ' is-carried' : '') + (f.picked ? ' is-picked' : '') + (f.why.length ? ' is-unequal' : '') + (self.fit && !f.fitHit ? ' is-nofit' : ''));
 					c.setAttribute('data-j5ac-item', f.key);
 					if (f.d.image) { var im = el('img', 'j5ac-vcard-img'); im.src = f.d.image; im.alt = f.d.manufacturer + ' ' + f.name; im.loading = 'lazy'; c.appendChild(im); }
 					var body = el('div', 'j5ac-vcard-b');
@@ -1200,7 +1254,7 @@
 					st.appendChild(vweight(f));
 					st.appendChild(cfg.eff ? veff(f) : vkv('Standard', f.d.specs.standard));
 					body.appendChild(st);
-					body.appendChild(vsizes(f, self.moreOpen));
+					body.appendChild(vsizes(f, self.moreOpen, self.fit));
 					if (f.why.length) body.appendChild(vwhy(f));
 					var foot = el('div', 'j5ac-vcard-foot');
 					foot.appendChild(vpick(f));
@@ -1276,6 +1330,51 @@
 			});
 			box.appendChild(wrap);
 		}
+	};
+
+	/** J5-AC-FIT-1: "Your plate size" bar. The most common sizes as buttons, the rest in a list. */
+	Panel.prototype.fitBar = function (fams) {
+		var self = this, counts = {}, order = [];
+		this.rows.forEach(function (r) {
+			if (isSideModel && isSideModel(r.data)) return;
+			var k = fitKey(r.data);
+			if (!k) return;
+			var fk = r.tr.getAttribute('data-fam') || r.data.slug;
+			counts[k] = counts[k] || {};
+			if (!counts[k][fk]) { counts[k][fk] = 1; if (order.indexOf(k) === -1) order.push(k); }
+		});
+		var n = function (k) { return Object.keys(counts[k]).length; };
+		order.sort(function (a, b) { return n(b) - n(a) || (a < b ? -1 : 1); });
+		if (this.fit && order.indexOf(this.fit) === -1) this.fit = '';
+		var bar = el('div', 'j5ac-fitbar');
+		bar.appendChild(el('span', 'j5ac-fitbar-h', 'Your plate size'));
+		var btns = el('div', 'j5ac-fitbar-b');
+		var top = ['', ].concat(order.slice(0, 6));
+		if (this.fit && top.indexOf(this.fit) === -1) top.push(this.fit);
+		top.forEach(function (k) {
+			var b = el('button', 'j5ac-fitbtn' + (k === self.fit ? ' is-on' : ''), k || 'Any size');
+			b.type = 'button'; b.setAttribute('data-j5ac-fit', k); b.setAttribute('aria-pressed', k === self.fit ? 'true' : 'false');
+			btns.appendChild(b);
+		});
+		var rest = order.slice(6).filter(function (k) { return top.indexOf(k) === -1; });
+		if (rest.length) {
+			var sel = el('select', 'j5ac-fitsel'); sel.setAttribute('data-j5ac-fitsel', ''); sel.setAttribute('aria-label', 'Other plate sizes');
+			var o0 = el('option', null, 'Other sizes'); o0.value = ''; sel.appendChild(o0);
+			rest.sort().forEach(function (k) { var o = el('option', null, k); o.value = k; sel.appendChild(o); });
+			btns.appendChild(sel);
+		}
+		bar.appendChild(btns);
+		var hits = this.fit ? fams.filter(function (f) { return !!f.fitHit; }).length : 0;
+		bar.appendChild(el('span', 'j5ac-fitbar-s', this.fit ? hits + ' of ' + fams.length + ' plates come in ' + this.fit : 'Pick a size to see which plates come in it'));
+		bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', 'Your plate size');
+		return bar;
+	};
+	Panel.prototype.setFit = function (k) {
+		this.fit = k || '';
+		this.famSel = {}; // the picked size decides the shown size again
+		this.renderCards();
+		var b = this.viewBox.querySelector(k ? '[data-j5ac-fit="' + k.replace(/"/g, '') + '"]' : '[data-j5ac-fit=""]');
+		if (b) b.focus();
 	};
 
 	Panel.prototype.renderCards = function () {
