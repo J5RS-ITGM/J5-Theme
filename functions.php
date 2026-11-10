@@ -284,6 +284,11 @@ require_once get_stylesheet_directory() . '/inc/j5-related-products.php';
 require_once get_stylesheet_directory() . '/inc/j5-gone.php';
 // === J5-GONE-REQUIRES-END ===
 
+// === J5-COMMENT-GUARD-REQUIRES-START ===
+// Invisible spam guard for product reviews and comments (inc/j5-comment-guard.php).
+require_once get_stylesheet_directory() . '/inc/j5-comment-guard.php';
+// === J5-COMMENT-GUARD-REQUIRES-END ===
+
 /* === J5-MOBILE-INLINE-START === */
 /**
  * J5 Mobile CSS — inlined via wp_head priority 999
