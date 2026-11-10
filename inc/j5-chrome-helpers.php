@@ -101,6 +101,62 @@ function j5_mega_from_categories() {
 }
 
 /**
+ * Mega menu layout: 'all' (B, every category and subcategory at once, in department order)
+ * or 'depts' (C, departments on the left). J5-MEGA-B-1, 2026-11-09: B is live.
+ * Switch back with add_filter( 'j5_mega_layout', fn() => 'depts' );
+ */
+function j5_mega_layout() {
+	return 'depts' === apply_filters( 'j5_mega_layout', 'all' ) ? 'depts' : 'all';
+}
+
+/** Every populated top-level category row, in department order ("More" last). */
+function j5_mega_all_rows() {
+	$rows = array();
+	foreach ( j5_mega_department_rows() as $d ) {
+		$rows = array_merge( $rows, $d['rows'] );
+	}
+	return $rows;
+}
+
+/** Layout B: one panel, every category as a heading with its subcategories, in columns. */
+function j5_render_mega_menu_all() {
+	$rows = j5_mega_all_rows();
+	if ( ! $rows ) {
+		return;
+	}
+	$name = function ( $t ) { return html_entity_decode( $t->name, ENT_QUOTES, 'UTF-8' ); };
+	?>
+	<div id="j5-mega-menu" class="j5-mega-menu j5-mega-menu--all" aria-hidden="true" role="region" aria-label="Shop categories">
+		<div class="j5-mega-menu__inner">
+			<div class="j5-mega-menu__groups">
+				<?php foreach ( $rows as $row ) : $t = $row['term']; ?>
+					<div class="j5-mega-menu__group">
+						<a class="j5-mega-menu__group-title" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $name( $t ) ); ?></a>
+						<?php if ( $row['children'] ) : ?>
+						<ul>
+							<?php foreach ( $row['children'] as $c ) : $cl = get_term_link( $c ); if ( is_wp_error( $cl ) ) { continue; } ?>
+								<li><a href="<?php echo esc_url( $cl ); ?>"><?php echo esc_html( $name( $c ) ); ?></a></li>
+							<?php endforeach; ?>
+						</ul>
+						<?php endif; ?>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<div class="j5-mega-menu__foot">
+				<span>Shop live stock. If we don’t have it, a factory order saves you money.</span>
+				<span class="j5-mega-menu__foot-links">
+					<?php $faq = (int) apply_filters( 'j5_faq_page_id', 9041 ); if ( $faq && 'publish' === get_post_status( $faq ) ) : ?>
+						<a href="<?php echo esc_url( get_permalink( $faq ) . '#factory-orders' ); ?>">How factory orders work</a>
+					<?php endif; ?>
+					<a href="<?php echo esc_url( home_url( '/shop/' ) ); ?>">View all products</a>
+				</span>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+/**
  * Departments for the mega menu (J5-MEGA-DEPTS-1, 2026-11-09, layout "C").
  * Each: [ name, one-line hint, [ top-level category slugs, in display order ] ].
  * A populated top-level category not listed here lands in "More" automatically.
@@ -143,6 +199,10 @@ function j5_mega_department_rows() {
 
 /** Mega menu, layout C: departments on the left, that department's categories in columns. */
 function j5_render_mega_menu_categories() {
+	if ( 'all' === j5_mega_layout() ) {
+		j5_render_mega_menu_all();
+		return;
+	}
 	$depts = j5_mega_department_rows();
 	if ( ! $depts ) {
 		return;
@@ -211,10 +271,14 @@ function j5_render_mobile_shop_categories() {
 	if ( ! $depts ) {
 		return;
 	}
+	if ( 'all' === j5_mega_layout() ) {
+		$depts = array( array( 'name' => '', 'hint' => '', 'rows' => j5_mega_all_rows() ) ); // one flat list
+	}
 	$nm = function ( $t ) { return esc_html( html_entity_decode( $t->name, ENT_QUOTES, 'UTF-8' ) ); };
 	echo '<div class="j5-mobile-cats"><p class="j5-mobile-cats__title">Shop</p>';
 	foreach ( $depts as $d ) {
-		echo '<details class="j5-mobile-cats__group"><summary>' . esc_html( $d['name'] ) . '</summary><div class="j5-mobile-cats__body">';
+		$flat = '' === $d['name'];
+		echo $flat ? '<div class="j5-mobile-cats__flat">' : '<details class="j5-mobile-cats__group"><summary>' . esc_html( $d['name'] ) . '</summary><div class="j5-mobile-cats__body">'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		foreach ( $d['rows'] as $row ) {
 			$t = $row['term'];
 			if ( ! $row['children'] ) {
@@ -231,7 +295,7 @@ function j5_render_mobile_shop_categories() {
 			}
 			echo '</ul></details>';
 		}
-		echo '</div></details>';
+		echo $flat ? '</div>' : '</div></details>';
 	}
 	echo '<a class="j5-mobile-cats__cat j5-mobile-cats__viewall" href="' . esc_url( home_url( '/shop/' ) ) . '">View all products</a></div>';
 }

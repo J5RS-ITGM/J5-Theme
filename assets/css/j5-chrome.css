@@ -355,3 +355,14 @@ body.j5-custom-chrome .j5-mobile-cats a:hover,
 body.j5-custom-chrome .j5-mobile-cats__all,
 body.j5-custom-chrome .j5-mobile-cats__viewall { color: var(--j5c-gold) !important; }
 body.j5-custom-chrome .j5-mobile-cats__viewall { border-top: 1px solid var(--j5c-border); }
+
+/* J5-MEGA-B-1 (2026-11-09): layout B, every category at once in 5 columns. */
+body.j5-custom-chrome .j5-mega-menu--all .j5-mega-menu__inner { display: block; min-height: 0; padding: 30px 40px 22px; background: #131417; }
+body.j5-custom-chrome .j5-mega-menu--all .j5-mega-menu__groups { column-count: 5; column-gap: 36px; }
+body.j5-custom-chrome .j5-mega-menu--all .j5-mega-menu__foot { margin-top: 4px; }
+body.j5-custom-chrome .j5-mega-menu__foot-links { display: flex; gap: 24px; }
+@media (max-width: 1200px) { body.j5-custom-chrome .j5-mega-menu--all .j5-mega-menu__groups { column-count: 4; } }
+body.j5-custom-chrome .j5-mobile-cats__flat > .j5-mobile-cats__sub,
+body.j5-custom-chrome .j5-mobile-cats__flat > .j5-mobile-cats__cat { border-top: 1px solid var(--j5c-border); }
+body.j5-custom-chrome .j5-mobile-cats__flat .j5-mobile-cats__sub > summary,
+body.j5-custom-chrome .j5-mobile-cats__flat > .j5-mobile-cats__cat { min-height: 48px; font-size: 16px; }
