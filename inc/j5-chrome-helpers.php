@@ -190,12 +190,79 @@ function j5_mega_render_group( $row ) {
 }
 
 /**
- * Mega menu layout: 'all' (B, every category and subcategory at once, in department order)
- * or 'depts' (C, departments on the left). J5-MEGA-B-1, 2026-11-09: B is live.
- * Switch back with add_filter( 'j5_mega_layout', fn() => 'depts' );
+ * Mega menu layout:
+ *   'split' (J5-MEGA-SPLIT-1, 2026-11-10, live): two zones, Medical & Rescue | Tactical, with a color divider.
+ *   'all'   (B): every category and subcategory at once, in department order.
+ *   'depts' (C): departments on the left.
+ * Switch with add_filter( 'j5_mega_layout', fn() => 'all' );
  */
 function j5_mega_layout() {
-	return 'depts' === apply_filters( 'j5_mega_layout', 'all' ) ? 'depts' : 'all';
+	$l = apply_filters( 'j5_mega_layout', 'split' );
+	return in_array( $l, array( 'split', 'all', 'depts' ), true ) ? $l : 'split';
+}
+
+/**
+ * Zones for the split layout. Each: key, label, top-level category slugs in display order.
+ * A populated top-level category not listed lands at the end of the last zone (Tactical).
+ * Change with add_filter( 'j5_mega_zones', function ( $z ) { ...; return $z; } ).
+ */
+function j5_mega_zones() {
+	return apply_filters( 'j5_mega_zones', array(
+		array( 'key' => 'med', 'label' => 'Medical & Rescue', 'slugs' => array( 'medical', 'personal-protection-equipment', 'gloves', 'fire-rescue-equipment', 'water-rescue', 'training' ) ),
+		array( 'key' => 'tac', 'label' => 'Tactical', 'slugs' => array( 'body-armor', 'shields', 'carriers', 'helmets', 'less-lethal', 'lights', 'optics', 'weapon-accessories', 'pouches', 'holsters', 'duty-belt-gear', 'bags-cases', 'tools-knives', 'tops', 'patches-id-placards', 'cleaning', 'electronics-communication' ) ),
+	) );
+}
+
+/** Zones filled from the live tree: [ [ 'key', 'label', 'rows' => tree rows ], ... ], empty zones dropped. */
+function j5_mega_zone_rows() {
+	$by_slug = array();
+	foreach ( j5_shop_category_tree() as $row ) {
+		$by_slug[ $row['term']->slug ] = $row;
+	}
+	$zones = array_values( (array) j5_mega_zones() );
+	$out   = array();
+	foreach ( $zones as $z ) {
+		$rows = array();
+		foreach ( (array) ( $z['slugs'] ?? array() ) as $slug ) {
+			if ( isset( $by_slug[ $slug ] ) ) {
+				$rows[] = $by_slug[ $slug ];
+				unset( $by_slug[ $slug ] );
+			}
+		}
+		$out[] = array( 'key' => sanitize_html_class( $z['key'] ?? '' ), 'label' => (string) ( $z['label'] ?? '' ), 'rows' => $rows );
+	}
+	if ( $by_slug && $out ) {
+		$last = count( $out ) - 1;
+		$out[ $last ]['rows'] = array_merge( $out[ $last ]['rows'], array_values( $by_slug ) );
+	}
+	return array_values( array_filter( $out, function ( $z ) { return (bool) $z['rows']; } ) );
+}
+
+/** Split layout: Medical & Rescue | Tactical, each zone in its own columns, divider between. */
+function j5_render_mega_menu_split() {
+	$zones = j5_mega_zone_rows();
+	if ( ! $zones ) {
+		return;
+	}
+	?>
+	<div id="j5-mega-menu" class="j5-mega-menu j5-mega-menu--split" aria-hidden="true" role="region" aria-label="Shop categories">
+		<div class="j5-mega-menu__inner">
+			<div class="j5-mega-menu__zones">
+				<?php foreach ( $zones as $z ) : ?>
+					<div class="j5-mega-menu__zone j5-mega-menu__zone--<?php echo esc_attr( $z['key'] ); ?>">
+						<p class="j5-mega-menu__zone-label"><?php echo esc_html( $z['label'] ); ?></p>
+						<div class="j5-mega-menu__zone-cols">
+							<?php foreach ( $z['rows'] as $row ) { j5_mega_render_group( $row ); } ?>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<div class="j5-mega-menu__foot j5-mega-menu__foot--split">
+				<a href="<?php echo esc_url( home_url( '/shop/' ) ); ?>">View all products</a>
+			</div>
+		</div>
+	</div>
+	<?php
 }
 
 /** Every populated top-level category row, in department order ("More" last). */
@@ -277,6 +344,10 @@ function j5_mega_department_rows() {
 
 /** Mega menu, layout C: departments on the left, that department's categories in columns. */
 function j5_render_mega_menu_categories() {
+	if ( 'split' === j5_mega_layout() ) {
+		j5_render_mega_menu_split();
+		return;
+	}
 	if ( 'all' === j5_mega_layout() ) {
 		j5_render_mega_menu_all();
 		return;
@@ -338,7 +409,9 @@ function j5_render_mobile_shop_categories() {
 	if ( ! $depts ) {
 		return;
 	}
-	if ( 'all' === j5_mega_layout() ) {
+	if ( 'split' === j5_mega_layout() ) {
+		$depts = array_map( function ( $z ) { return array( 'name' => $z['label'], 'hint' => '', 'rows' => $z['rows'] ); }, j5_mega_zone_rows() );
+	} elseif ( 'all' === j5_mega_layout() ) {
 		$depts = array( array( 'name' => '', 'hint' => '', 'rows' => j5_mega_all_rows() ) ); // one flat list
 	}
 	$nm = function ( $t ) { return esc_html( html_entity_decode( $t->name, ENT_QUOTES, 'UTF-8' ) ); };

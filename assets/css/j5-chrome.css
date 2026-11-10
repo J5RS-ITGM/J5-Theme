@@ -395,3 +395,28 @@ body.j5-custom-chrome .j5-mega-menu { max-height: calc(100vh - 120px); overflow-
 /* J5-MEGA-POP-1 (2026-11-10): "See all" under each mega menu category (subcategories capped by popularity). */
 body.j5-custom-chrome .j5-mega-menu__group .j5-mega-menu__see-all { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--j5c-gold); text-decoration: none; }
 body.j5-custom-chrome .j5-mega-menu__group .j5-mega-menu__see-all:hover { text-decoration: underline; }
+
+/* J5-MEGA-SPLIT-1 (2026-11-10): split layout, Medical & Rescue | Tactical with a gold divider.
+   Zone labels carry their color rule (red / gold). Medical 2 columns, Tactical 3; fewer on narrower screens. */
+body.j5-custom-chrome .j5-mega-menu--split .j5-mega-menu__inner { display: block; min-height: 0; padding: 30px 40px 22px; background: #131417; }
+body.j5-custom-chrome .j5-mega-menu__zones { display: grid; grid-template-columns: 2fr 3fr; }
+body.j5-custom-chrome .j5-mega-menu__zone { min-width: 0; }
+body.j5-custom-chrome .j5-mega-menu__zone:first-child { padding-right: 36px; border-right: 2px solid var(--j5c-gold); }
+body.j5-custom-chrome .j5-mega-menu__zone + .j5-mega-menu__zone { padding-left: 36px; }
+body.j5-custom-chrome .j5-mega-menu__zone-label { margin: 0 0 18px; padding-top: 10px; border-top: 3px solid var(--j5c-gold); font-family: var(--j5c-cond); font-size: 17px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--j5c-gold); }
+body.j5-custom-chrome .j5-mega-menu__zone--med .j5-mega-menu__zone-label { border-top-color: var(--j5c-red); color: #e2475e; }
+body.j5-custom-chrome .j5-mega-menu__zone--med .j5-mega-menu__see-all { color: #e2475e; }
+body.j5-custom-chrome .j5-mega-menu__zone-cols { column-count: 3; column-gap: 36px; }
+body.j5-custom-chrome .j5-mega-menu__zone--med .j5-mega-menu__zone-cols { column-count: 2; }
+body.j5-custom-chrome .j5-mega-menu__foot--split { justify-content: flex-end; margin-top: 4px; }
+@media (max-width: 1200px) {
+	body.j5-custom-chrome .j5-mega-menu__zone-cols { column-count: 2; }
+	body.j5-custom-chrome .j5-mega-menu__zone--med .j5-mega-menu__zone-cols { column-count: 1; }
+	body.j5-custom-chrome .j5-mega-menu__zones { grid-template-columns: 1fr 2fr; }
+}
+@media (max-width: 1024px) {
+	body.j5-custom-chrome .j5-mega-menu--split .j5-mega-menu__inner { padding: 24px 24px 18px; }
+	body.j5-custom-chrome .j5-mega-menu__zone:first-child { padding-right: 24px; }
+	body.j5-custom-chrome .j5-mega-menu__zone + .j5-mega-menu__zone { padding-left: 24px; }
+	body.j5-custom-chrome .j5-mega-menu__zone-cols { column-gap: 24px; }
+}
