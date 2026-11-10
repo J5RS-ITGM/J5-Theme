@@ -110,7 +110,7 @@ function j5_render_product_card( $product, $context = '' ) {
     } elseif ( $context === 'new' || j5_is_new_product( $product ) ) {
         $badge_label = 'NEW';
         $badge_class = '';
-    } elseif ( $product->is_in_stock() && $product->is_featured() ) {
+    } elseif ( $product->is_featured() && function_exists( 'j5_card_stock_badge' ) && ( $sb = j5_card_stock_badge( $product ) ) && 'stock' === $sb['class'] ) { // J5-CARD-STOCK-1
         $badge_label = 'IN STOCK';
         $badge_class = 'gold';
     }
@@ -169,7 +169,7 @@ function j5_get_product_brand( $product ) {
         if ( taxonomy_exists( $tax ) ) {
             $terms = get_the_terms( $product->get_id(), $tax );
             if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                return strtoupper( $terms[0]->name );
+                return strtoupper( wp_specialchars_decode( $terms[0]->name, ENT_QUOTES ) );
             }
         }
     }
@@ -177,13 +177,13 @@ function j5_get_product_brand( $product ) {
     // Try pa_brand attribute
     $attr = $product->get_attribute( 'pa_brand' );
     if ( $attr ) {
-        return strtoupper( $attr );
+        return strtoupper( wp_specialchars_decode( $attr, ENT_QUOTES ) );
     }
 
     // Try first product tag (Eric is heavy on tags)
     $tags = get_the_terms( $product->get_id(), 'product_tag' );
     if ( ! empty( $tags ) && ! is_wp_error( $tags ) ) {
-        return strtoupper( $tags[0]->name );
+        return strtoupper( wp_specialchars_decode( $tags[0]->name, ENT_QUOTES ) );
     }
 
     // Nothing — return empty, card hides the brand line

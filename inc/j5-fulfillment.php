@@ -773,3 +773,98 @@ add_filter( 'woocommerce_available_variation', function ( $data, $product, $vari
 	}
 	return $data;
 }, 21, 3 );
+
+/* ============================================================================
+ *  J5-CARD-STOCK-1 (2026-11-10) — stock badge on product cards (shop,
+ *  category, related products, home)
+ *
+ *  Cards used $product->is_in_stock(), which WooCommerce answers TRUE for
+ *  backorder, so special orders showed a green IN STOCK. The badge now
+ *  follows the same rules as the product page:
+ *    - a parent status that pins the banner (banner_lock: made to order,
+ *      on order, final stock, out, discontinued) shows that status;
+ *    - otherwise each option is judged on its own: stock_status first
+ *      (instock / onbackorder / outofstock), then its _j5_fulfillment when
+ *      that says something stricter than "in";
+ *    - a variable product is IN STOCK when any option is in stock, else
+ *      SPECIAL ORDER (IN PRODUCTION when every special option is being
+ *      built), else OUT OF STOCK.
+ *  The parent's own in_stock/special meta is NOT trusted for variable
+ *  products: it carries the best status across options.
+ * ========================================================================== */
+
+/** 'in' | 'special' | 'production' | 'out' for one product or variation ID. */
+function j5_card_stock_state_for_id( $id ) {
+	$status = (string) get_post_meta( $id, '_stock_status', true );
+	$state  = 'onbackorder' === $status ? 'special' : ( 'outofstock' === $status ? 'out' : 'in' );
+
+	$type = sanitize_key( (string) get_post_meta( $id, '_j5_fulfillment', true ) );
+	if ( '' !== $type ) {
+		$types = j5_fulfillment_types();
+		$fs    = isset( $types[ $type ]['state'] ) ? $types[ $type ]['state'] : 'special';
+		if ( 'discontinued' === $fs ) {
+			$fs = 'out';
+		}
+		// A status can only make an option stricter than its stock says.
+		$rank = array( 'in' => 0, 'special' => 1, 'out' => 2 );
+		if ( isset( $rank[ $fs ] ) && $rank[ $fs ] > $rank[ $state ] ) {
+			$state = $fs;
+		}
+		if ( 'in_production' === $type && 'special' === $state ) {
+			$state = 'production';
+		}
+	}
+	return $state;
+}
+
+/**
+ * Card badge for a product: array( 'class' => ..., 'label' => ... ) or null.
+ *
+ * @param WC_Product $product
+ * @return array|null
+ */
+function j5_card_stock_badge( $product ) {
+	if ( ! $product instanceof WC_Product ) {
+		return null;
+	}
+	$look = array(
+		'in'         => array( 'class' => 'stock', 'label' => '● IN STOCK' ),
+		'special'    => array( 'class' => 'special', 'label' => '● SPECIAL ORDER' ),
+		'production' => array( 'class' => 'production', 'label' => '● IN PRODUCTION' ),
+		'out'        => array( 'class' => 'out', 'label' => 'OUT OF STOCK' ),
+	);
+
+	// A pinned parent status speaks for the whole product.
+	$f = j5_get_fulfillment( $product );
+	if ( is_array( $f ) && ! empty( $f['banner_lock'] ) ) {
+		$s     = 'in' === $f['state'] ? 'in' : ( 'special' === $f['state'] ? 'special' : 'out' );
+		$badge = $look[ $s ];
+		$badge['label'] = ( 'out' === $s ? '' : '● ' ) . strtoupper( wp_specialchars_decode( (string) $f['label'], ENT_QUOTES ) );
+		return apply_filters( 'j5_card_stock_badge', $badge, $product );
+	}
+
+	if ( $product->is_type( 'variable' ) ) {
+		$ids = $product->get_visible_children();
+		if ( ! $ids ) {
+			return apply_filters( 'j5_card_stock_badge', null, $product );
+		}
+		update_meta_cache( 'post', $ids );
+		$seen = array();
+		foreach ( $ids as $vid ) {
+			$seen[ j5_card_stock_state_for_id( $vid ) ] = true;
+		}
+		if ( isset( $seen['in'] ) ) {
+			$s = 'in';
+		} elseif ( isset( $seen['special'] ) ) {
+			$s = 'special';
+		} elseif ( isset( $seen['production'] ) ) {
+			$s = 'production';
+		} else {
+			$s = 'out';
+		}
+	} else {
+		$s = j5_card_stock_state_for_id( $product->get_id() );
+	}
+
+	return apply_filters( 'j5_card_stock_badge', $look[ $s ], $product );
+}

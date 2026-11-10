@@ -451,8 +451,11 @@ function j5_render_shop_product_card( $product, $compact = false ) {
     if ( j5_is_product_new( $product ) ) {
         $badges[] = array( 'class' => '', 'label' => 'NEW' );
     }
-    if ( $product->is_in_stock() ) {
-        $badges[] = array( 'class' => 'stock', 'label' => '● IN STOCK' );
+    // J5-CARD-STOCK-1: IN STOCK only when an option is really on the shelf.
+    // Special order, in production and out of stock show no badge on cards.
+    $stock_badge = function_exists( 'j5_card_stock_badge' ) ? j5_card_stock_badge( $product ) : null;
+    if ( $stock_badge && 'stock' === $stock_badge['class'] ) {
+        $badges[] = $stock_badge;
     }
     // Lets other modules add badges (LE ONLY: inc/j5-product-flags.php). J5-FLAGS
     $badges = apply_filters( 'j5_product_card_badges', $badges, $product );
@@ -532,14 +535,14 @@ function j5_get_product_brand_for_shop( $product ) {
         if ( taxonomy_exists( $tax ) ) {
             $terms = get_the_terms( $product->get_id(), $tax );
             if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                return strtoupper( $terms[0]->name );
+                return strtoupper( wp_specialchars_decode( $terms[0]->name, ENT_QUOTES ) );
             }
         }
     }
     $attr = $product->get_attribute( 'pa_brand' );
-    if ( $attr ) return strtoupper( $attr );
+    if ( $attr ) return strtoupper( wp_specialchars_decode( $attr, ENT_QUOTES ) );
     $tags = get_the_terms( $product->get_id(), 'product_tag' );
-    if ( ! empty( $tags ) && ! is_wp_error( $tags ) ) return strtoupper( $tags[0]->name );
+    if ( ! empty( $tags ) && ! is_wp_error( $tags ) ) return strtoupper( wp_specialchars_decode( $tags[0]->name, ENT_QUOTES ) );
     return '';
 }
 
@@ -556,7 +559,7 @@ function j5_get_product_specs( $product ) {
         if ( taxonomy_exists( $tax ) ) {
             $terms = get_the_terms( $product->get_id(), $tax );
             if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                $specs[] = strtoupper( $terms[0]->name );
+                $specs[] = strtoupper( wp_specialchars_decode( $terms[0]->name, ENT_QUOTES ) );
             }
         }
     }
