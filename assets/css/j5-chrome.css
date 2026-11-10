@@ -366,3 +366,28 @@ body.j5-custom-chrome .j5-mobile-cats__flat > .j5-mobile-cats__sub,
 body.j5-custom-chrome .j5-mobile-cats__flat > .j5-mobile-cats__cat { border-top: 1px solid var(--j5c-border); }
 body.j5-custom-chrome .j5-mobile-cats__flat .j5-mobile-cats__sub > summary,
 body.j5-custom-chrome .j5-mobile-cats__flat > .j5-mobile-cats__cat { min-height: 48px; font-size: 16px; }
+
+/* J5-MENU-MOBILE-1 (2026-11-09): menu fixes for phones, tablets and short screens.
+   - Drawer: the Shop categories sit inside the scrolling nav; the scroll area can shrink
+     (min-height: 0), scrolls smoothly on iOS and doesn't drag the page behind it.
+   - Touch tablets (no hover): hover can't open the mega menu, so they get the phone header
+     (menu button + drawer) at any width.
+   - Mega menu: 3 columns up to 1024px; capped to the screen height with its own scroll
+     (j5-chrome.js sets the exact max-height when it opens). */
+body.j5-custom-chrome .j5-mobile-drawer__panel { height: 100%; height: 100dvh; }
+body.j5-custom-chrome .j5-mobile-drawer__nav { min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-bottom: 12px; }
+body.j5-custom-chrome .j5-mobile-drawer__nav .j5-mobile-cats { padding: 4px 16px 12px; margin: 0; }
+body.j5-custom-chrome .j5-mobile-cats summary { -webkit-tap-highlight-color: transparent; }
+body.j5-custom-chrome .j5-mobile-cats a,
+body.j5-custom-chrome .j5-mobile-cats summary { overflow-wrap: anywhere; }
+body.j5-custom-chrome .j5-mega-menu { max-height: calc(100vh - 120px); overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 1024px) {
+	body.j5-custom-chrome .j5-mega-menu--all .j5-mega-menu__groups,
+	body.j5-custom-chrome .j5-mega-menu__groups { column-count: 3; }
+	body.j5-custom-chrome .j5-mega-menu--all .j5-mega-menu__inner { padding: 24px 24px 18px; }
+}
+@media (hover: none) and (pointer: coarse) {
+	body.j5-custom-chrome .j5-drawer-toggle { display: inline-flex; }
+	body.j5-custom-chrome .j5-primary-nav { display: none; }
+	body.j5-custom-chrome .j5-mega-menu { display: none; }
+}

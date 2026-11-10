@@ -151,8 +151,8 @@ $j5_cart_url    = function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : hom
 			<input type="search" name="s" placeholder="Search products&hellip;" value="<?php echo esc_attr( get_search_query() ); ?>">
 			<input type="hidden" name="post_type" value="product">
 		</form>
-		<?php if ( function_exists( 'j5_render_mobile_shop_categories' ) ) { j5_render_mobile_shop_categories(); } /* J5-MEGA-CATS-1 */ ?>
 		<nav class="j5-mobile-drawer__nav" aria-label="Mobile primary">
+			<?php if ( function_exists( 'j5_render_mobile_shop_categories' ) ) { j5_render_mobile_shop_categories(); } /* J5-MEGA-CATS-1: inside the nav so it scrolls with it */ ?>
 			<?php
 			$mob_loc = has_nav_menu( 'mobile_menu' ) ? 'mobile_menu' : ( has_nav_menu( 'primary' ) ? 'primary' : '' );
 			if ( $mob_loc ) {

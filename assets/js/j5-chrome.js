@@ -115,6 +115,9 @@
 	function openMega() {
 		if (!megaMenu) return;
 		if (megaHideTimer) { clearTimeout(megaHideTimer); megaHideTimer = null; }
+		// J5-MENU-MOBILE-1: fit the open menu to the space left under the header; it scrolls inside if taller.
+		var top = megaMenu.getBoundingClientRect().top;
+		megaMenu.style.maxHeight = Math.max(240, window.innerHeight - Math.max(0, top) - 12) + 'px';
 		megaMenu.classList.add('is-open');
 		megaMenu.setAttribute('aria-hidden', 'false');
 	}
