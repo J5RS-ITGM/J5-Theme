@@ -2664,3 +2664,30 @@ body.woocommerce-checkout form.woocommerce-form-login .woocommerce-form-login__r
     body.woocommerce-checkout form.woocommerce-form-login .form-row-last { width: 100% !important; display: block !important; margin-right: 0 !important; }
 }
 /* === J5-LOGIN-WIDTH-END === */
+
+
+/* ==========================================================================
+   J5-SHIP-MSG-1 (2026-11-09): blocked shipping destination explanation
+   (payment section, inc/j5-shipping-restrictions.php). Replaces the centered grey
+   "no available payment methods" box when the cause is a shipping restriction.
+   ========================================================================== */
+body.woocommerce-checkout .j5-checkout__sidebar .j5-payment__no-methods:has(.j5-ship-block) { padding: 0 !important; text-align: left !important; background: none !important; border: 0 !important; }
+body.woocommerce-checkout .j5-ship-block { padding: 18px 18px 16px; background: rgba(200, 16, 46, 0.12); border: 2px solid #c8102e; border-radius: 8px; color: #d6d3ca; font-size: 14px; line-height: 1.5; text-align: left; }
+body.woocommerce-checkout .j5-ship-block__head { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; }
+body.woocommerce-checkout .j5-ship-block__icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #c8102e; box-shadow: 0 0 0 4px rgba(200, 16, 46, 0.25); color: #fff; font-family: 'Barlow', sans-serif; font-weight: 800; font-size: 24px; line-height: 1; }
+body.woocommerce-checkout .j5-ship-block__head .j5-ship-block__title { margin: 0; }
+body.woocommerce-checkout .j5-ship-block p { margin: 0 0 10px; }
+body.woocommerce-checkout .j5-ship-block__title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 19px; line-height: 1.2; letter-spacing: 0.04em; text-transform: uppercase; color: #f5f1e8; }
+body.woocommerce-checkout .j5-ship-block__items { list-style: none; margin: 0 0 12px; padding: 0; border-top: 1px solid rgba(245, 241, 232, 0.1); }
+body.woocommerce-checkout .j5-ship-block__items li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(245, 241, 232, 0.1); color: #f5f1e8; font-weight: 600; }
+body.woocommerce-checkout .j5-ship-block__remove { flex: none; display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 1px solid rgba(245, 241, 232, 0.3); border-radius: 4px; color: #f5f1e8 !important; font-size: 13px; font-weight: 600; text-decoration: none !important; }
+body.woocommerce-checkout .j5-ship-block__remove:hover { border-color: #d4a044; color: #d4a044 !important; }
+body.woocommerce-checkout .j5-ship-block__why { color: #b8b5ad; }
+body.woocommerce-checkout .j5-ship-block__fix strong { color: #f5f1e8; }
+body.woocommerce-checkout .j5-ship-block__help { margin: 0 !important; color: #b8b5ad; }
+body.woocommerce-checkout .j5-ship-block a:not(.j5-ship-block__remove) { color: #e0b44a; }
+/* nothing to pay with while blocked: hide the express PayPal button and Place order */
+body.j5-ship-blocked .ppc-button-wrapper,
+body.j5-ship-blocked #ppc-button-ppcp-gateway,
+body.j5-ship-blocked .wc-block-components-express-payment,
+body.j5-ship-blocked #place_order { display: none !important; }

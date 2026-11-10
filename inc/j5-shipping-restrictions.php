@@ -280,7 +280,7 @@ function j5_ship_violations( $state, $city ) {
 	}
 
 	$violations = array();
-	foreach ( WC()->cart->get_cart() as $item ) {
+	foreach ( WC()->cart->get_cart() as $cart_key => $item ) {
 		$pid = ! empty( $item['product_id'] ) ? $item['product_id'] : 0;
 		if ( ! $pid ) {
 			continue;
@@ -289,6 +289,7 @@ function j5_ship_violations( $state, $city ) {
 			if ( j5_ship_item_matches( $item, $rule ) && j5_ship_destination_blocked( $rule, $state, $city ) ) {
 				$p                = wc_get_product( $pid );
 				$violations[]     = array(
+					'key'          => $cart_key,
 					'product_id'   => $pid,
 					'product_name' => $p ? $p->get_name() : ( '#' . $pid ),
 					'rule'         => $rule,
@@ -383,6 +384,9 @@ add_action( 'woocommerce_check_cart_items', function () {
 	}
 
 	$violations = j5_ship_violations( $state, $city );
+	if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+		return; // checkout explains it in the payment section (j5_ship_block_message_html()), live as the address changes
+	}
 	foreach ( $violations as $v ) {
 		wc_add_notice(
 			sprintf(
@@ -436,36 +440,8 @@ add_filter( 'woocommerce_available_payment_gateways', function ( $gateways ) {
  * Show a prominent restriction notice on the checkout page when the entered
  * destination is blocked (pairs with the gateway removal above).
  */
-add_action( 'woocommerce_before_checkout_form', function () {
-	if ( ! function_exists( 'WC' ) || ! WC()->customer ) {
-		return;
-	}
-	$state = WC()->customer->get_shipping_state() ?: WC()->customer->get_billing_state();
-	$city  = WC()->customer->get_shipping_city() ?: WC()->customer->get_billing_city();
-	if ( ! $state && ! $city ) {
-		return;
-	}
-	$violations = j5_ship_violations( $state, $city );
-	if ( empty( $violations ) ) {
-		return;
-	}
-	$seen = array();
-	foreach ( $violations as $v ) {
-		if ( isset( $seen[ $v['product_id'] ] ) ) {
-			continue;
-		}
-		$seen[ $v['product_id'] ] = true;
-		wc_print_notice(
-			sprintf(
-				/* translators: 1: product 2: destination */
-				esc_html__( '%1$s cannot be shipped to %2$s due to legal restrictions. Remove it from your cart or ship to a different address to continue.', 'astra-child' ),
-				esc_html( $v['product_name'] ),
-				esc_html( j5_ship_rule_dest_text( $v['rule'] ) )
-			),
-			'error'
-		);
-	}
-}, 5 );
+// Load-time checkout notice removed 2026-11-09: replaced by the live payment-section message below (J5-SHIP-MSG-1).
+
 
 /* =========================================================================
  * Checkout — HARD block on the posted shipping (or billing) destination
@@ -506,3 +482,97 @@ add_action( 'woocommerce_after_checkout_validation', function ( $data, $errors )
 		);
 	}
 }, 10, 2 );
+
+
+/* =========================================================================
+ * J5-SHIP-MSG-1 (2026-11-09): explain a blocked destination at checkout.
+ *
+ * A restricted destination removes every payment method (above), and WooCommerce then shows
+ * "no available payment methods". That text is replaced with what is blocked, where, why and
+ * how to fix it, with a Remove link per item. It lives in the payment section, so it refreshes
+ * with every address change (update_order_review). While it shows, the PayPal express button
+ * and Place order are hidden (the server-side checkout block still applies either way).
+ * ====================================================================== */
+
+/** The customer's current destination: shipping address, else billing. */
+function j5_ship_customer_dest() {
+	if ( ! function_exists( 'WC' ) || ! WC()->customer ) {
+		return array( '', '' );
+	}
+	$state = WC()->customer->get_shipping_state() ?: WC()->customer->get_billing_state();
+	$city  = WC()->customer->get_shipping_city() ?: WC()->customer->get_billing_city();
+	return array( (string) $state, (string) $city );
+}
+
+/** "Alaska" for AK; the code itself when unknown. */
+function j5_ship_state_name( $code ) {
+	$code   = strtoupper( (string) $code );
+	$states = function_exists( 'WC' ) && WC()->countries ? WC()->countries->get_states( 'US' ) : array();
+	return isset( $states[ $code ] ) ? html_entity_decode( $states[ $code ], ENT_QUOTES, 'UTF-8' ) : $code;
+}
+
+/** The customer-facing explanation, or '' when nothing in the cart is blocked. */
+function j5_ship_block_message_html( $violations, $state, $city ) {
+	if ( ! $violations ) {
+		return '';
+	}
+	$state_name = j5_ship_state_name( $state );
+	$city_blocked = false;
+	$items        = array();
+	foreach ( $violations as $v ) {
+		$r = $v['rule'];
+		$by_state = in_array( strtoupper( (string) $state ), array_map( 'strtoupper', (array) ( $r['states'] ?? array() ) ), true );
+		if ( ! $by_state ) {
+			$city_blocked = true;
+		}
+		$items[ $v['key'] ?? $v['product_id'] ] = $v;
+	}
+	$where = $city_blocked && '' !== trim( $city ) ? ucwords( strtolower( trim( $city ) ) ) . ', ' . strtoupper( $state ) : $state_name;
+	$phone = apply_filters( 'j5_header_phone', '(630) 442-4938' );
+	$tel   = 'tel:' . preg_replace( '/[^0-9+]/', '', $phone );
+
+	$list = '';
+	foreach ( $items as $v ) {
+		$remove = ! empty( $v['key'] ) ? ' <a class="j5-ship-block__remove" href="' . esc_url( wc_get_cart_remove_url( $v['key'] ) ) . '">Remove</a>' : '';
+		$list  .= '<li><span>' . esc_html( $v['product_name'] ) . '</span>' . $remove . '</li>';
+	}
+	$n = count( $items );
+	return '<div class="j5-ship-block" data-j5-ship-block>'
+		. '<div class="j5-ship-block__head" role="alert">'
+			. '<span class="j5-ship-block__icon" aria-hidden="true">!</span>' // CSS icon: wp_kses_post (payment.php) strips svg
+			. '<p class="j5-ship-block__title">We can’t ship ' . ( 1 === $n ? 'this item' : 'these items' ) . ' to ' . esc_html( $where ) . '</p>'
+		. '</div>'
+		. '<ul class="j5-ship-block__items">' . $list . '</ul>'
+		. '<p class="j5-ship-block__why">Some products can’t be shipped to certain states or cities because of state or local law, manufacturer rules, or carrier rules for hazardous materials like CO2 and propellant. The limit is on the shipping address, not on you.</p>'
+		. '<p class="j5-ship-block__fix"><strong>To finish your order:</strong> remove ' . ( 1 === $n ? 'the item' : 'the items' ) . ' above, or ship to a different address.</p>'
+		. '<p class="j5-ship-block__help">Questions? Call <a href="' . esc_url( $tel ) . '">' . esc_html( $phone ) . '</a> or <a href="' . esc_url( home_url( '/contact-us/' ) ) . '">contact us</a>.</p>'
+		. '</div>';
+}
+
+add_filter( 'woocommerce_no_available_payment_methods_message', function ( $message ) {
+	list( $state, $city ) = j5_ship_customer_dest();
+	if ( ! $state && ! $city ) {
+		return $message;
+	}
+	$html = j5_ship_block_message_html( j5_ship_violations( $state, $city ), $state, $city );
+	return '' !== $html ? $html : $message;
+}, 20 );
+
+/** Hide the PayPal express button and Place order while the explanation is showing. */
+add_action( 'wp_footer', function () {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_wc_endpoint_url() ) {
+		return;
+	}
+	?>
+	<script>
+	( function () {
+		function sync() {
+			var blocked = !! document.querySelector( '[data-j5-ship-block]' );
+			document.body.classList.toggle( 'j5-ship-blocked', blocked );
+		}
+		document.addEventListener( 'DOMContentLoaded', sync );
+		if ( window.jQuery ) { jQuery( document.body ).on( 'updated_checkout', sync ); }
+	} )();
+	</script>
+	<?php
+}, 100 );
