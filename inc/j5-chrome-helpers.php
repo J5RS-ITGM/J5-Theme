@@ -99,6 +99,96 @@ function j5_mega_from_categories() {
 	return 'menu' !== apply_filters( 'j5_mega_menu_source', 'categories' );
 }
 
+/* =========================================================================
+ * J5-MEGA-POP-1 (2026-11-10): subcategories ordered by popularity, capped,
+ * with a "See all" link on each category (desktop mega menu).
+ * Popularity = distinct orders in the last 90 days that contain a product in
+ * that subcategory (cancelled, failed, refunded, pending and draft orders
+ * skipped). Ties and subcategories with no orders keep A to Z.
+ * Source: WC analytics tables (wc_order_product_lookup + wc_order_stats);
+ * if they are missing the menu stays A to Z. Cached 12 hours.
+ * Filters: j5_mega_pop_days (90), j5_mega_sub_limit (6).
+ * ====================================================================== */
+
+/** [ term_id => order count ] for product categories. */
+function j5_mega_popularity() {
+	static $memo = null;
+	if ( null !== $memo ) {
+		return $memo;
+	}
+	$hit = get_transient( 'j5_mega_pop_v1' );
+	if ( is_array( $hit ) ) {
+		return $memo = $hit;
+	}
+	global $wpdb;
+	$out = array();
+	$l   = $wpdb->prefix . 'wc_order_product_lookup';
+	$s   = $wpdb->prefix . 'wc_order_stats';
+	if ( $l === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $l ) ) && $s === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $s ) ) ) {
+		$days  = max( 1, (int) apply_filters( 'j5_mega_pop_days', 90 ) );
+		$since = wp_date( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
+		$rows  = $wpdb->get_results( $wpdb->prepare(
+			"SELECT tt.term_id, COUNT(DISTINCT l.order_id) AS n
+			 FROM {$l} l
+			 JOIN {$s} s ON s.order_id = l.order_id
+			 JOIN {$wpdb->term_relationships} tr ON tr.object_id = l.product_id
+			 JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id AND tt.taxonomy = 'product_cat'
+			 WHERE l.date_created >= %s
+			   AND s.status NOT IN ( 'wc-cancelled', 'wc-failed', 'wc-refunded', 'wc-pending', 'wc-checkout-draft', 'trash' )
+			 GROUP BY tt.term_id",
+			$since
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		foreach ( (array) $rows as $r ) {
+			$out[ (int) $r->term_id ] = (int) $r->n;
+		}
+	}
+	set_transient( 'j5_mega_pop_v1', $out, 12 * HOUR_IN_SECONDS );
+	return $memo = $out;
+}
+
+/** Subcategories most-ordered first; the incoming A to Z order breaks ties. */
+function j5_mega_rank_children( $kids ) {
+	$kids = array_values( (array) $kids );
+	if ( count( $kids ) < 2 ) {
+		return $kids;
+	}
+	$pop = j5_mega_popularity();
+	$pos = array();
+	foreach ( $kids as $i => $k ) {
+		$pos[ (int) $k->term_id ] = $i;
+	}
+	usort( $kids, function ( $a, $b ) use ( $pop, $pos ) {
+		$d = ( $pop[ (int) $b->term_id ] ?? 0 ) <=> ( $pop[ (int) $a->term_id ] ?? 0 );
+		return 0 !== $d ? $d : $pos[ (int) $a->term_id ] <=> $pos[ (int) $b->term_id ];
+	} );
+	return $kids;
+}
+
+/** How many subcategories each category shows in the desktop mega menu. */
+function j5_mega_sub_limit() {
+	return max( 1, (int) apply_filters( 'j5_mega_sub_limit', 6 ) );
+}
+
+/** One category column: title, its top subcategories, then "See all". */
+function j5_mega_render_group( $row ) {
+	$t    = $row['term'];
+	$name = function ( $x ) { return html_entity_decode( $x->name, ENT_QUOTES, 'UTF-8' ); };
+	$kids = array_slice( j5_mega_rank_children( $row['children'] ), 0, j5_mega_sub_limit() );
+	?>
+	<div class="j5-mega-menu__group">
+		<a class="j5-mega-menu__group-title" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $name( $t ) ); ?></a>
+		<?php if ( $kids ) : ?>
+		<ul>
+			<?php foreach ( $kids as $c ) : $cl = get_term_link( $c ); if ( is_wp_error( $cl ) ) { continue; } ?>
+				<li><a href="<?php echo esc_url( $cl ); ?>"><?php echo esc_html( $name( $c ) ); ?></a></li>
+			<?php endforeach; ?>
+		</ul>
+		<a class="j5-mega-menu__see-all" href="<?php echo esc_url( $row['url'] ); ?>" aria-label="<?php echo esc_attr( 'See all ' . $name( $t ) ); ?>">See all <span aria-hidden="true">&rarr;</span></a>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
 /**
  * Mega menu layout: 'all' (B, every category and subcategory at once, in department order)
  * or 'depts' (C, departments on the left). J5-MEGA-B-1, 2026-11-09: B is live.
@@ -128,18 +218,7 @@ function j5_render_mega_menu_all() {
 	<div id="j5-mega-menu" class="j5-mega-menu j5-mega-menu--all" aria-hidden="true" role="region" aria-label="Shop categories">
 		<div class="j5-mega-menu__inner">
 			<div class="j5-mega-menu__groups">
-				<?php foreach ( $rows as $row ) : $t = $row['term']; ?>
-					<div class="j5-mega-menu__group">
-						<a class="j5-mega-menu__group-title" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $name( $t ) ); ?></a>
-						<?php if ( $row['children'] ) : ?>
-						<ul>
-							<?php foreach ( $row['children'] as $c ) : $cl = get_term_link( $c ); if ( is_wp_error( $cl ) ) { continue; } ?>
-								<li><a href="<?php echo esc_url( $cl ); ?>"><?php echo esc_html( $name( $c ) ); ?></a></li>
-							<?php endforeach; ?>
-						</ul>
-						<?php endif; ?>
-					</div>
-				<?php endforeach; ?>
+				<?php foreach ( $rows as $row ) { j5_mega_render_group( $row ); } ?>
 			</div>
 			<div class="j5-mega-menu__foot">
 				<span>Shop live stock. If we don’t have it, a factory order saves you money.</span>
@@ -234,18 +313,7 @@ function j5_render_mega_menu_categories() {
 						class="j5-mega-menu__panel<?php echo 0 === $i ? ' is-active' : ''; ?>"
 						role="tabpanel"<?php echo 0 === $i ? '' : ' hidden'; ?>>
 						<div class="j5-mega-menu__groups">
-							<?php foreach ( $d['rows'] as $row ) : $t = $row['term']; ?>
-								<div class="j5-mega-menu__group">
-									<a class="j5-mega-menu__group-title" href="<?php echo esc_url( $row['url'] ); ?>"><?php echo esc_html( $name( $t ) ); ?></a>
-									<?php if ( $row['children'] ) : ?>
-									<ul>
-										<?php foreach ( $row['children'] as $c ) : $cl = get_term_link( $c ); if ( is_wp_error( $cl ) ) { continue; } ?>
-											<li><a href="<?php echo esc_url( $cl ); ?>"><?php echo esc_html( $name( $c ) ); ?></a></li>
-										<?php endforeach; ?>
-									</ul>
-									<?php endif; ?>
-								</div>
-							<?php endforeach; ?>
+							<?php foreach ( $d['rows'] as $row ) { j5_mega_render_group( $row ); } ?>
 						</div>
 						<div class="j5-mega-menu__foot">
 							<span>Shop live stock. If we don’t have it, a factory order saves you money.</span>
@@ -286,7 +354,7 @@ function j5_render_mobile_shop_categories() {
 			}
 			echo '<details class="j5-mobile-cats__sub"><summary>' . $nm( $t ) . '</summary><ul>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			echo '<li><a class="j5-mobile-cats__all" href="' . esc_url( $row['url'] ) . '">Shop all ' . $nm( $t ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			foreach ( $row['children'] as $c ) {
+			foreach ( j5_mega_rank_children( $row['children'] ) as $c ) {
 				$cl = get_term_link( $c );
 				if ( ! is_wp_error( $cl ) ) {
 					echo '<li><a href="' . esc_url( $cl ) . '">' . $nm( $c ) . '</a></li>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

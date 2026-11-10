@@ -391,3 +391,7 @@ body.j5-custom-chrome .j5-mega-menu { max-height: calc(100vh - 120px); overflow-
 	body.j5-custom-chrome .j5-primary-nav { display: none; }
 	body.j5-custom-chrome .j5-mega-menu { display: none; }
 }
+
+/* J5-MEGA-POP-1 (2026-11-10): "See all" under each mega menu category (subcategories capped by popularity). */
+body.j5-custom-chrome .j5-mega-menu__group .j5-mega-menu__see-all { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--j5c-gold); text-decoration: none; }
+body.j5-custom-chrome .j5-mega-menu__group .j5-mega-menu__see-all:hover { text-decoration: underline; }
