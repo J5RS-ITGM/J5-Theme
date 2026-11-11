@@ -23,8 +23,24 @@ function j5_gone_paths() {
 			'/pure-cbd-oil/',
 			'/restore-hemp-lotion/',
 			'/cbd-products/',
+			'/k9-cbd-oil/',
+			'/full-spectrum-cbd-gummies/',
+			// Leftover slug from a trashed page.
+			'/__trashed/',
+			// Course booking, retired with the courses (Oct 2026).
+			'/bookingpress-appointment-product/',
+			'/appointment/',
 		)
 	);
+}
+
+/**
+ * Path prefixes that are gone along with everything under them (J5-GONE-2, 2026-11-11).
+ * /color/ was an old color archive; there is no color filter to send it to.
+ * Add prefixes with the j5_gone_prefixes filter (lowercase, leading and trailing slash).
+ */
+function j5_gone_prefixes() {
+	return (array) apply_filters( 'j5_gone_prefixes', array( '/color/' ) );
 }
 
 add_action( 'template_redirect', function () {
@@ -33,7 +49,16 @@ add_action( 'template_redirect', function () {
 	}
 	$path = strtolower( (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '', PHP_URL_PATH ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 	$path = '/' . trim( $path, '/' ) . '/';
-	if ( ! in_array( $path, j5_gone_paths(), true ) ) {
+	$gone = in_array( $path, j5_gone_paths(), true );
+	if ( ! $gone ) {
+		foreach ( j5_gone_prefixes() as $prefix ) {
+			if ( '' !== $prefix && 0 === strpos( $path, $prefix ) ) {
+				$gone = true;
+				break;
+			}
+		}
+	}
+	if ( ! $gone ) {
 		return;
 	}
 	status_header( 410 );
