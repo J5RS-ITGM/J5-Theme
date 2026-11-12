@@ -1691,3 +1691,16 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 	.j5-vg-last .j5-variant-pill.j5-opt-special.j5-opt-factory::after { content: attr(data-j5-lead-short); }
 }
 /* === J5-VAR-STACK-MOBILE-1 END === */
+
+/* === J5-STOCK-MOBILE-1: fulfillment banner on phones ===
+ * The label and its note sat on one line with the note pushed right; long
+ * notes ("Est. arrival Dec 1 to Dec 15, 2026") crushed both. On phones the
+ * note drops to its own line under the label, left aligned and free to wrap. */
+@media (max-width: 640px) {
+	.j5-product-stock { display: grid; grid-template-columns: 10px minmax(0, 1fr); column-gap: 10px; row-gap: 4px; align-items: center; }
+	.j5-product-stock .dot { grid-column: 1; grid-row: 1; }
+	.j5-product-stock .label { grid-column: 2; grid-row: 1; min-width: 0; line-height: 1.2; overflow-wrap: anywhere; }
+	.j5-product-stock .qty { grid-column: 2; grid-row: 2; margin-left: 0; min-width: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere; text-align: left; }
+	.j5-product-stock .qty:empty { display: none; }
+}
+/* === J5-STOCK-MOBILE-1 END === */
