@@ -282,6 +282,9 @@ require_once get_stylesheet_directory() . '/inc/j5-related-products.php';
 // === J5-GONE-REQUIRES-START ===
 // 410 Gone for retired URLs, only when they would otherwise 404 (inc/j5-gone.php).
 require_once get_stylesheet_directory() . '/inc/j5-gone.php';
+
+// J5-OUTAGE-1: temporary service notice, off unless option j5_outage_notice is set.
+require_once get_stylesheet_directory() . '/inc/j5-outage-notice.php';
 // === J5-GONE-REQUIRES-END ===
 
 // === J5-COMMENT-GUARD-REQUIRES-START ===
