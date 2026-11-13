@@ -290,14 +290,6 @@ get_header();
 			<p>This tracking is a courtesy, and you can turn it off. We take privacy as seriously as anyone. <a href="<?php echo esc_url( $j5w['optout'] ); ?>">Fill out a short form</a> and accept the disclaimer: if you opt out, we may not be able to reach you during an NIJ advisory or product recall. We'll then remove your contact info from the plate's disposition record. Once we remove it, it's gone for good.</p>
 		</section>
 
-		<!-- COMPARE -->
-		<section class="j5wy-sec" id="compare">
-			<h2 class="j5wy-h2">Compare before you buy, even brands we don't sell</h2>
-			<p>Our <a href="<?php echo esc_url( $j5w['compare'] ); ?>">armor comparison tool</a> lines up plates side by side: weight, sizes, cut, NIJ standard, certification and special threats. It covers Hesco, HighCom, RMA, LTC, USI, Safariland and more, including many brands we don't carry.</p>
-			<p>Every plate in the tool comes from its maker's spec sheet. Certification is checked against the NIJ Compliant Products List. If we don't have the sheet, the plate isn't in the tool.</p>
-			<p>The tool also flags comparisons that aren't equal, such as different threat levels, different NIJ standards, or big gaps in size or weight. You can still compare them; we just tell you why the numbers don't line up. It's a resource for anyone buying armor, not a sales pitch. If another plate fits you better, we'd rather you know.</p>
-		</section>
-
 		<!-- GUARANTEE -->
 		<section class="j5wy-sec" id="guarantee">
 			<h2 class="j5wy-h2">Our Life Safety Replacement Guarantee</h2>
@@ -354,6 +346,14 @@ get_header();
 			<p>You also get access to our <a href="<?php echo esc_url( $j5w['portal'] ); ?>">Client Portal</a>. As soon as we disposition plates to you, every record shows up there. You can export them to a CSV file anytime.</p>
 			<p>Think of us as your quartermaster. Through <a href="<?php echo esc_url( $j5w['agency'] ); ?>">QuarterMaster</a>, built into the portal, you can assign plates to individual officers or to units like squad cars, medic units or security staff. You always know which plates are where and who's wearing them. That takes much of the logistics off your plate, so your people can stay focused on the job.</p>
 			<p>Agencies get payment terms automatically, with no credit application, and ACH or wire payments carry no fee.</p>
+		</section>
+
+		<!-- COMPARE -->
+		<section class="j5wy-sec" id="compare">
+			<h2 class="j5wy-h2">Compare before you buy, even brands we don't sell</h2>
+			<p>Our <a href="<?php echo esc_url( $j5w['compare'] ); ?>">armor comparison tool</a> lines up plates side by side: weight, sizes, cut, NIJ standard, certification and special threats. It covers Hesco, HighCom, RMA, LTC, USI, Safariland and more, including many brands we don't carry.</p>
+			<p>Every plate in the tool comes from its maker's spec sheet. Certification is checked against the NIJ Compliant Products List. If we don't have the sheet, the plate isn't in the tool.</p>
+			<p>The tool also flags comparisons that aren't equal, such as different threat levels, different NIJ standards, or big gaps in size or weight. You can still compare them; we just tell you why the numbers don't line up. It's a resource for anyone buying armor, not a sales pitch. If another plate fits you better, we'd rather you know.</p>
 		</section>
 
 		<!-- FAQ -->

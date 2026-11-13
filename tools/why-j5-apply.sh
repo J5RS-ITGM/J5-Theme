@@ -27,3 +27,24 @@ $WP cache flush >/dev/null 2>&1
 
 echo "template: $($WP post meta get "$ID" _wp_page_template 2>/dev/null | tail -1)"
 echo "url: $($WP post url "$ID" 2>/dev/null | tail -1)"
+
+# Footer menu: add this page right below "First Responder Discount" (same menu, same parent).
+# Skips if a menu item for this page already exists.
+HAVE=$($WP db query "SELECT COUNT(*) FROM wptp_postmeta WHERE meta_key='_menu_item_object_id' AND meta_value='$ID'" --skip-column-names 2>/dev/null | tail -1)
+if [ "${HAVE:-0}" != "0" ]; then
+	echo "menu: already linked ($HAVE item)"
+else
+	FOUND=""
+	for MENU in $($WP menu list --fields=term_id --format=ids 2>/dev/null | tail -1); do
+		ROW=$($WP menu item list "$MENU" --fields=db_id,title,position,menu_item_parent --format=csv 2>/dev/null | grep -i ',first responder discount,' | head -1)
+		if [ -n "$ROW" ]; then
+			POS=$(echo "$ROW" | cut -d, -f3); PARENT=$(echo "$ROW" | cut -d, -f4)
+			$WP menu item add-post "$MENU" "$ID" --title="Why Choose J5" --position=$((POS + 1)) --parent-id="$PARENT" --porcelain >/dev/null 2>&1 \
+				&& echo "menu: added to menu $MENU at position $((POS + 1)) (parent $PARENT)" \
+				|| echo "menu: FAILED to add to menu $MENU"
+			FOUND=1; break
+		fi
+	done
+	[ -z "$FOUND" ] && echo "menu: no 'First Responder Discount' item found; add it by hand in Appearance > Menus"
+	$WP cache flush >/dev/null 2>&1
+fi
