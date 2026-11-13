@@ -29,7 +29,7 @@ $j5w = apply_filters( 'j5_why_links', array(
 	'portal'    => 'https://portal.j5rescue.com/',
 	'agency'    => home_url( '/client-portal/' ),
 	'contact'   => home_url( '/contact-us/' ),
-	'optout'    => home_url( '/contact-us/' ), // swap for the opt-out form when it exists
+	'optout'    => home_url( '/armor-record-privacy/' ),
 	'phone'     => '(630) 442-4938',
 	'tel'       => '+16304424938',
 ) );
@@ -287,7 +287,7 @@ get_header();
 		<!-- OPT OUT -->
 		<section class="j5wy-sec" id="opt-out">
 			<h2 class="j5wy-h2">You can opt out</h2>
-			<p>This tracking is a courtesy, and you can turn it off. We take privacy as seriously as anyone. <a href="<?php echo esc_url( $j5w['optout'] ); ?>">Fill out a short form</a> and accept the disclaimer: if you opt out, we may not be able to reach you during an NIJ advisory or product recall. We'll then remove your contact info from the plate's disposition record. Once we remove it, it's gone for good.</p>
+			<p>This tracking is a courtesy, and you can turn it off. We take privacy as seriously as anyone. <a href="<?php echo esc_url( $j5w['optout'] ); ?>">Fill out a short form</a> and accept the disclaimer: if you opt out, we won't be able to reach you during an NIJ advisory or product recall. We'll then remove your contact info from the plate's disposition record. Once we remove it, it's gone for good.</p>
 		</section>
 
 		<!-- GUARANTEE -->
