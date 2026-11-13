@@ -64,6 +64,15 @@
 .j5wy-rec__pair i{font-style:normal;color:var(--w-gold);font-weight:700}
 .j5wy-rec__pair b{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--w-ok)}
 
+/* made in the USA */
+.j5wy-split--usa{grid-template-columns:minmax(0,1fr) minmax(0,420px);align-items:center}
+.j5wy-usa{list-style:none;margin:6px 0 18px;padding:0;display:flex;flex-direction:column;gap:12px;max-width:760px}
+.j5wy-usa li{position:relative;padding:0 0 0 22px;color:var(--w-ink);line-height:1.6}
+.j5wy-usa li::before{content:"";position:absolute;left:0;top:.62em;width:10px;height:10px;background:var(--w-red);transform:rotate(45deg)}
+.j5wy-usa b{color:#fff}
+.j5wy-fig--flag{text-align:center}
+.j5wy-flag-photo{display:block;width:100%;max-width:460px;height:auto;margin:0 auto;border-radius:6px;border:1px solid var(--w-line-hi);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+
 /* status chips */
 .st{display:inline-flex;align-items:center;gap:7px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
 .st i{width:9px;height:9px;border-radius:50%;flex:none}
@@ -165,7 +174,8 @@
 /* tablet */
 @media (max-width:960px){
 	.j5wy-points{grid-template-columns:repeat(2,minmax(0,1fr))}
-	.j5wy-split,.j5wy-split--fig-left,.j5wy-docs{grid-template-columns:minmax(0,1fr)}
+	.j5wy-split,.j5wy-split--fig-left,.j5wy-split--usa,.j5wy-docs{grid-template-columns:minmax(0,1fr)}
+	.j5wy-fig--flag{order:-1;max-width:360px;margin:0 auto 10px}
 	.j5wy-split--fig-left .j5wy-fig{order:2}
 	.j5wy-split .j5wy-fig{max-width:520px}
 	.j5wy-flow{grid-template-columns:minmax(0,1fr);gap:10px}

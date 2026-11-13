@@ -118,6 +118,31 @@ get_header();
 			<p>We're an authorized distributor for every brand of armor we sell. That means we buy straight from the manufacturer, not from another dealer or a middleman. Every plate we ship has one path: from the factory to our shelf to you. We know where it's been, and so do you.</p>
 		</section>
 
+		<!-- MADE IN USA -->
+		<section class="j5wy-sec" id="made-in-usa">
+			<div class="j5wy-split j5wy-split--usa">
+				<div>
+					<h2 class="j5wy-h2">We only sell Made in the USA armor</h2>
+					<p>Every plate we sell is made in the United States. That's a choice we made on purpose, and it comes down to one question: will this plate stop what its spec sheet says it stops?</p>
+					<ul class="j5wy-usa">
+						<li><b>Manufacturing practices.</b> Ballistic protection is only as good as the process behind it: how the ceramic is pressed and fired, how the polyethylene is layered and cured, and how every batch is checked. U.S. manufacturers run those processes in plants we can visit, under quality systems we can see.</li>
+						<li><b>Regulations and accountability.</b> A U.S. manufacturer answers to U.S. law. If a plate doesn't meet the rating on its label, there's a real company here that's responsible for it.</li>
+						<li><b>Quality of materials.</b> Reputable U.S. manufacturers source the highest quality materials to meet their manufacturing standards.</li>
+						<li><b>Expertise.</b> The people building these plates have done it for years, at companies that have built armor for decades. That experience shows up in consistency, plate after plate.</li>
+					</ul>
+					<p>Buying only U.S.-made armor, direct from the manufacturer, is how we make sure the plate in your carrier is the plate that was tested.</p>
+				</div>
+				<figure class="j5wy-fig j5wy-fig--flag">
+					<?php $j5w_img = get_stylesheet_directory_uri() . '/assets/img/why/us-flag-waving'; ?>
+					<picture>
+						<source srcset="<?php echo esc_url( $j5w_img . '.webp' ); ?>" type="image/webp">
+						<img class="j5wy-flag-photo" src="<?php echo esc_url( $j5w_img . '.jpg' ); ?>" width="612" height="407" alt="United States flag waving against a blue sky" loading="lazy" decoding="async">
+					</picture>
+					<figcaption>Every plate we sell is made in the USA.</figcaption>
+				</figure>
+			</div>
+		</section>
+
 		<!-- SPEC SHEET -->
 		<section class="j5wy-sec" id="spec-sheet">
 			<h2 class="j5wy-h2">We say exactly what the spec sheet says</h2>
