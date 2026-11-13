@@ -409,6 +409,27 @@
 .j5-forms-wrap .info-value a { color: var(--j5f-text); text-decoration: none; }
 .j5-forms-wrap .info-value a:hover { color: var(--j5f-gold); }
 
+/* J5-ARMOR-PRIVACY: privacy request link at the foot of the contact sidebar */
+.j5-forms-wrap .info-privacy {
+	margin-top: 20px;
+	padding: 18px 18px 16px;
+	background: var(--j5f-dark);
+	border: 1px solid var(--j5f-border);
+	border-left: 3px solid var(--j5f-gold);
+	border-radius: 2px;
+}
+.j5-forms-wrap .info-privacy p { margin: 6px 0 10px; color: var(--j5f-text); font-size: 14px; line-height: 1.5; }
+.j5-forms-wrap .info-privacy-link {
+	font-family: var(--j5f-display);
+	font-size: 14px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--j5f-gold);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+.j5-forms-wrap .info-privacy-link:hover { color: #fff; }
+
 /* ----- Quote agency banner ----- */
 .j5-forms-wrap .agency-banner {
 	display: grid;

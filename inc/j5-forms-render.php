@@ -183,6 +183,13 @@ function j5_render_contact_form( $atts = array() ) {
 					<div class="info-value">Northern Illinois<br>By appointment only</div>
 				</div>
 			</div>
+
+			<?php /* J5-ARMOR-PRIVACY: link to the armor record privacy request (template-j5-armor-privacy.php) */ ?>
+			<div class="info-privacy">
+				<div class="info-label">Armor record privacy</div>
+				<p>Want your personal details removed from our armor plate records? Send us a privacy request.</p>
+				<a class="info-privacy-link" href="<?php echo esc_url( home_url( '/armor-record-privacy/' ) ); ?>">Privacy request <span aria-hidden="true">&rarr;</span></a>
+			</div>
 		</aside>
 
 	</div>
