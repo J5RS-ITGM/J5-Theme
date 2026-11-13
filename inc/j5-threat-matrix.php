@@ -17,6 +17,21 @@
  *                       In?" table, above the general specs.
  * The shortcode still renders everything in one block.
  *
+ * Certification wording (DP 2026-11-12): certification.claim is "certified",
+ * "compliant", "tested" or "". The word "certified" prints only when the claim
+ * is "certified"; "compliant" prints compliant, "tested" prints "tested to",
+ * "" prints the standard and level with no claim word. Specs pushed before the
+ * claim key existed (key missing) keep the old wording. certification.claim_text
+ * is the spec sheet's own wording and prints as sent.
+ *
+ * Construction (DP 2026-11-12): optional top level "construction" object of
+ * label > value (Strike face, Backer, Cover, Protection type, Edge and coating,
+ * Warranty). Shown as a small list under the size table. Labels the product's
+ * Technical Specifications block already lists are skipped, so nothing shows twice.
+ *
+ * Tables carry class j5-xh: hover (or tap) cross-highlights the row and column
+ * (assets/js/j5-shop.js section 9, assets/css/j5-shop.css J5-TABLE-XHAIR-1).
+ *
  * Variable products: the column whose part number matches the selected
  * variation SKU is highlighted (case-insensitive, dashes/spaces ignored; the
  * SKU may end with the part number).
@@ -57,6 +72,72 @@ function j5tm_norm( $s ) {
 	return strtolower( preg_replace( '/[\s\-_]+/', '', (string) $s ) );
 }
 
+/**
+ * Certification claim from the DP: "certified" | "compliant" | "tested" | "".
+ * Returns null when the claim key is missing (specs pushed before 2026-11-12),
+ * which keeps the old wording. An unknown value is treated as "" (no claim word).
+ */
+function j5tm_claim( $cert ) {
+	if ( ! is_array( $cert ) || ! array_key_exists( 'claim', $cert ) ) return null;
+	$c = strtolower( trim( j5tm_v( $cert['claim'] ) ) );
+	return in_array( $c, array( 'certified', 'compliant', 'tested' ), true ) ? $c : '';
+}
+
+/** The spec sheet's own wording, e.g. "NIJ .06 COMPLIANT". Printed as sent. */
+function j5tm_claim_text( $cert ) {
+	return is_array( $cert ) ? trim( j5tm_v( $cert['claim_text'] ?? null ) ) : '';
+}
+
+/** One-line rating: "NIJ 0101.06 certified Level IV" / "... compliant Level IV" / "Tested to NIJ 0101.06 Level IV". */
+function j5tm_level_line( $std, $level, $claim ) {
+	$nij = trim( 'NIJ ' . $std );
+	if ( null === $claim || 'certified' === $claim ) return $nij . ' certified Level ' . $level;
+	if ( 'compliant' === $claim ) return $nij . ' compliant Level ' . $level;
+	if ( 'tested' === $claim ) return 'Tested to ' . $nij . ' Level ' . $level;
+	return $nij . ' Level ' . $level;
+}
+
+/** Short note under the protection tile: "Certified." / "Compliant." / "Tested to NIJ 0101.06." / "". */
+function j5tm_claim_note( $std, $claim ) {
+	if ( null === $claim || 'certified' === $claim ) return 'Certified.';
+	if ( 'compliant' === $claim ) return 'Compliant.';
+	if ( 'tested' === $claim ) return 'Tested to ' . trim( 'NIJ ' . $std ) . '.';
+	return '';
+}
+
+/** Construction pairs the maker states: label => value, empty values dropped. */
+function j5tm_construction( $spec ) {
+	$out = array();
+	if ( ! is_array( $spec ) || ! is_array( $spec['construction'] ?? null ) ) return $out;
+	foreach ( $spec['construction'] as $label => $value ) {
+		$label = trim( (string) $label ); $value = j5tm_v( $value );
+		if ( '' === $label || '' === trim( $value ) ) continue;
+		$out[ $label ] = $value;
+	}
+	return $out;
+}
+
+/** "Construction" list. $product is used only to skip labels already in the Technical Specifications block. */
+function j5tm_construction_html( $spec, $product = null ) {
+	$pairs = j5tm_construction( $spec );
+	if ( ! $pairs ) return '';
+	if ( $product instanceof WC_Product ) {
+		$pid  = $product->get_parent_id() ?: $product->get_id();
+		$have = (string) get_post_meta( $pid, '_j5_spec_content', true );
+		if ( '' !== $have ) {
+			foreach ( array_keys( $pairs ) as $label ) {
+				if ( preg_match( '/^\s*' . preg_quote( $label, '/' ) . '\s*:/mi', $have ) ) unset( $pairs[ $label ] );
+			}
+		}
+	}
+	if ( ! $pairs ) return '';
+	$out = '<div class="j5tm__con"><h3 class="j5tm__con-h">Construction</h3><dl class="j5tm__con-l">';
+	foreach ( $pairs as $label => $value ) {
+		$out .= '<div><dt>' . esc_html( $label ) . '</dt><dd>' . esc_html( $value ) . '</dd></div>';
+	}
+	return $out . '</dl></div>';
+}
+
 function j5tm_render( $product ) {
 	$product = $product instanceof WC_Product ? $product : wc_get_product( $product );
 	if ( ! $product ) return '';
@@ -67,6 +148,7 @@ function j5tm_render( $product ) {
 	$level   = j5tm_v( $cert['level'] ?? null );
 	$std     = trim( preg_replace( '/^\s*NIJ\s*/i', '', j5tm_v( $cert['standard'] ?? null ) ) );
 	$maker   = j5tm_v( $cert['maker_label'] ?? null );
+	$claim   = j5tm_claim( $cert );
 	$sizes   = is_array( $spec['sizes'] ?? null ) ? array_values( array_filter( $spec['sizes'], 'is_array' ) ) : array();
 	$threats = is_array( $spec['threats'] ?? null ) ? array_values( array_filter( $spec['threats'], 'is_array' ) ) : array();
 
@@ -88,7 +170,7 @@ function j5tm_render( $product ) {
 		<h3 class="j5tm__h">Ballistic protection</h3>
 		<?php if ( '' !== $level ) : ?>
 			<p class="j5tm__cert">
-				<strong><?php echo esc_html( trim( 'NIJ ' . $std ) . ' certified Level ' . $level ); ?></strong>
+				<strong><?php echo esc_html( j5tm_level_line( $std, $level, $claim ) ); ?></strong>
 				<?php if ( '' !== $maker && 0 !== strcasecmp( $maker, 'Level ' . $level ) && 0 !== strcasecmp( $maker, $level ) ) : ?>
 					<span class="j5tm__maker"><?php echo esc_html( $maker . ' (manufacturer rating)' ); ?></span>
 				<?php endif; ?>
@@ -104,7 +186,7 @@ function j5tm_render( $product ) {
 
 		<?php if ( $sizes ) : ?>
 			<div class="j5tm__scroll">
-				<table class="j5tm__t j5tm__sizes">
+				<table class="j5tm__t j5tm__sizes j5-xh">
 					<thead><tr><th scope="col">Part number</th><th scope="col">Cut</th><th scope="col">Curve</th><th scope="col">W × L (in)</th><th scope="col">Weight (lb)</th></tr></thead>
 					<tbody>
 					<?php foreach ( $sizes as $s ) :
@@ -123,10 +205,11 @@ function j5tm_render( $product ) {
 				</table>
 			</div>
 		<?php endif; ?>
+		<?php echo j5tm_construction_html( $spec, $product ); ?>
 
 		<?php if ( $threats ) : ?>
 			<div class="j5tm__scroll">
-				<table class="j5tm__t j5tm__matrix">
+				<table class="j5tm__t j5tm__matrix j5-xh">
 					<caption class="j5tm__cap">Rounds tested and shots stopped per plate</caption>
 					<thead><tr>
 						<th scope="col">Round</th><th scope="col">Core</th><th scope="col">ft/s</th>
@@ -248,6 +331,9 @@ function j5tm_render_ballistics( $product ) {
 	$level = j5tm_v( $cert['level'] ?? null );
 	$std   = trim( preg_replace( '/^\s*NIJ\s*/i', '', j5tm_v( $cert['standard'] ?? null ) ) );
 	$maker = j5tm_v( $cert['maker_label'] ?? null );
+	$claim = j5tm_claim( $cert );
+	$claim_note = j5tm_claim_note( $std, $claim );
+	$claim_text = null === $claim ? '' : j5tm_claim_text( $cert );
 	$thick = j5tm_inches( $spec['thickness_in'] ?? null );
 	$ad    = j5tm_v( $spec['areal_density_lb_ft2'] ?? null );
 
@@ -258,8 +344,21 @@ function j5tm_render_ballistics( $product ) {
 	// Answer sentence, built only from the data.
 	$bits = array();
 	if ( '' !== $level ) {
-		$b = 'Certified NIJ ' . ( '' !== $std ? $std . ' ' : '' ) . 'Level ' . $level;
-		if ( $base ) $b .= ' against the ' . j5tm_join( array_map( function ( $t ) { return j5tm_round_short( $t['round'] ?? null, true ); }, $base ) );
+		$nij_level  = 'NIJ ' . ( '' !== $std ? $std . ' ' : '' ) . 'Level ' . $level;
+		$base_names = $base ? j5tm_join( array_map( function ( $t ) { return j5tm_round_short( $t['round'] ?? null, true ); }, $base ) ) : '';
+		if ( null === $claim || 'certified' === $claim ) {
+			$b = 'Certified ' . $nij_level;
+		} elseif ( 'compliant' === $claim ) {
+			$b = $nij_level . ' compliant';
+		} elseif ( 'tested' === $claim ) {
+			$b = 'Tested to ' . $nij_level;
+		} else {
+			$b = $nij_level;
+		}
+		if ( '' !== $base_names ) {
+			// No claim from the DP: name the test round without saying how the plate relates to the standard.
+			$b .= ( null !== $claim && '' === $claim ) ? ' test ' . ( count( $base ) > 1 ? 'rounds' : 'round' ) . ': ' . $base_names : ' against the ' . $base_names;
+		}
 		$bits[] = $b;
 	}
 	if ( $special ) {
@@ -267,6 +366,10 @@ function j5tm_render_ballistics( $product ) {
 		$bits[] = ( $bits ? 'and rated by ' : 'Rated by ' ) . ( $brand_s ? $brand_s : 'the manufacturer' ) . ' to stop ' . $list;
 	}
 	$answer = $bits ? implode( ', ', $bits ) . '.' : '';
+	// "…test round: M2 AP, and rated by…" reads wrong; split into two sentences there.
+	if ( count( $bits ) > 1 && null !== $claim && '' === $claim && $base ) {
+		$answer = $bits[0] . '. ' . ucfirst( preg_replace( '/^and /', '', $bits[1] ) ) . '.';
+	}
 
 	ob_start();
 	?>
@@ -277,9 +380,12 @@ function j5tm_render_ballistics( $product ) {
 					<span class="j5tm__tile-k">Protection level</span>
 					<span class="j5tm__tile-v"><?php echo esc_html( trim( 'NIJ ' . $std ) . ' Level ' . $level ); ?></span>
 					<?php if ( '' !== $maker && 0 !== strcasecmp( $maker, 'Level ' . $level ) && 0 !== strcasecmp( $maker, $level ) ) : ?>
-						<span class="j5tm__tile-n">Certified. Rated <?php echo esc_html( $maker ); ?> by the manufacturer.</span>
-					<?php else : ?>
-						<span class="j5tm__tile-n">Certified.</span>
+						<span class="j5tm__tile-n"><?php echo esc_html( trim( $claim_note . ' Rated ' . $maker . ' by the manufacturer.' ) ); ?></span>
+					<?php elseif ( '' !== $claim_note ) : ?>
+						<span class="j5tm__tile-n"><?php echo esc_html( $claim_note ); ?></span>
+					<?php endif; ?>
+					<?php if ( '' !== $claim_text ) : ?>
+						<span class="j5tm__tile-n j5tm__tile-src">Spec sheet wording: <?php echo esc_html( $claim_text ); ?></span>
 					<?php endif; ?>
 				</div>
 			<?php elseif ( '' !== $maker ) : ?>
@@ -302,6 +408,7 @@ function j5tm_render_ballistics( $product ) {
 			<?php if ( '' !== $answer ) : ?><p class="j5tm__a"><?php echo esc_html( $answer ); ?></p><?php endif; ?>
 			<?php echo j5tm_matrix_html( $product, $spec, $model ); ?>
 		<?php endif; ?>
+		<?php echo function_exists( 'j5cmp_for_tab' ) ? j5cmp_for_tab( $product ) : ''; /* J5-COMPARE-SECTION: DP "A vs B" table, inc/j5-compare-section.php */ ?>
 		<?php echo function_exists( 'j5_compare_product_link' ) ? j5_compare_product_link( $product ) : ''; /* J5-COMPARE-LINKS */ ?>
 	</div>
 	<?php
@@ -316,7 +423,14 @@ function j5tm_render_sizes( $product ) {
 	$spec = j5tm_spec( $product );
 	if ( ! $spec ) return '';
 	$sizes = is_array( $spec['sizes'] ?? null ) ? array_values( array_filter( $spec['sizes'], 'is_array' ) ) : array();
-	if ( ! $sizes ) return '';
+	$con   = j5tm_construction_html( $spec, $product );
+	if ( ! $sizes && '' === $con ) return '';
+	if ( ! $sizes ) {
+		ob_start();
+		echo '<div class="j5tm j5tm--sizes" data-j5tm>' . $con . '</div>'; // escaped inside
+		j5tm_assets();
+		return ob_get_clean();
+	}
 	$model = j5tm_model_name( $product, $spec );
 
 	$cuts = array(); $wts = array();
@@ -340,6 +454,7 @@ function j5tm_render_sizes( $product ) {
 		<h2 class="j5tm__q">What Sizes Does the <?php echo esc_html( $model ); ?> Come In?</h2>
 		<p class="j5tm__a"><?php echo esc_html( $answer ); ?></p>
 		<?php echo j5tm_sizes_html( $sizes, $model ); ?>
+		<?php echo $con; // escaped inside ?>
 	</div>
 	<?php
 	j5tm_assets();
@@ -351,7 +466,7 @@ function j5tm_sizes_html( $sizes, $model = '' ) {
 	ob_start();
 	?>
 	<div class="j5tm__scroll">
-		<table class="j5tm__t j5tm__sizes">
+		<table class="j5tm__t j5tm__sizes j5-xh">
 			<?php if ( '' !== $model ) : ?><caption class="j5tm__cap"><?php echo esc_html( $model ); ?> part numbers by cut, curve, dimensions and weight per plate</caption><?php endif; ?>
 			<thead><tr><th scope="col">Part number</th><th scope="col">Cut</th><th scope="col">Curve</th><th scope="col">W × L (in)</th><th scope="col">Weight (lb)</th></tr></thead>
 			<tbody>
@@ -393,7 +508,7 @@ function j5tm_matrix_html( $product, $spec, $model = '' ) {
 	ob_start();
 	?>
 	<div class="j5tm__scroll">
-		<table class="j5tm__t j5tm__matrix">
+		<table class="j5tm__t j5tm__matrix j5-xh">
 			<caption class="j5tm__cap"><?php echo esc_html( ( '' !== $model ? $model . ': r' : 'R' ) . 'ounds tested and shots stopped per plate' ); ?></caption>
 			<thead><tr>
 				<th scope="col">Round</th><th scope="col">Core</th><th scope="col">ft/s</th>
@@ -450,7 +565,7 @@ function j5tm_assets() {
 	.j5tm__scroll{overflow-x:auto;margin:0 0 18px}
 	.j5tm__t{width:100%;border-collapse:collapse;font-size:14px}
 	.j5tm__t th,.j5tm__t td{padding:9px 12px;border-bottom:1px solid var(--j5-border);text-align:left;white-space:nowrap}
-	.j5tm__t thead th{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--j5-ink-mute)}
+	.j5tm__t thead th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--j5-gold);background:var(--j5-bg-elev);border-bottom:2px solid var(--j5-border-hi);padding-top:12px;padding-bottom:11px;vertical-align:bottom}
 	.j5tm__t tbody th{color:var(--j5-ink);font-weight:600}.j5tm__t td{color:var(--j5-ink-dim)}
 	.j5tm__shots{text-align:center!important;font-family:'JetBrains Mono',monospace;color:var(--j5-ink)!important}
 	.j5tm__part{text-align:center!important}
@@ -467,12 +582,21 @@ function j5tm_assets() {
 	.j5tm__q{font-family:'Bebas Neue',Impact,sans-serif;font-weight:400;font-size:32px;line-height:1.05;letter-spacing:.02em;margin:0 0 8px;color:var(--j5-bone)}
 	.j5tm__a{margin:0 0 16px;max-width:780px;color:var(--j5-ink-dim);font-size:15px;line-height:1.55}
 	.j5tm--sizes{margin:0 0 32px}
+	.j5tm__tile-src{font-size:13px;color:var(--j5-ink-mute)}
+	.j5tm__con{margin:4px 0 0;max-width:900px}
+	.j5tm__con-h{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--j5-gold);margin:0 0 8px}
+	.j5tm__con-l{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;margin:0;background:var(--j5-border);border:1px solid var(--j5-border)}
+	.j5tm__con-l>div{background:var(--j5-bg-elev);padding:10px 14px;min-width:0}
+	.j5tm__con-l dt{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--j5-ink-mute);margin:0 0 2px}
+	.j5tm__con-l dd{margin:0;color:var(--j5-ink);font-size:14px;overflow-wrap:anywhere}
 	@media(max-width:639px){.j5tm__q{font-size:26px}.j5tm__tile-v{font-size:30px}}
 	@media(max-width:639px){
-	.j5tm__scroll:has(.j5tm__matrix){overflow:visible}.j5tm__matrix thead{display:none}.j5tm__matrix,.j5tm__matrix caption,.j5tm__matrix tbody,.j5tm__matrix tr,.j5tm__matrix th,.j5tm__matrix td{display:block;width:auto;box-sizing:border-box}
-	.j5tm__matrix tr:not(.j5tm__grp){border:1px solid var(--j5-border);margin:0 0 10px;padding:6px 0}
-	.j5tm__matrix td,.j5tm__matrix tbody th{border:0;padding:4px 12px;display:flex;justify-content:space-between;white-space:normal}
-	.j5tm__matrix td::before{content:attr(data-label);color:var(--j5-ink-mute)}.j5tm__matrix td.is-empty{display:none}
+	/* Phones: both tables stack into cards, one per row. No side scrolling. */
+	.j5tm__scroll{overflow:visible}.j5tm__t thead{display:none}.j5tm__t,.j5tm__t caption,.j5tm__t tbody,.j5tm__t tr,.j5tm__t th,.j5tm__t td{display:block;width:auto;box-sizing:border-box}
+	.j5tm__t tr:not(.j5tm__grp){border:1px solid var(--j5-border);margin:0 0 10px;padding:6px 0}
+	.j5tm__t td,.j5tm__t tbody th{border:0;padding:4px 12px;display:flex;justify-content:space-between;gap:12px;white-space:normal}
+	.j5tm__t td::before{content:attr(data-label);color:var(--j5-ink-mute)}.j5tm__t td.is-empty{display:none}
+	.j5tm__sizes tbody th{color:var(--j5-bone);padding-bottom:6px}
 	}
 	</style>
 	<script>

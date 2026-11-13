@@ -79,5 +79,6 @@ return '<div class="j5-product-description j5-desc-structured">' . wp_kses_post(
 }
 $legacy = wpautop( $description );
 if ( function_exists( 'j5_spec_tables_expand_in' ) ) { $legacy = j5_spec_tables_expand_in( $legacy ); } // J5-SPEC-TABLES
+if ( function_exists( 'j5cmp_expand_in' ) ) { $legacy = j5cmp_expand_in( $legacy ); } // J5-COMPARE-SECTION
 return '<div class="j5-product-description j5-desc-legacy">' . wp_kses_post( $legacy ) . '</div>';
 }

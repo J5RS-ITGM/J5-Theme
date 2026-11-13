@@ -141,7 +141,7 @@ function j5_spec_tables_render( $product_or_id ) {
 
 		$out .= '<figure class="j5-spec-table-wrap" id="' . esc_attr( $id ) . '">';
 		$out .= '<div class="j5-spec-table-scroll' . ( $ncols >= 3 ? ' is-wide' : '' ) . '" role="region" tabindex="0" aria-label="' . esc_attr( $t['title'] ? $t['title'] : 'Specifications' ) . '">';
-		$out .= '<table class="j5-spec-table">';
+		$out .= '<table class="j5-spec-table' . ( $ncols >= 3 ? ' j5-xh' : '' ) . '">';
 		if ( '' !== $t['title'] ) {
 			$out .= '<caption>' . esc_html( $t['title'] ) . '</caption>';
 		}

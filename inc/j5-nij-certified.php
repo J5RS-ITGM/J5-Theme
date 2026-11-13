@@ -11,6 +11,12 @@
  * text, title or description. Only "yes" shows anything; "no" and "" show
  * nothing (never a negative badge).
  *
+ * One guard (DP 2026-11-12): if the product's _j5_armor_spec carries
+ * certification.claim and it is not "certified" (compliant / tested / ""),
+ * the badge is withheld even when this key says "yes". The ?nij=yes shop
+ * filter is a plain meta query on this key and does not apply that guard, so
+ * the DP should keep the two in step.
+ *
  *   j5_is_nij_certified( $product )      bool
  *   j5_render_nij_certified_tag()        product page tag, next to the LE Only line
  *   card badge                           via the j5_product_card_badges filter
@@ -32,7 +38,16 @@ function j5_is_nij_certified( $product ) {
 	if ( ! $product ) return false;
 	$id  = $product->get_parent_id() ? $product->get_parent_id() : $product->get_id();
 	$raw = strtolower( trim( (string) get_post_meta( $id, J5_NIJ_META, true ) ) );
-	return 'yes' === $raw;
+	if ( 'yes' !== $raw ) return false;
+	// DP 2026-11-12: when the armor spec carries a certification claim, the word
+	// "certified" may only print for claim == "certified". Specs without the
+	// claim key (older pushes) leave the badge as it was.
+	if ( function_exists( 'j5tm_spec' ) && function_exists( 'j5tm_claim' ) ) {
+		$spec  = j5tm_spec( $id );
+		$claim = $spec ? j5tm_claim( $spec['certification'] ?? null ) : null;
+		if ( null !== $claim && 'certified' !== $claim ) return false;
+	}
+	return true;
 }
 
 /** Product page tag. Called from woocommerce/single-product.php right after the LE Only line. */

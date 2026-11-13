@@ -553,6 +553,10 @@ get_header();
                     <?php endif; ?>
                     <?php echo $j5_spec_tables; // escaped inside j5_spec_tables_render() ?>
                     <?php if ( $j5_specs_extra !== '' ) { echo $j5_specs_extra; } // already wp_kses_post()'d in renderer ?>
+                    <?php
+                    // DP "A vs B" comparison: lives in the Ballistics tab; products without that tab get it here. J5-COMPARE-SECTION
+                    if ( '' === $j5_ballistics_html && function_exists( 'j5cmp_for_tab' ) ) { echo j5cmp_for_tab( $product ); } // escaped inside
+                    ?>
                 </div>
 
                 <?php if ( function_exists( 'j5_render_spec_sheets_panel' ) ) { j5_render_spec_sheets_panel( $product ); } /* J5-SPECSHEETS */ ?>

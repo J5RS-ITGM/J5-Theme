@@ -784,3 +784,115 @@
 	} );
 } )();
 /* J5-VARIATION-IMAGE-PATCH-1-END */
+
+/* ============================================================================
+ * 9. J5-TABLE-XHAIR-1 (2026-11-12): cross-highlight on table.j5-xh
+ *    Point at a cell: its row and column light up and the cell where they
+ *    meet is marked. Click or tap pins it; click the same cell again to let go.
+ *    Header cells light their column only, the first column lights its row only.
+ *    Skipped while the table is stacked into cards on phones (thead hidden).
+ *    Styles: j5-shop.css, J5-TABLE-XHAIR-1.
+ * ========================================================================== */
+( function () {
+	'use strict';
+	var CLS = [ 'is-xh-row', 'is-xh-col', 'is-xh-cell' ];
+
+	function stacked( table ) {
+		var head = table.tHead;
+		return !! head && window.getComputedStyle( head ).display === 'none';
+	}
+	function clear( table ) {
+		var marked = table.querySelectorAll( '.is-xh-row,.is-xh-col,.is-xh-cell' );
+		for ( var i = 0; i < marked.length; i++ ) {
+			marked[ i ].classList.remove( CLS[0], CLS[1], CLS[2] );
+		}
+	}
+	function paint( table, cell ) {
+		clear( table );
+		if ( ! cell || cell.colSpan > 1 ) { return; }
+		var tr = cell.parentNode;
+		var n = tr.children.length;
+		var idx = Array.prototype.indexOf.call( tr.children, cell );
+		var inHead = tr.parentNode.tagName === 'THEAD';
+		if ( ! inHead ) { tr.classList.add( 'is-xh-row' ); }
+		if ( idx > 0 ) {
+			for ( var r = 0; r < table.rows.length; r++ ) {
+				var row = table.rows[ r ];
+				// group / spanning rows have a different cell count: leave them alone
+				if ( row.children.length === n && row.children[ idx ].colSpan === 1 ) {
+					row.children[ idx ].classList.add( 'is-xh-col' );
+				}
+			}
+		}
+		if ( ! inHead && idx > 0 ) { cell.classList.add( 'is-xh-cell' ); }
+	}
+	function target( e ) {
+		var cell = e.target && e.target.closest ? e.target.closest( 'td,th' ) : null;
+		if ( ! cell ) { return null; }
+		var table = cell.closest( 'table.j5-xh' );
+		if ( ! table || stacked( table ) ) { return null; }
+		return { table: table, cell: cell };
+	}
+
+	document.addEventListener( 'mouseover', function ( e ) {
+		var t = target( e );
+		if ( ! t || t.table._j5xhCell === t.cell ) { return; }
+		t.table._j5xhCell = t.cell;
+		paint( t.table, t.cell );
+	} );
+	document.addEventListener( 'mouseout', function ( e ) {
+		var table = e.target && e.target.closest ? e.target.closest( 'table.j5-xh' ) : null;
+		if ( ! table || ( e.relatedTarget && table.contains( e.relatedTarget ) ) ) { return; }
+		table._j5xhCell = null;
+		paint( table, table._j5xhPin || null ); // back to the pinned cell, or nothing
+	} );
+	document.addEventListener( 'click', function ( e ) {
+		var t = target( e );
+		if ( ! t || ( e.target.closest && e.target.closest( 'a,button' ) ) ) { return; }
+		if ( t.cell.colSpan > 1 ) { return; }
+		t.table._j5xhPin = t.table._j5xhPin === t.cell ? null : t.cell;
+		t.table.classList.toggle( 'is-xh-pinned', !! t.table._j5xhPin );
+		paint( t.table, t.table._j5xhPin || t.cell );
+	} );
+} )();
+
+/* ============================================================================
+ * 10. J5-COMPARE-SECTION-1 (2026-11-12): [j5_compare] "show all specs" toggle
+ *     The server prints every row. Here the rows that match on every plate
+ *     fold away behind a button; with no JS they simply stay visible.
+ * ========================================================================== */
+( function () {
+	'use strict';
+	function init() {
+		var boxes = document.querySelectorAll( '[data-j5cmp]' );
+		for ( var i = 0; i < boxes.length; i++ ) { setup( boxes[ i ] ); }
+	}
+	function setup( box ) {
+		if ( box._j5cmp ) { return; }
+		box._j5cmp = true;
+		var same = box.querySelectorAll( '.j5cmp__row.is-same' ).length;
+		var diff = box.querySelectorAll( '.j5cmp__row.is-diff' ).length;
+		var wrap = box.querySelector( '.j5cmp__wrap' );
+		if ( ! same || ! diff || ! wrap ) { return; } // nothing to fold, or nothing would be left
+		var bar = document.createElement( 'div' );
+		bar.className = 'j5cmp__bar';
+		var count = document.createElement( 'span' );
+		count.className = 'j5cmp__count';
+		var btn = document.createElement( 'button' );
+		btn.type = 'button';
+		btn.className = 'j5cmp__toggle';
+		bar.appendChild( count );
+		bar.appendChild( btn );
+		wrap.parentNode.insertBefore( bar, wrap );
+		function set( diffOnly ) {
+			box.classList.toggle( 'is-diff-only', diffOnly );
+			btn.setAttribute( 'aria-expanded', diffOnly ? 'false' : 'true' );
+			btn.textContent = diffOnly ? 'Show all specs (' + same + ' the same)' : 'Show differences only';
+			count.textContent = diffOnly ? 'Showing the ' + diff + ( diff === 1 ? ' spec that differs' : ' specs that differ' ) : 'Showing all ' + ( same + diff ) + ' specs';
+		}
+		btn.addEventListener( 'click', function () { set( ! box.classList.contains( 'is-diff-only' ) ); } );
+		set( true );
+	}
+	if ( document.readyState === 'loading' ) { document.addEventListener( 'DOMContentLoaded', init ); } else { init(); }
+} )();
+

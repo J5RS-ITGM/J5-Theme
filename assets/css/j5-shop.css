@@ -1704,3 +1704,79 @@ a.j5-badge:hover { border-color: currentColor; transform: translateY(-1px); }
 	.j5-product-stock .qty:empty { display: none; }
 }
 /* === J5-STOCK-MOBILE-1 END === */
+
+/* ==========================================================================
+ * J5-TABLE-XHAIR-1 (2026-11-12): cross-highlight for data tables.
+ * Any table.j5-xh: pointing at (or tapping) a cell lights its row and its
+ * column and marks the cell where they meet; a click or tap pins it.
+ * Driven by assets/js/j5-shop.js section 9. Off while a table is stacked
+ * into cards on phones. Used by the Ballistics matrix, the sizes table
+ * (inc/j5-threat-matrix.php), DP spec tables with 3+ columns
+ * (inc/j5-spec-tables.php) and the comparison table (inc/j5-compare-section.php).
+ * Also here: a firmer header row for the DP spec tables.
+ * ======================================================================== */
+.j5-spec-table thead th { border-bottom: 2px solid var(--j5-border-hi); }
+.j5-xh td, .j5-xh th { transition: background-color .08s linear; }
+.j5-xh tr.is-xh-row > th,
+.j5-xh tr.is-xh-row > td,
+.j5-xh .is-xh-col { background-color: #1d2129; }
+.j5-xh tr.is-xh-row > th:first-child { color: var(--j5-gold-hi) !important; box-shadow: inset 3px 0 0 var(--j5-gold); }
+.j5-xh thead th.is-xh-col { background-color: #1d2129; color: var(--j5-gold-hi) !important; box-shadow: inset 0 -2px 0 var(--j5-gold); }
+.j5-xh td.is-xh-cell,
+.j5-xh tbody th.is-xh-cell { background-color: #3a2f17 !important; color: var(--j5-bone) !important; box-shadow: inset 0 0 0 1px var(--j5-gold); }
+.j5-xh.is-xh-pinned td.is-xh-cell,
+.j5-xh.is-xh-pinned tbody th.is-xh-cell { box-shadow: inset 0 0 0 2px var(--j5-gold); }
+@media (hover: hover) { .j5-xh tbody td, .j5-xh tbody th, .j5-xh thead th { cursor: crosshair; } .j5-xh a { cursor: pointer; } }
+/* === J5-TABLE-XHAIR-1 END === */
+
+/* ==========================================================================
+ * J5-COMPARE-SECTION-1 (2026-11-12): DP "A vs B" comparison, [j5_compare]
+ * (inc/j5-compare-section.php). Desktop: one table, this product's column
+ * tinted. Phones: each spec is a card with one line per plate, no side scroll.
+ * Rows that match on every plate carry .is-same; j5-shop.js adds
+ * .is-diff-only and a toggle button, so without JS every row shows.
+ * ======================================================================== */
+.j5cmp { margin: 34px 0 28px; font-family: 'Barlow', system-ui, sans-serif; }
+.j5cmp__h { font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 32px; line-height: 1.05; letter-spacing: .02em; margin: 0 0 8px; color: var(--j5-bone); }
+.j5cmp__sum { margin: 0 0 16px; max-width: 780px; color: var(--j5-ink-dim); font-size: 15px; line-height: 1.55; }
+.j5cmp__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; }
+.j5cmp__count { color: var(--j5-ink-mute); font-size: 13px; }
+.j5cmp__toggle { appearance: none; background: transparent; border: 1px solid var(--j5-border-hi); border-radius: 4px; padding: 8px 14px; color: var(--j5-gold); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.j5cmp__toggle:hover, .j5cmp__toggle:focus-visible { border-color: var(--j5-gold); color: var(--j5-gold-hi); outline: none; }
+.j5cmp__wrap { max-width: 100%; }
+.j5cmp__t { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; }
+.j5cmp__t th, .j5cmp__t td { padding: 11px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--j5-border); overflow-wrap: anywhere; }
+.j5cmp__corner { width: 24%; }
+.j5cmp[data-cols="4"] .j5cmp__corner { width: 20%; }
+.j5cmp__t thead th { background: var(--j5-bg-elev); border-bottom: 2px solid var(--j5-border-hi); vertical-align: bottom; }
+.j5cmp__name { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; line-height: 1.25; letter-spacing: .06em; text-transform: uppercase; color: var(--j5-bone); }
+a.j5cmp__name, a.j5cmp__name:visited { color: var(--j5-gold); text-decoration: underline; text-underline-offset: 3px; }
+a.j5cmp__name:hover { color: var(--j5-gold-hi); }
+.j5cmp__tag { display: inline-block; margin: 0 0 6px; padding: 2px 8px; border-radius: 3px; background: var(--j5-gold); color: #14110a; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.j5cmp__t thead th.is-this { box-shadow: inset 0 3px 0 var(--j5-gold); }
+.j5cmp__t .is-this { background-color: rgba(212, 160, 68, .07); }
+.j5cmp__t thead th.is-this { background-color: #1a1811; }
+.j5cmp__label { font-weight: 600; color: var(--j5-ink-dim); }
+.j5cmp__v { color: var(--j5-ink); font-variant-numeric: tabular-nums; }
+.j5cmp__row.is-diff .j5cmp__label { color: var(--j5-bone); }
+.j5cmp__row.is-same .j5cmp__v { color: var(--j5-ink-dim); }
+.j5cmp__grp th { background: var(--j5-bg-card); color: var(--j5-gold); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; padding-top: 9px; padding-bottom: 8px; }
+.j5cmp.is-diff-only .is-same { display: none; }
+.j5cmp__foot { margin: 12px 0 0; color: var(--j5-ink-dim); font-size: 14px; }
+.j5cmp__links { display: none; list-style: none; margin: 14px 0 0; padding: 0; }
+.j5cmp__links a, .j5cmp__links a:visited { color: var(--j5-gold); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 760px) {
+	.j5cmp__h { font-size: 26px; }
+	.j5cmp__t, .j5cmp__t tbody, .j5cmp__t tr, .j5cmp__t th, .j5cmp__t td { display: block; width: auto; box-sizing: border-box; }
+	.j5cmp__t thead { display: none; }
+	.j5cmp__grp th { margin: 14px 0 8px; border: 0; border-left: 3px solid var(--j5-gold); }
+	.j5cmp__row { border: 1px solid var(--j5-border); border-radius: 6px; margin: 0 0 10px; overflow: hidden; }
+	.j5cmp__row .j5cmp__label { background: var(--j5-bg-elev); border-bottom: 1px solid var(--j5-border); color: var(--j5-bone); font-weight: 700; font-size: 15px; padding: 9px 12px; }
+	.j5cmp__row .j5cmp__v { padding: 9px 12px; border-bottom: 1px solid var(--j5-border); border-left: 3px solid transparent; }
+	.j5cmp__row .j5cmp__v:last-child { border-bottom: 0; }
+	.j5cmp__row .j5cmp__v.is-this { border-left-color: var(--j5-gold); }
+	.j5cmp__row .j5cmp__v::before { content: attr(data-label); display: block; margin: 0 0 2px; color: var(--j5-ink-mute); font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+	.j5cmp.is-diff-only .is-same { display: none; }
+	.j5cmp__links { display: grid; gap: 10px; }
+}
+/* === J5-COMPARE-SECTION-1 END === */

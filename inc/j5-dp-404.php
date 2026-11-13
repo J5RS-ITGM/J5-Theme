@@ -13,6 +13,14 @@
  *       Hesco redirects live). An existing redirect from the same path, in any
  *       group, is updated in place; a second one is never created.
  *
+ *   POST /wp-json/j5/v1/redirects/delete      (WC_404_REDIRECTS_CONTRACT_ADDENDUM_1)
+ *       {"from": ["/product/slug/", ...]}
+ *       ->  {"ok": true, "deleted": n, "not_found": ["/path", ...]}
+ *       Removes every plain (non-regex) Redirection rule whose source is one of
+ *       the paths, in any group. The DP calls it when it publishes a product so
+ *       an old rule on that URL can't keep the live product unreachable.
+ *       Regex rules are never touched. A path with no rule is not an error.
+ *
  * Auth: X-J5-Hub-Secret, same as brands / shipping-rules / armor-reference
  * (j5_armor_ref_permission). Wrong secret -> 401.
  *
@@ -44,6 +52,12 @@ add_action( 'rest_api_init', function () {
 		'methods'             => 'PUT',
 		'permission_callback' => $perm,
 		'callback'            => 'j5_dp404_put_redirects',
+	) );
+
+	register_rest_route( 'j5/v1', '/redirects/delete', array(
+		'methods'             => 'POST',
+		'permission_callback' => $perm,
+		'callback'            => 'j5_dp404_delete_redirects',
 	) );
 } );
 
@@ -227,4 +241,66 @@ function j5_dp404_put_redirects( WP_REST_Request $request ) {
 	}
 
 	return rest_ensure_response( array( 'ok' => true, 'created' => $created, 'updated' => $updated ) );
+}
+
+/* -------------------------------------------------------------------------
+ * 3. Delete redirects (ADDENDUM_1)
+ * ---------------------------------------------------------------------- */
+
+function j5_dp404_delete_redirects( WP_REST_Request $request ) {
+	if ( ! class_exists( 'Red_Item' ) ) {
+		return new WP_REST_Response( array( 'ok' => false, 'error' => 'The Redirection plugin is not active on the store.' ), 503 );
+	}
+	$body = $request->get_json_params();
+	$from = is_array( $body ) && isset( $body['from'] ) ? $body['from'] : null;
+	if ( is_string( $from ) ) $from = array( $from );
+	if ( ! is_array( $from ) || ! $from ) {
+		return new WP_REST_Response( array( 'ok' => false, 'error' => 'Expected {"from": ["/path/", ...]}.' ), 400 );
+	}
+	if ( count( $from ) > 500 ) {
+		return new WP_REST_Response( array( 'ok' => false, 'error' => 'At most 500 paths per call.' ), 400 );
+	}
+
+	// Validate the whole batch before deleting anything.
+	$paths = array();
+	foreach ( array_values( $from ) as $i => $v ) {
+		$path = is_string( $v ) ? j5_dp404_path( $v ) : '';
+		if ( '' === $path ) {
+			return new WP_REST_Response( array( 'ok' => false, 'error' => "Path {$i}: empty or not a string." ), 400 );
+		}
+		if ( '/' === $path ) {
+			return new WP_REST_Response( array( 'ok' => false, 'error' => "Path {$i}: refusing to act on the home page." ), 400 );
+		}
+		$paths[ j5_dp404_key( $path ) ] = $path;
+	}
+
+	global $wpdb;
+	$deleted   = 0;
+	$not_found = array();
+	$purge     = array();
+	foreach ( $paths as $key => $path ) {
+		$ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT id FROM {$wpdb->prefix}redirection_items WHERE regex = 0 AND ( match_url = %s OR LOWER(url) IN ( %s, %s ) )",
+			$key, $key, trailingslashit( $key )
+		) );
+		if ( ! $ids ) {
+			$not_found[] = $path;
+			continue;
+		}
+		foreach ( $ids as $id ) {
+			$item = Red_Item::get_by_id( (int) $id );
+			if ( ! $item ) continue;
+			$item->delete();
+			$deleted++;
+		}
+		$purge[] = home_url( untrailingslashit( $path ) );
+		$purge[] = home_url( trailingslashit( $path ) );
+	}
+
+	// Cloudflare may hold the old 301 for this URL.
+	if ( $purge && function_exists( 'j5_armor_ref_cloudflare_purge' ) ) {
+		j5_armor_ref_cloudflare_purge( array_values( array_unique( $purge ) ) );
+	}
+
+	return rest_ensure_response( array( 'ok' => true, 'deleted' => $deleted, 'not_found' => $not_found ) );
 }
