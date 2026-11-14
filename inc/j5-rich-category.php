@@ -480,6 +480,14 @@ add_filter( 'j5_archive_show_spotlight', function ( $show ) {
 	return ( $d && ! empty( $d['related'] ) ) ? false : $show;
 } );
 
+/**
+ * 2026-11-14: the generic "Explore more / Other categories" strip is off on every
+ * category and brand archive. It listed the 12 biggest categories site-wide, the
+ * same on every page, and repeated the Category filter. Related categories chosen
+ * per category in the rich layout still show. To bring the strip back, delete this.
+ */
+add_filter( 'j5_archive_show_spotlight', '__return_false', 20 );
+
 /** Eyebrow above the H1. */
 add_action( 'j5_archive_hero_before_title', function () {
 	$d = j5rc_current();
