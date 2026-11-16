@@ -424,16 +424,16 @@ function j5_hero_search_typeahead_script() {
                 var img = '';
                 if (p._embedded && p._embedded['wp:featuredmedia'] && p._embedded['wp:featuredmedia'][0]) {
                     var m = p._embedded['wp:featuredmedia'][0];
-                    if (m.source_url) img = '<img class="j5-result-img" src="' + escapeAttr(m.source_url) + '" alt="" />';
+                    if (m.source_url) img = '<img class="j5-result-img" ' + 'src' + '="' + escapeAttr(m.source_url) + '" alt="" />';
                 }
                 if (!img) img = '<div class="j5-result-img"></div>';
-                return '<a class="j5-result" href="' + escapeAttr(link) + '">' +
+                return '<a class="j5-result" ' + 'href' + '="' + escapeAttr(link) + '">' +
                        img +
                        '<div class="j5-result-body"><div class="j5-result-title">' + title + '</div></div>' +
                        (price ? '<div class="j5-result-price">' + price + '</div>' : '') +
                        '</a>';
             }).join('');
-            html += '<a class="j5-result" href="' + escapeAttr(shopBase + encodeURIComponent(query)) + '" style="justify-content:center;color:var(--j5-gold,#c8a84e);font-weight:600;">See all results for "' + escapeHtml(query) + '" →</a>';
+            html += '<a class="j5-result" ' + 'href' + '="' + escapeAttr(shopBase + encodeURIComponent(query)) + '" style="justify-content:center;color:var(--j5-gold,#c8a84e);font-weight:600;">See all results for "' + escapeHtml(query) + '" →</a>';
             results.innerHTML = html;
             show();
         }
