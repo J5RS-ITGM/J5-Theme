@@ -132,14 +132,22 @@ function j5ip_render_line( $product ) {
 			. '<div class="j5-fs-callout__badge" aria-hidden="true"><b><span data-j5-ip-pct>%2$s</span>%%</b><span>off</span></div>'
 			. '<div class="j5-fs-callout__body">'
 				. '<p class="j5-fs-callout__title">%3$s</p>'
-				. '<p class="j5-fs-callout__text">This plate is already <strong>in production</strong> at the factory. Order it now and save <strong><span data-j5-ip-pct>%2$s</span>%%</strong>. We ship it to you as soon as it is finished.</p>'
-				. '<p class="j5-fs-callout__how">Discount applied automatically in your cart. No code needed.</p>'
+				. '<p class="j5-fs-callout__text">These plates are <strong>in production</strong>, on an open order the manufacturer has confirmed. Get in line now and save <strong><span data-j5-ip-pct>%2$s</span>%%</strong>. We ship them to you as soon as they arrive.</p>'
+				. '<p class="j5-fs-callout__how">Discount applied automatically in your cart. No code needed.%4$s</p>'
 			. '</div>'
 		. '</div>',
 		$variable ? ' hidden' : '',
 		esc_html( j5ip_fmt( $pct ) ),
-		esc_html( J5IP_LABEL )
+		esc_html( J5IP_LABEL ),
+		( $faq = j5ip_faq_url() ) ? ' <a class="j5-fs-callout__link" href="' . esc_url( $faq ) . '">What in production means &rarr;</a>' : ''
 	);
+}
+
+/** FAQ answer the callout links to (#in-production, added by content/pages/add-in-production-faq.php). */
+function j5ip_faq_url() {
+	$id  = (int) apply_filters( 'j5_faq_page_id', 9041 );
+	$url = $id && 'publish' === get_post_status( $id ) ? get_permalink( $id ) : '';
+	return $url ? $url . '#in-production' : '';
 }
 
 add_action( 'wp_enqueue_scripts', function () {

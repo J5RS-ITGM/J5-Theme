@@ -37,6 +37,7 @@ $j5w = apply_filters( 'j5_why_links', array(
 $j5w_faq = array(
 	array( 'Are all the plates you sell NIJ certified?', 'No. Each product page says whether a plate is NIJ certified, NIJ compliant or tested to NIJ, matching the manufacturer\'s spec sheet. Only certified plates carry the NIJ Certified badge.' ),
 	array( 'What does "Factory order" mean?', 'We don\'t have that size on our shelf, but we can order it from the manufacturer for you. The product page shows the approximate lead time, and factory orders typically come with a 5 to 10% discount.' ),
+	array( 'What does "In production" mean?', 'The plates are on an open purchase order that the manufacturer has confirmed, and the product page shows the estimated ship date. In production plates come with half the factory order discount, typically 2.5 to 5%, and it comes off automatically in your cart.' ),
 	array( 'Are your plate sets matched?', 'Yes. We pair plates with consecutive serial numbers and inspect each one before it\'s boxed.' ),
 	array( 'How will I know which plates I got?', 'When your order is assigned, we email you the lot number and both serial numbers. A printed disposition slip comes in the box too.' ),
 	array( 'Will you contact me if my plates are recalled?', 'Yes. We record which plates went to which buyer, so we can reach you directly if NIJ issues an advisory or safety notice on your model. You can opt out, but then we may not be able to reach you.' ),
@@ -202,7 +203,7 @@ get_header();
 				<ul class="j5wy-status">
 					<li><b class="st st--in"><i></i>In Stock</b><p>The set is on our shelf right now. That count comes straight from the same system that tracks every plate we receive.</p></li>
 					<li><b class="st st--fac"><i></i>Factory Order</b><p>We don't have that model, cut or size on hand, but we can order it from the manufacturer for you. Lead times vary by maker, and we work hard to keep them current. The product page shows the approximate wait. Factory orders often come with a discount, typically 5 to 10%.</p><span class="j5wy-ex"><em>Example</em>Lead time about 6 to 8 weeks</span></li>
-					<li><b class="st st--prod"><i></i>In Production</b><p>These plates are on an open purchase order that the factory has confirmed. The arrival date comes from the manufacturer, and it's the date we expect to ship to you. If you don't want to wait out a full factory lead time, this is a good way to get in line early.</p><span class="j5wy-ex"><em>Example</em>Est. ship date Jan 12, 2027</span></li>
+					<li><b class="st st--prod"><i></i>In Production</b><p>These plates are on an open purchase order that the factory has confirmed. The arrival date comes from the manufacturer, and it's the date we expect to ship to you. If you don't want to wait out a full factory lead time, this is a good way to get in line early. In production plates also save you half the factory order discount, typically 2.5 to 5%, taken off automatically in your cart.</p><span class="j5wy-ex"><em>Example</em>Est. ship date Jan 12, 2027</span></li>
 				</ul>
 			</div>
 		</section>
