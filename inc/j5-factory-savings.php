@@ -303,3 +303,6 @@ add_filter( 'woocommerce_get_item_data', function ( $item_data, $item ) {
 
 /* In Production savings: half the factory rate (J5IP-1). */
 require_once __DIR__ . '/j5-production-savings.php';
+
+/* Offer links: /cart/?j5_offer=CODE fills the cart from the coupon and applies it (J5-OFFER-LINK-1). */
+require_once __DIR__ . '/j5-offer-link.php';
