@@ -249,7 +249,7 @@ add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
 	$busy    = true;
 	$applied = $cart->get_applied_coupons();
 	$has     = in_array( J5IP_CODE, $applied, true );
-	$want    = j5ip_cart_eligible( $cart );
+	$want    = j5ip_cart_eligible( $cart ) && ! ( function_exists( 'j5_cart_has_exclusive_coupon' ) && j5_cart_has_exclusive_coupon( $cart ) );
 	if ( $want && ! $has ) {
 		$applied[] = J5IP_CODE;
 		$cart->set_applied_coupons( $applied );

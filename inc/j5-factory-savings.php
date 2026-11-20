@@ -227,6 +227,24 @@ add_filter( 'woocommerce_coupon_get_discount_amount', function ( $discount, $dis
 	return $pct > 0 ? (float) $discounting_amount * $pct / 100 : 0;
 }, 20, 5 );
 
+/**
+ * True when a typed coupon marked "Individual use only" is applied (e.g. a promised-price
+ * coupon). Our auto-applied savings then stand aside so nothing stacks on it (J5-EXCLUSIVE-1).
+ */
+function j5_cart_has_exclusive_coupon( $cart ) {
+	$ours = array( 'factory-order-savings', 'in-production-savings', 'plate-age-discount', 'in-stock-plate-savings' );
+	foreach ( $cart->get_applied_coupons() as $code ) {
+		if ( in_array( wc_format_coupon_code( $code ), $ours, true ) ) {
+			continue;
+		}
+		$c = new WC_Coupon( $code );
+		if ( $c->get_id() && $c->get_individual_use() ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /** True when the cart holds at least one eligible line. */
 function j5fs_cart_eligible( $cart ) {
 	foreach ( $cart->get_cart() as $item ) {
@@ -252,7 +270,7 @@ add_action( 'woocommerce_before_calculate_totals', function ( $cart ) {
 	$busy    = true;
 	$applied = $cart->get_applied_coupons();
 	$has     = in_array( J5FS_CODE, $applied, true );
-	$want    = j5fs_cart_eligible( $cart );
+	$want    = j5fs_cart_eligible( $cart ) && ! j5_cart_has_exclusive_coupon( $cart );
 	if ( $want && ! $has ) {
 		$applied[] = J5FS_CODE;
 		$cart->set_applied_coupons( $applied );
