@@ -88,24 +88,54 @@ function j5_dp_cache_flush( $request ) {
 	$pid = absint( $request->get_param( 'product_id' ) );
 
 	if ( $pid && ! $request->get_param( 'all' ) ) {
-		$product = wc_get_product( $pid );
-		if ( ! $product ) {
+		global $wpdb;
+		// 1. Resolve the parent without loading a (possibly stale) WC product object.
+		$post = get_post( $pid );
+		if ( ! $post || ! in_array( $post->post_type, array( 'product', 'product_variation' ), true ) ) {
 			return new WP_REST_Response( array( 'ok' => false, 'error' => 'product not found', 'product_id' => $pid ), 404 );
 		}
-		if ( $product->get_parent_id() ) {
-			$pid = $product->get_parent_id(); // a variation id was sent: clear its whole family
+		if ( 'product_variation' === $post->post_type && $post->post_parent ) {
+			$pid = (int) $post->post_parent; // a variation id was sent: clear its whole family
 		}
-		$ids = array_merge(
-			array( $pid ),
-			array_map( 'intval', get_children( array( 'post_parent' => $pid, 'post_type' => 'product_variation', 'fields' => 'ids', 'post_status' => 'any', 'numberposts' => -1 ) ) )
-		);
+
+		// 2. Children straight from the database, never from a cached list.
+		$children = array_map( 'intval', (array) $wpdb->get_col( $wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_parent = %d AND post_type = 'product_variation'",
+			$pid
+		) ) );
+		$ids = array_merge( array( $pid ), $children );
+
+		// 3. WooCommerce transients (wc_product_children_, wc_var_prices_, ...).
+		wc_delete_product_transients( $pid );
+		delete_transient( 'wc_product_children_' . $pid );
+		delete_transient( 'wc_var_prices_' . $pid );
+
+		// 4. Post, meta, term and WC product cache groups for the parent and every child.
 		foreach ( $ids as $id ) {
-			clean_post_cache( $id ); // post, post_meta and term caches
+			clean_post_cache( $id );
+			wp_cache_delete( $id, 'posts' );
+			wp_cache_delete( $id, 'post_meta' );
+			foreach ( array( 'products', 'product_objects', 'woocommerce_product_objects' ) as $group ) {
+				wp_cache_delete( $id, $group );
+				wp_cache_delete( 'product-' . $id, $group );
+			}
 			if ( class_exists( 'WC_Cache_Helper' ) ) {
 				WC_Cache_Helper::invalidate_cache_group( 'product_' . $id );
 			}
 		}
-		wc_delete_product_transients( $pid ); // children list, variation prices, etc.
+
+		// 5. Drop cached WP_Query results (e.g. GET /wc/v3/products/<id>/variations).
+		if ( function_exists( 'wp_cache_set_posts_last_changed' ) ) {
+			wp_cache_set_posts_last_changed();
+		}
+		if ( function_exists( 'wp_cache_set_last_changed' ) ) {
+			wp_cache_set_last_changed( 'posts' );
+			wp_cache_set_last_changed( 'post_meta' );
+		}
+		if ( class_exists( 'WC_Cache_Helper' ) ) {
+			WC_Cache_Helper::get_transient_version( 'product', true );
+		}
+
 		return new WP_REST_Response( array( 'ok' => true, 'scope' => 'product', 'product_id' => $pid, 'cleared' => count( $ids ) ), 200 );
 	}
 
