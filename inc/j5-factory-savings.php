@@ -18,6 +18,9 @@
  * AND is still on backorder, checked live at every cart calculation, so a DP
  * flip to in stock drops the savings on the next recalculation.
  *
+ * In Production plates (half the factory rate) live in inc/j5-production-savings.php,
+ * loaded at the bottom of this file (J5IP-1, 2026-11-19).
+ *
  * WooCommerce only: DP estimates and Quartermaster orders are not touched.
  *
  * @package J5 Theme
@@ -115,10 +118,14 @@ function j5fs_faq_url() {
  * The callout, printed right after the stock banner (woocommerce/single-product.php).
  * Variable products start at "Up to <max>%"; the inline script switches to the
  * selected option's own percent, or hides the callout for options without one.
+ * The In Production callout (hidden until an In Production option is picked) prints first.
  *
  * @param WC_Product $product
  */
 function j5fs_render_line( $product ) {
+	if ( function_exists( 'j5ip_render_line' ) ) {
+		j5ip_render_line( $product );
+	}
 	$max = j5fs_max_pct( $product );
 	if ( $max <= 0 ) {
 		return;
@@ -275,3 +282,6 @@ add_filter( 'woocommerce_get_item_data', function ( $item_data, $item ) {
 	}
 	return $item_data;
 }, 30, 2 );
+
+/* In Production savings: half the factory rate (J5IP-1). */
+require_once __DIR__ . '/j5-production-savings.php';
