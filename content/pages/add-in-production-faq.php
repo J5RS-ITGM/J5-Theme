@@ -2,15 +2,14 @@
 /**
  * One-off: adds the "What does In production mean?" answer (#in-production) to the live FAQ page,
  * right after the factory order answer (#factory-orders) in Orders & Shipping. Touches only that
- * page and only adds this block, so edits made to the FAQ in wp-admin are kept. Safe to re-run:
- * does nothing if it is already there. (J5IP-1, 2026-11-19)
+ * page and only adds (or refreshes) this block, so edits made to the FAQ in wp-admin are kept.
+ * Safe to re-run: an existing #in-production answer is replaced with the copy below. (J5IP-1, 2026-11-19)
  *
  * Run: wp eval-file wp-content/themes/j5-theme/content/pages/add-in-production-faq.php
  */
 $id   = (int) apply_filters( 'j5_faq_page_id', 9041 );
 $post = get_post( $id );
 if ( ! $post ) { echo "FAQ page $id not found\n"; return; }
-if ( false !== strpos( $post->post_content, 'id="in-production"' ) ) { echo "Already there, nothing to do\n"; return; }
 $block = <<<'HTML'
 <!-- wp:details {"anchor":"in-production"} -->
 <details id="in-production" class="wp-block-details"><summary>What does "In production" mean?</summary><!-- wp:paragraph -->
@@ -18,7 +17,7 @@ $block = <<<'HTML'
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
-<p>Ordering in production plates gets you in line ahead of a full factory lead time, and they cost less too. You save half the factory order discount, typically 2.5 to 5%. The discount comes off automatically in your cart. No code needed.</p>
+<p>Ordering in production plates gets you in line ahead of a full factory lead time, and they cost less too. You typically save half the factory order discount. The discount comes off automatically in your cart. No code needed.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
@@ -28,6 +27,19 @@ $block = <<<'HTML'
 HTML;
 $c     = $post->post_content;
 $where = '';
+// Already there: replace it with the current copy (keeps everything else on the page).
+$open = '<!-- wp:details {"anchor":"in-production"} -->';
+$ip   = strpos( $c, $open );
+if ( false !== $ip ) {
+	$close = strpos( $c, '<!-- /wp:details -->', $ip );
+	if ( false === $close ) { echo "Found #in-production but not its end, nothing changed\n"; return; }
+	$close += strlen( '<!-- /wp:details -->' );
+	if ( substr( $c, $ip, $close - $ip ) === $block ) { echo "Already up to date, nothing to do\n"; return; }
+	kses_remove_filters();
+	$r = wp_update_post( array( 'ID' => $id, 'post_content' => substr( $c, 0, $ip ) . $block . substr( $c, $close ) ), true );
+	echo is_wp_error( $r ) ? 'ERROR ' . $r->get_error_message() . "\n" : "Updated the existing answer\n";
+	return;
+}
 // 1. Right after the factory order answer.
 $fo = strpos( $c, 'id="factory-orders"' );
 $end = false === $fo ? false : strpos( $c, '<!-- /wp:details -->', $fo );
