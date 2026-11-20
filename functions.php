@@ -129,6 +129,8 @@ require_once get_stylesheet_directory() . '/inc/j5-typeahead-endpoint.php';
 
 // J5 Shop + Single Product templates
 require_once get_stylesheet_directory() . '/inc/j5-shop-setup.php';
+// Brand priority on listings: HESCO, then HighCom, then the rest; Featured sort = menu_order ASC. J5-BRAND-FIRST
+require_once get_stylesheet_directory() . '/inc/j5-brand-priority.php';
 
 
 // J5 Dev Pages - no-cache enforcement (2026-04-17)
@@ -181,12 +183,12 @@ require_once get_stylesheet_directory() . '/inc/j5-archive-render.php';
 
 add_action( 'wp_enqueue_scripts', function() {
     if ( function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_tag() || is_post_type_archive( 'product' ) ) ) {
-        wp_enqueue_style(
-            'j5-archive',
-            get_stylesheet_directory_uri() . '/assets/css/j5-archive.css',
-            array(),
-            '1.0.0'
-        );
+	wp_enqueue_style(
+	    'j5-archive',
+	    get_stylesheet_directory_uri() . '/assets/css/j5-archive.css',
+	    array(),
+	    '1.0.0'
+	);
     }
 }, 25 );
 // === J5-ARCHIVE-RENDER-REQUIRES-END ===
@@ -321,138 +323,138 @@ body.j5-shop-template .j5-container {
 
 @media (max-width: 640px) {
     body.j5-shop-template * {
-        box-sizing: border-box;
+	box-sizing: border-box;
     }
     body.j5-shop-template .j5-shop-layout,
     body.j5-shop-template .j5-container {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
+	padding-left: 12px !important;
+	padding-right: 12px !important;
     }
     body.j5-shop-template .j5-shop-layout {
-        grid-template-columns: 1fr !important;
+	grid-template-columns: 1fr !important;
     }
     body.j5-shop-template .j5-filters {
-        margin-bottom: 20px !important;
+	margin-bottom: 20px !important;
     }
     body.j5-shop-template .j5-prod-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 8px !important;
-        width: 100% !important;
-        max-width: 100% !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+	gap: 8px !important;
+	width: 100% !important;
+	max-width: 100% !important;
     }
     body.j5-shop-template .j5-prod-card {
-        min-width: 0 !important;
-        max-width: 100% !important;
-        overflow: hidden !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
+	overflow: hidden !important;
     }
     body.j5-shop-template .j5-prod-img-wrap,
     body.j5-shop-template .j5-prod-img-wrap img {
-        max-width: 100% !important;
+	max-width: 100% !important;
     }
     body.j5-shop-template .j5-prod-img-wrap img {
-        height: auto !important;
+	height: auto !important;
     }
     body.j5-shop-template .j5-prod-body {
-        padding: 10px !important;
+	padding: 10px !important;
     }
     body.j5-shop-template .j5-prod-brand-row {
-        margin-bottom: 4px !important;
+	margin-bottom: 4px !important;
     }
     body.j5-shop-template .j5-prod-brand {
-        font-size: 9px !important;
-        letter-spacing: 0.10em !important;
+	font-size: 9px !important;
+	letter-spacing: 0.10em !important;
     }
     body.j5-shop-template .j5-prod-rating {
-        font-size: 10px !important;
+	font-size: 10px !important;
     }
     body.j5-shop-template .j5-prod-name {
-        font-size: 12px !important;
-        line-height: 1.3 !important;
-        margin-bottom: 6px !important;
-        display: -webkit-box !important;
-        -webkit-line-clamp: 2 !important;
-        -webkit-box-orient: vertical !important;
-        overflow: hidden !important;
+	font-size: 12px !important;
+	line-height: 1.3 !important;
+	margin-bottom: 6px !important;
+	display: -webkit-box !important;
+	-webkit-line-clamp: 2 !important;
+	-webkit-box-orient: vertical !important;
+	overflow: hidden !important;
     }
     body.j5-shop-template .j5-prod-specs {
-        display: none !important;
+	display: none !important;
     }
     body.j5-shop-template .j5-prod-price-row {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 6px !important;
-        padding-top: 6px !important;
+	flex-direction: column !important;
+	align-items: stretch !important;
+	gap: 6px !important;
+	padding-top: 6px !important;
     }
     body.j5-shop-template .j5-prod-price,
     body.j5-shop-template .j5-prod-price .woocommerce-Price-amount,
     body.j5-shop-template .j5-prod-price .amount {
-        font-size: 14px !important;
-        line-height: 1 !important;
-        text-align: left !important;
-        width: 100% !important;
+	font-size: 14px !important;
+	line-height: 1 !important;
+	text-align: left !important;
+	width: 100% !important;
     }
     body.j5-shop-template .j5-prod-add {
-        font-size: 11px !important;
-        padding: 8px 10px !important;
-        width: 100% !important;
-        text-align: center !important;
-        white-space: nowrap !important;
-        letter-spacing: 0.10em !important;
+	font-size: 11px !important;
+	padding: 8px 10px !important;
+	width: 100% !important;
+	text-align: center !important;
+	white-space: nowrap !important;
+	letter-spacing: 0.10em !important;
     }
     body.j5-shop-template .j5-prod-badge {
-        font-size: 8px !important;
-        padding: 2px 5px !important;
-        letter-spacing: 0.10em !important;
+	font-size: 8px !important;
+	padding: 2px 5px !important;
+	letter-spacing: 0.10em !important;
     }
     body.j5-shop-template .j5-prod-sku {
-        font-size: 9px !important;
-        margin-top: 6px !important;
+	font-size: 9px !important;
+	margin-top: 6px !important;
     }
     body.j5-shop-template .j5-toolbar-inner {
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-        padding-right: 0 !important;
+	flex-wrap: wrap !important;
+	gap: 8px !important;
+	padding-right: 0 !important;
     }
     body.j5-shop-template .j5-result-count {
-        flex-basis: 100% !important;
-        font-size: 11px !important;
+	flex-basis: 100% !important;
+	font-size: 11px !important;
     }
     body.j5-shop-template .j5-toolbar-actions {
-        flex-wrap: wrap !important;
-        gap: 6px !important;
-        width: 100% !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+	width: 100% !important;
     }
     body.j5-shop-template .j5-sort-form,
     body.j5-shop-template .j5-perpage-form {
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
+	flex: 1 1 auto !important;
+	min-width: 0 !important;
     }
     body.j5-shop-template .j5-sort-select,
     body.j5-shop-template .j5-perpage-form select {
-        width: 100% !important;
-        min-width: 0 !important;
-        max-width: 100% !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
     }
     body.j5-shop-template .j5-view-toggle {
-        flex-shrink: 0 !important;
+	flex-shrink: 0 !important;
     }
     body.j5-shop-template .j5-view-toggle button {
-        width: 36px !important;
-        height: 36px !important;
-        flex-shrink: 0 !important;
+	width: 36px !important;
+	height: 36px !important;
+	flex-shrink: 0 !important;
     }
     body.j5-shop-template .j5-pill {
-        font-size: 9px !important;
-        padding: 4px 7px !important;
+	font-size: 9px !important;
+	padding: 4px 7px !important;
     }
 }
 @media (max-width: 380px) {
     body.j5-shop-template .j5-prod-name {
-        font-size: 11px !important;
+	font-size: 11px !important;
     }
     body.j5-shop-template .j5-prod-price,
     body.j5-shop-template .j5-prod-price .amount {
-        font-size: 13px !important;
+	font-size: 13px !important;
     }
 }
 </style>
