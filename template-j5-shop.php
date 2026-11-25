@@ -108,18 +108,8 @@ $j5_shop_url      = class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop
                 <span class="sep">/</span>
                 <span class="current">Shop All</span>
             </div>
-            <h1 class="j5-shop-title">SHOP ALL <span class="count">/ <?php echo esc_html( number_format( $total ) ); ?></span></h1>
-            <p class="j5-shop-desc">Every in-stock SKU across medical, armor, nylon, less-lethal, and tools. Filter by brand, protection level, price, or agency fitment. Real stock counts. No drop-ship surprises.</p>
-        </div>
-        <div class="j5-shop-meta">
-            <div class="j5-shop-meta-card">
-                <div class="label">// STATUS</div>
-                <div class="val">SHIPPING DAILY</div>
-            </div>
-            <div class="j5-shop-meta-card">
-                <div class="label">// CUT-OFF</div>
-                <div class="val">3:00 PM CT</div>
-            </div>
+            <h1 class="j5-shop-title">SHOP ALL</h1>
+            <p class="j5-shop-desc">Every in-stock SKU across medical, armor, nylon, less-lethal, and tools. Filter by brand, protection level, price, or agency fitment.</p>
         </div>
     </div>
 </section>

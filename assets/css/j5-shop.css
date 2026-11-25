@@ -1780,3 +1780,36 @@ a.j5cmp__name:hover { color: var(--j5-gold-hi); }
 	.j5cmp__links { display: grid; gap: 10px; }
 }
 /* === J5-COMPARE-SECTION-1 END === */
+
+/* ============================================================================
+ *  J5-CAT-HERO-2 (2026-11-24) — category/shop hero without the shipping
+ *  claim cards: one column, smaller balanced title, gold rule, intro inside.
+ * ========================================================================== */
+.j5-shop-hero { padding: 40px 0 34px; border-top: 3px solid var(--j5-red); }
+.j5-shop-hero-inner { grid-template-columns: minmax(0, 1fr); align-items: start; }
+.j5-shop-title,
+body.j5-rich-cat .j5-shop-title {
+    font-size: clamp(30px, 4.6vw, 60px);
+    line-height: 0.98;
+    text-transform: uppercase;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+    max-width: 1000px;
+}
+.j5-shop-title::after {
+    content: ""; display: block;
+    width: 56px; height: 3px; margin-top: 18px;
+    background: var(--j5-gold);
+}
+.j5-shop-hero-intro { margin-top: 16px; max-width: 720px; }
+.j5-shop-hero-intro .j5-cat-intro { background: none; border: 0; padding: 0; }
+.j5-shop-hero-intro .j5-cat-intro-inner { max-width: none; margin: 0; padding: 0; }
+.j5-shop-hero-intro .j5-cat-intro p { font-size: 15px; line-height: 1.6; max-width: none; }
+.j5-shop-desc { margin-top: 16px; }
+@media (max-width: 640px) {
+    .j5-shop-hero { padding: 24px 0 22px; }
+    .j5-crumbs { font-size: 10px; letter-spacing: 0.14em; margin-bottom: 12px; }
+    .j5-shop-title::after { width: 44px; margin-top: 12px; }
+    .j5-shop-hero-intro { margin-top: 12px; }
+    .j5-shop-hero-intro .j5-cat-intro p, .j5-shop-desc { font-size: 14px; }
+}

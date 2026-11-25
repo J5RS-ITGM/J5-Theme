@@ -102,7 +102,7 @@ if ( ! function_exists( 'j5_single_get_cta' ) ) {
 	function j5_single_get_cta( $post_id = 0 ) {
 		$cta = array(
 			'heading' => 'Questions about the gear in this article?',
-			'text'    => 'Every in-stock SKU with real stock counts — no drop-ship surprises.',
+			'text'    => 'Every in-stock SKU, filterable by brand, protection level, and price.',
 			'label'   => 'Shop All Gear',
 			'url'     => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' ),
 		);

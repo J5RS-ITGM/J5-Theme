@@ -167,8 +167,8 @@ get_header();
 						<div class="j5-hero-cap-label">USA-Made<br/>Body Armor</div>
 					</div>
 					<div class="j5-hero-cap">
-						<svg class="j5-hero-cap-icon" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17h10v-6H3z"/><path d="M13 11h4l4 3v3h-8z"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg>
-						<div class="j5-hero-cap-label">Fast<br/>Shipping</div>
+						<svg class="j5-hero-cap-icon" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5v14"/><path d="M7 5v14"/><path d="M11 5v14"/><path d="M15 5v14"/><path d="M18 5v14"/><path d="M21 5v14"/></svg>
+						<div class="j5-hero-cap-label">Lot &amp; Serial<br/>Tracked Armor</div>
 					</div>
 					<div class="j5-hero-cap">
 						<svg class="j5-hero-cap-icon" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m7.5 4.27 9 5.15"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
@@ -229,7 +229,7 @@ get_header();
 		<div class="j5-container j5-trust-inner">
 			<div class="j5-trust-item">
 				<span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
-				Free Shipping <?php echo esc_html( function_exists( 'j5_free_ship_label' ) ? j5_free_ship_label() : 'on orders over $99' ); ?>
+				Free Shipping <?php echo esc_html( function_exists( 'j5_free_ship_label' ) ? j5_free_ship_label() : '' ); ?>
 			</div>
 			<span class="j5-trust-sep">&#9670;</span>
 			<div class="j5-trust-item">

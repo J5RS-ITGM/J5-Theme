@@ -327,10 +327,6 @@ $related_products = array_filter( array_map( 'wc_get_product', $related_ids ) );
 
                 <!-- Trust signals -->
                 <div class="j5-product-trust">
-                    <div class="trust-item">
-                        <span class="icon">✈</span>
-                        <div><strong>Ships Daily</strong><span>3PM CT cut-off for same-day</span></div>
-                    </div>
                     <?php if ( function_exists('has_term') && has_term( 'life-safety-guarantee', 'product_tag' ) ) : ?>
                     <div class="trust-item">
                         <span class="icon">⚕</span>
@@ -416,10 +412,10 @@ $related_products = array_filter( array_map( 'wc_get_product', $related_ids ) );
                 <div class="j5-tab-panel" data-panel="shipping">
                     <div class="j5-shipping-content">
                         <h4>Standard Shipping</h4>
-                        <p>Orders placed before 3:00 PM CT typically ship same day via UPS or USPS. Standard delivery is 3-5 business days.</p>
+                        <p>In-stock items ship as soon as they're packed and checked, by UPS, FedEx, or USPS. Processing time varies by item and order volume. Made-to-order and factory-order items show their lead time on this page. You'll get tracking by email when your order ships.</p>
 
                         <h4>Expedited Options</h4>
-                        <p>Need it faster? Select expedited shipping at checkout for 2-day or overnight delivery.</p>
+                        <p>Expedited carrier service is available at checkout. It shortens time in transit only, not processing or lead time. See our <a href="<?php echo esc_url( get_permalink( 96909 ) ); ?>">Shipping Policy</a> for details.</p>
 
                         <h4>Returns</h4>
                         <p>30-day return window on unused, unworn items in original packaging. Armor, medical consumables, and custom-kit orders are final sale. See our <a href="<?php echo esc_url( site_url( '/life-safety-replacement-guarantee/' ) ); ?>">Life Safety Guarantee</a> for our 5-year replacement policy.</p>

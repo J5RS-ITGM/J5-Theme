@@ -113,26 +113,20 @@ if ( function_exists( 'is_product_category' ) && is_product_category() ) {
             <?php do_action( 'j5_archive_hero_before_title' ); /* J5-RICH-CAT */ ?>
             <h1 class="j5-shop-title"><?php echo wp_kses( apply_filters( 'j5_archive_title_html', esc_html( $j5_page_title ) ), array( 'span' => array( 'class' => array() ) ) ); ?></h1>
             <?php do_action( 'j5_archive_hero_after_title' ); /* J5-RICH-CAT */ ?>
-        </div>
-        <div class="j5-shop-meta">
-            <div class="j5-shop-meta-card">
-                <div class="label">// STATUS</div>
-                <div class="val">SHIPPING DAILY</div>
-            </div>
-            <div class="j5-shop-meta-card">
-                <div class="label">// CUT-OFF</div>
-                <div class="val">3:00 PM CT</div>
-            </div>
+            <?php /* J5-CAT-HERO-2: intro now sits inside the hero under the title. Shipping claim cards removed 2026-11-24. */ ?>
+            <?php
+            if ( function_exists( 'j5_render_category_intro' ) && apply_filters( 'j5_archive_show_intro', true ) ) {
+                echo '<div class="j5-shop-hero-intro">';
+                j5_render_category_intro( 'Filter by brand, protection level, price, or agency fitment.' );
+                echo '</div>';
+            }
+            ?>
         </div>
     </div>
 </section>
 
 <?php /* J5-CAT-CONTENT-INTRO-START — above-grid editable category intro */ ?>
-<?php
-if ( function_exists( 'j5_render_category_intro' ) && apply_filters( 'j5_archive_show_intro', true ) ) {
-	j5_render_category_intro( 'Filter by brand, protection level, price, or agency fitment. No drop-ship surprises.' );
-}
-?>
+<?php /* J5-CAT-HERO-2: intro moved into the hero above. */ ?>
 <?php /* J5-CAT-CONTENT-INTRO-END */ ?>
 
 <?php do_action( 'j5_archive_before_toolbar' ); /* J5-RICH-CAT: shop-by tiles */ ?>
